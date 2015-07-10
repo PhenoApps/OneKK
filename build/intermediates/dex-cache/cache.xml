@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        jar="C:\Users\Trevor\Documents\Android\onekk\onekk\libs\opencv.jar"
+        jumboMode="false"
+        revision="22.0.1"
+        sha1="f39a3ad0e200c1e0cb47bf639fdc0bb427b36fc3">
+        <dex dex="C:\Users\Trevor\Documents\Android\onekk\onekk\build\intermediates\pre-dexed\debug\opencv-408d6619ae620dec2be981a3f0e9942af47f8314.jar" />
+    </item>
+    <item
+        jar="C:\Users\Trevor\Documents\Android\onekk\onekk\libs\opencsv-3.1.jar"
+        jumboMode="false"
+        revision="22.0.1"
+        sha1="100f1f66bcade989c73eabd3d56ac39df47317df">
+        <dex dex="C:\Users\Trevor\Documents\Android\onekk\onekk\build\intermediates\pre-dexed\debug\opencsv-3.1-0f9c4697a77db20c5e75f03ec39921757ad035ce.jar" />
+    </item>
+    <item
+        jar="C:\Users\Trevor\Documents\Android\onekk\onekk\libs\watershed.jar"
+        jumboMode="false"
+        revision="22.0.1"
+        sha1="ef3b949b11c739e618ac19ec68f9302165ce93d0">
+        <dex dex="C:\Users\Trevor\Documents\Android\onekk\onekk\build\intermediates\pre-dexed\debug\watershed-5cc547ded989effa460b332ea632f81470d5070d.jar" />
+    </item>
+    <item
+        jar="C:\Users\Trevor\Documents\Android\onekk\onekk\build\intermediates\exploded-aar\onekk\openCVLibrary249\unspecified\jars\classes.jar"
+        jumboMode="false"
+        revision="22.0.1"
+        sha1="ace3176aa0c6bc01efc7a0237b8ea99e77c0536e">
+        <dex dex="C:\Users\Trevor\Documents\Android\onekk\onekk\build\intermediates\pre-dexed\debug\classes-17eab23823e97b19889a79fb9d1a64ae4d0be635.jar" />
+    </item>
+    <item
+        jar="C:\Users\Trevor\Documents\Android\onekk\onekk\libs\javacpp.jar"
+        jumboMode="false"
+        revision="22.0.1"
+        sha1="29cc3fb953bcfab4d55fa9e5ed3abe66517a8463">
+        <dex dex="C:\Users\Trevor\Documents\Android\onekk\onekk\build\intermediates\pre-dexed\debug\javacpp-1a7fc4bcac259a80f14549e1f3c545a62902b528.jar" />
+    </item>
+    <item
+        jar="C:\Users\Trevor\Documents\Android\onekk\onekk\libs\ffmpeg.jar"
+        jumboMode="false"
+        revision="22.0.1"
+        sha1="d80d33acdb2107e3503f49ef3a5f41d26d069cfb">
+        <dex dex="C:\Users\Trevor\Documents\Android\onekk\onekk\build\intermediates\pre-dexed\debug\ffmpeg-fe4e3e47781b2668918ee01e1f5abb4a883cefa0.jar" />
+    </item>
+
+</items>

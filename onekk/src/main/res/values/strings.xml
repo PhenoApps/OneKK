@@ -1,0 +1,16 @@
+<resources>
+
+    <string name="app_name">Wheat 1KK</string>
+    
+    <string-array name="crops">
+        <item>Wheat</item>
+        <item>Maize</item>
+        <item>Rice</item>
+        <item>Sorghum</item>
+        <item>Soybeans</item>
+        <item>Canola</item>
+        <item>Potato</item>
+        <item>Cassava</item>
+        <item>Custom</item>
+    </string-array>
+</resources>

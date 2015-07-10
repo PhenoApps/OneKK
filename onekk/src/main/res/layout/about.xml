@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="10dp" >
+
+    <TextView
+        android:id="@+id/devTrevor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Trevor Rife"
+        android:textSize="20dp" />
+
+    <TextView
+        android:id="@+id/devTrevorUni"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="15dip"
+        android:text="Kansas State University"
+        android:textSize="15dp" />
+
+    <TextView
+        android:id="@+id/devTrevorEmail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="15dip"
+        android:autoLink="email"
+        android:text="trife@ksu.edu"
+        android:textSize="15dp" />
+
+    <TextView
+        android:id="@+id/devJesse"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="Jesse Poland"
+        android:textSize="20dp" />
+
+    <TextView
+        android:id="@+id/devJesseUni"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="15dip"
+        android:text="Kansas State University"
+        android:textSize="15dp" />
+
+    <TextView
+        android:id="@+id/devJesseEmail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="15dip"
+        android:autoLink="email"
+        android:text="jpoland@ksu.edu"
+        android:textSize="15dp" />
+
+    <TextView
+        android:id="@+id/devWgSite"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="15dip"
+        android:autoLink="web"
+        android:text="http://wheatgenetics.org\n"
+        android:textSize="15dp" />
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="1dip"
+        android:background="#33B5E5" />
+
+    <TextView
+        android:id="@+id/invMsg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:autoLink="web"
+        android:text="\n1KK is a free and open source application that can be used to phenotype seed lots while also collecting and storing sample weight data. The app was designed to work with Elane USB Plus 5kg Scales (http://www.elane.net) and a fixed background mat.\n"
+        android:textSize="15dp" />
+
+    <TextView
+        android:id="@+id/invLibraries"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="1KK uses code from the following open source projects:"
+        android:textSize="15dp" />
+
+    <TextView
+        android:id="@+id/libTouchImageView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="15dip"
+        android:autoLink="web"
+        android:text="TouchImageView (https://github.com/MikeOrtiz/TouchImageView)"
+        android:textSize="15dp" />
+
+    <TextView
+        android:id="@+id/libShowCase"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="15dip"
+        android:autoLink="web"
+        android:text="ShowCaseView (https://github.com/amlcurran/ShowcaseView)"
+        android:textSize="15dp" />
+
+    <TextView
+        android:id="@+id/libOpencsv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="15dip"
+        android:autoLink="web"
+        android:text="opencsv (http://opencsv.sourceforge.net/)"
+        android:textSize="15dp" />
+
+</LinearLayout>
