@@ -3,22 +3,34 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="10dp" >
+    android:padding="10dp">
+
+    <TextView
+        android:id="@+id/tvVersion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingBottom="10dp"
+        android:paddingLeft="10dp"
+        android:text="@string/versiontitle"
+        android:textColor="@color/main_colorAccent"
+        android:textSize="@dimen/text_size_small"
+        android:clickable="true"
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/devTrevor"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Trevor Rife"
-        android:textSize="20dp" />
+        android:text="@string/dev_trevor"
+        android:textSize="@dimen/text_size_small" />
 
     <TextView
         android:id="@+id/devTrevorUni"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="15dip"
-        android:text="Kansas State University"
-        android:textSize="15dp" />
+        android:text="@string/ksu"
+        android:textSize="@dimen/text_size_small" />
 
     <TextView
         android:id="@+id/devTrevorEmail"
@@ -26,24 +38,49 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="15dip"
         android:autoLink="email"
-        android:text="trife@ksu.edu"
-        android:textSize="15dp" />
+        android:text="@string/dev_trevor_email"
+        android:textSize="@dimen/text_size_small" />
+
+    <TextView
+        android:id="@+id/devMegan"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="Megan Calvert"
+        android:textSize="@dimen/text_size_small" />
+
+    <TextView
+        android:id="@+id/devMeganUni"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="15dip"
+        android:text="@string/ksu"
+        android:textSize="@dimen/text_size_small" />
+
+    <TextView
+        android:id="@+id/devMeganEmail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="15dip"
+        android:autoLink="email"
+        android:text="@string/dev_megan_email"
+        android:textSize="@dimen/text_size_small" />
 
     <TextView
         android:id="@+id/devJesse"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:text="Jesse Poland"
-        android:textSize="20dp" />
+        android:text="@string/dev_jesse"
+        android:textSize="@dimen/text_size_small" />
 
     <TextView
         android:id="@+id/devJesseUni"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="15dip"
-        android:text="Kansas State University"
-        android:textSize="15dp" />
+        android:text="@string/ksu"
+        android:textSize="@dimen/text_size_small" />
 
     <TextView
         android:id="@+id/devJesseEmail"
@@ -51,8 +88,8 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="15dip"
         android:autoLink="email"
-        android:text="jpoland@ksu.edu"
-        android:textSize="15dp" />
+        android:text="@string/dev_jesse_email"
+        android:textSize="@dimen/text_size_small" />
 
     <TextView
         android:id="@+id/devWgSite"
@@ -60,28 +97,28 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="15dip"
         android:autoLink="web"
-        android:text="http://wheatgenetics.org\n"
-        android:textSize="15dp" />
+        android:text="@string/wg_site"
+        android:textSize="@dimen/text_size_small" />
 
     <View
         android:layout_width="fill_parent"
         android:layout_height="1dip"
-        android:background="#33B5E5" />
+        android:background="@color/main_colorAccent" />
 
     <TextView
         android:id="@+id/invMsg"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:autoLink="web"
-        android:text="\n1KK is a free and open source application that can be used to phenotype seed lots while also collecting and storing sample weight data. The app was designed to work with Elane USB Plus 5kg Scales (http://www.elane.net) and a fixed background mat.\n"
-        android:textSize="15dp" />
+        android:text=""
+        android:textSize="@dimen/text_size_small" />
 
     <TextView
         android:id="@+id/invLibraries"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="1KK uses code from the following open source projects:"
-        android:textSize="15dp" />
+        android:text="@string/onekk_libraries"
+        android:textSize="@dimen/text_size_small" />
 
     <TextView
         android:id="@+id/libTouchImageView"
@@ -89,17 +126,8 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="15dip"
         android:autoLink="web"
-        android:text="TouchImageView (https://github.com/MikeOrtiz/TouchImageView)"
-        android:textSize="15dp" />
-
-    <TextView
-        android:id="@+id/libShowCase"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="15dip"
-        android:autoLink="web"
-        android:text="ShowCaseView (https://github.com/amlcurran/ShowcaseView)"
-        android:textSize="15dp" />
+        android:text="@string/library_touchimageview"
+        android:textSize="@dimen/text_size_small" />
 
     <TextView
         android:id="@+id/libOpencsv"
@@ -107,7 +135,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="15dip"
         android:autoLink="web"
-        android:text="opencsv (http://opencsv.sourceforge.net/)"
-        android:textSize="15dp" />
+        android:text="@string/library_opencsv"
+        android:textSize="@dimen/text_size_small" />
 
 </LinearLayout>

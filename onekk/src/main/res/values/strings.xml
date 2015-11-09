@@ -1,16 +1,104 @@
 <resources>
 
-    <string name="app_name">Wheat 1KK</string>
-    
-    <string-array name="crops">
-        <item>Wheat</item>
-        <item>Maize</item>
-        <item>Rice</item>
-        <item>Sorghum</item>
-        <item>Soybeans</item>
-        <item>Canola</item>
-        <item>Potato</item>
-        <item>Cassava</item>
-        <item>Custom</item>
-    </string-array>
+    <string name="app_name">1KK</string>
+
+    <!-- Main strings -->
+    <string name="input">Input:</string>
+    <string name="weight">Weight:</string>
+    <string name="nullStr">null</string>
+
+    <string name="sample">Sample</string>
+    <string name="countAbr">Ct</string>
+    <string name="lengthAbr">Ln</string>
+    <string name="widthAbr">Wd</string>
+    <string name="weightAbr">Wt</string>
+
+    <string name="not_connected">null</string>
+
+
+    <!-- Menu strings -->
+    <string name="settings">Settings</string>
+    <string name="export">Export</string>
+    <string name="connect_scale_title">Connect Scale</string>
+    <string name="clear_data">Clear Data</string>
+    <string name="help">Help</string>
+    <string name="about_title">About</string>
+    <string name="versiontitle">Version: </string>
+
+
+    <!-- Dialog strings -->
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete_entry">Delete Entry</string>
+    <string name="delete_msg_1">This will delete all samples and seeds associated with</string>
+    <string name="delete_msg_2">Do you wish to proceed?</string>
+
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+
+    <string name="analysis_preview">Analysis Preview</string>
+
+    <string name="set_person">Set Person</string>
+    <string name="no_blank">Names cannot be left blank.</string>
+    <string name="person_set">Person set as:</string>
+
+    <string name="delete_database">"This will delete all data from the database. Proceed?"</string>
+    <string name="data_deleted">"Data deleted"</string>
+
+
+    <!-- Export strings -->
+    <string name="export_choice">Export raw data or sample summaries?</string>
+    <string name="export_raw">Raw data</string>
+    <string name="export_all">All data</string>
+    <string name="export_summaries">Sample summaries</string>
+    <string name="export_data">Export data</string>
+    <string name="database_empty">Database currently empty.</string>
+
+
+    <!-- About strings -->
+    <string name="about">About OneKK</string>
+    <string name="dev_trevor">Trevor Rife</string>
+    <string name="ksu">Kansas State University</string>
+    <string name="dev_trevor_email">trife@ksu.edu</string>
+    <string name="dev_megan">Megan Calvert</string>
+    <string name="dev_megan_email">megzcalvert@ksu.edu</string>
+    <string name="dev_jesse">Jesse Poland</string>
+    <string name="dev_jesse_email">jpoland@ksu.edu</string>
+    <string name="wg_site">http://wheatgenetics.org\n</string>
+    <string name="onekk_description">\n1KK is a free and open source application that can be used to phenotype seed lots while also collecting and storing sample weight data. The app was designed to work with Elane USB Plus 5kg Scales (http://www.elane.net) and a fixed background mat.\n</string>
+    <string name="onekk_libraries">1KK uses code from the following open source projects:</string>
+    <string name="library_touchimageview">TouchImageView (https://github.com/MikeOrtiz/TouchImageView)</string>
+    <string name="library_opencsv">opencsv (http://opencsv.sourceforge.net/)</string>
+
+
+    <!-- Settings strings -->
+    <string name="min_size">Minimum seed size</string>
+    <string name="ref_size">Reference circle size (mm)</string>
+    <string name="display_analysis">Display analysis preview</string>
+    <string name="auto_crop">Automatically attempt to crop photos</string>
+
+
+    <!-- Scale not found -->
+    <string name="no_scale">Scale Not Found</string>
+    <string name="connect_scale">Please connect scale with OTG cable and turn the scale on</string>
+    <string name="try_again">Try Again</string>
+    <string name="ignore">Ignore</string>
+    <string name="scale_disconnect">Scale disconnected</string>
+
+
+    <!-- Person  strings -->
+    <string name="first_name">First Name</string>
+    <string name="last_name">Last Name</string>
+
+
+    <!-- Toast strings -->
+    <string name="dir_problem">Problem making directories</string>
+    <string name="coming_soon">Coming soon!</string>
+    <string name="updatemsg">Changelog</string>
+
+
+    <!-- Strings being used for dev -->
+    <string name="drawer_open">Open navigation drawer</string>
+    <string name="drawer_close">Close navigation drawer</string>
+
 </resources>

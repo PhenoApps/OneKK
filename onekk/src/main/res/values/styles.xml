@@ -1,5 +1,52 @@
 <resources>
 
-    <style name="AppTheme" parent="android:Theme.Holo" />
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/main_primary</item>
+        <item name="colorPrimaryDark">@color/main_primaryDark</item>
+        <item name="colorAccent">@color/main_colorAccent</item>
+
+        <item name="buttonStyle">@style/ButtonStyle</item>
+    </style>
+
+    <style name="NavigationDrawerTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:textSize">@dimen/text_size_medium</item>
+    </style>
+
+    <style name="AppDialog" parent="Theme.AppCompat.Light.Dialog">
+        <item name="colorPrimary">@color/main_primary</item>
+        <item name="colorPrimaryDark">@color/main_primaryDark</item>
+        <item name="colorAccent">@color/main_colorAccent</item>
+
+        <item name="buttonStyle">@style/ButtonStyle</item>
+        <item name="android:actionMenuTextAppearance">@style/AppMenuText</item>
+    </style>
+
+    <style name="AppMenuText" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">@dimen/text_size_large</item>
+    </style>
+
+    <style name="ButtonStyle" parent="Widget.AppCompat.Button">
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="ChangelogTitles" parent="Theme.AppCompat.Light.Dialog">
+        <item name="android:textSize">@dimen/text_size_small</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/main_colorAccent</item>
+    </style>
+
+    <style name="ChangelogContent" parent="Theme.AppCompat.Light.Dialog">
+        <item name="android:textSize">@dimen/text_size_small</item>
+        <item name="android:textColor">#000000</item>
+    </style>
+
+    <style name="AppToolbar" parent="@style/ThemeOverlay.AppCompat.ActionBar">
+        <item name="drawerArrowStyle">@style/MyDrawerArrowToggle</item>
+    </style>
+
+    <style name="MyDrawerArrowToggle" parent="Widget.AppCompat.DrawerArrowToggle">
+        <item name="color">#FFFFFF</item>
+    </style>
 
 </resources>

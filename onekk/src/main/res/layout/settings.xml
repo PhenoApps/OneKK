@@ -2,166 +2,110 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" >
+    android:orientation="vertical">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="15dp"
-        android:orientation="horizontal" >
+        android:layout_marginBottom="25dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
 
         <TextView
             android:id="@+id/tvAnalysisPreview"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="left"
-            android:text="Display image preview"
+            android:layout_alignParentLeft="true"
+            android:text="@string/display_analysis"
             android:textSize="20sp" />
 
         <Switch
             android:id="@+id/swAnalysisPreview"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:checked="true"
-            android:gravity="right" />
-    </LinearLayout>
+            android:layout_alignParentRight="true"
+            android:checked="true" />
+    </RelativeLayout>
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="15dp"
-        android:orientation="horizontal" >
+        android:layout_marginBottom="25dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvCropImage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:text="@string/display_analysis"
+            android:textSize="20sp" />
+
+        <Switch
+            android:id="@+id/swCropImage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:checked="true" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:layout_marginLeft="10dp"
+        android:orientation="horizontal">
 
         <TextView
             android:id="@+id/tvReferenceDiameter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="left"
-            android:text="Reference Diameter size (mm)"
+            android:layout_alignParentLeft="true"
+            android:text="@string/ref_size"
             android:textSize="20sp" />
 
         <EditText
             android:id="@+id/etReferenceDiameter"
-            android:layout_width="wrap_content"
+            android:layout_width="50dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="right"
-            android:inputType="phone"
-            android:maxWidth="20dp"
-            android:minWidth="20dp"
+            android:layout_alignParentRight="true"
+            android:inputType="numberDecimal"
+            android:selectAllOnFocus="true"
+            android:gravity="center_horizontal"
             android:singleLine="true"
             android:textSize="20sp" />
-    </LinearLayout>
+    </RelativeLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="15dp"
-        android:orientation="horizontal" >
-
-        <TextView
-            android:id="@+id/tvCropLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="left"
-            android:text="Crop"
-            android:textSize="20sp" />
-
-        <Spinner
-            android:id="@+id/spCrops"
-            android:layout_width="20dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:entries="@array/crops"
-            android:gravity="right" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="15dp"
-        android:orientation="horizontal" >
-
-        <TextView
-            android:id="@+id/tvExpectedLWR"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="left"
-            android:text="Expected Seed Length-Width Ratio"
-            android:textSize="20sp" />
-
-        <EditText
-            android:id="@+id/etExpectedLWR"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="right"
-            android:inputType="phone"
-            android:maxWidth="20dp"
-            android:minWidth="20dp"
-            android:singleLine="true"
-            android:textSize="20sp" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="15dp"
-        android:orientation="horizontal" >
-
-        <TextView
-            android:id="@+id/tvMinCirc"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="left"
-            android:text="Minimum Seed Circularity"
-            android:textSize="20sp" />
-
-        <EditText
-            android:id="@+id/etMinCirc"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="right"
-            android:inputType="phone"
-            android:maxWidth="20dp"
-            android:minWidth="20dp"
-            android:singleLine="true"
-            android:textSize="20sp" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="15dp"
-        android:orientation="horizontal" >
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:layout_marginLeft="10dp"
+        android:orientation="horizontal">
 
         <TextView
             android:id="@+id/tvMinSize"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="left"
-            android:text="Minimum Seed Size"
+            android:layout_alignParentLeft="true"
+            android:text="@string/min_size"
             android:textSize="20sp" />
 
         <EditText
             android:id="@+id/etMinSize"
-            android:layout_width="wrap_content"
+            android:layout_width="50dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="right"
-            android:inputType="phone"
-            android:maxWidth="20dp"
-            android:minWidth="20dp"
+            android:layout_alignParentRight="true"
+            android:inputType="numberDecimal"
+            android:gravity="center_horizontal"
+            android:selectAllOnFocus="true"
             android:singleLine="true"
             android:textSize="20sp" />
-    </LinearLayout>
+    </RelativeLayout>
 
 </LinearLayout>
