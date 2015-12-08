@@ -21,6 +21,7 @@ import org.opencv.android.OpenCVLoader;
 import org.wheatgenetics.imageprocess.ImgProcess1KK;
 import org.wheatgenetics.imageprocess.ImgProcess1KK.Seed;
 
+import android.app.Activity;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.support.design.widget.NavigationView;
@@ -63,12 +64,17 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnLongClickListener;
+import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TableLayout;
@@ -97,6 +103,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
     private ScrollView sv1;
     static int currentItemNum = 1;
+    FrameLayout preview;
 
     @SuppressWarnings("deprecation")
     private Camera mCamera;
@@ -115,8 +122,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -143,6 +148,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         sv1 = (ScrollView) findViewById(R.id.svData);
         OneKKTable = (TableLayout) findViewById(R.id.tlInventory);
 
+        preview = (FrameLayout) findViewById(R.id.camera_preview);
         parent = new LinearLayout(this);
         changeContainer = new ScrollView(this);
         changeContainer.removeAllViews();
@@ -223,6 +229,8 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         goToTop();
         settingsDialog();
 
+        makeToast(String.valueOf(preview.getHeight()) + " " + String.valueOf(preview.getWidth()));
+
         if (!OpenCVLoader.initDebug()) {
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.INIT_FAILED);
         } else {
@@ -243,6 +251,46 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             ed.apply();
             changelog();
         }
+
+        FrameLayout measuringStick = (FrameLayout) findViewById(R.id.measureStick);
+        measuringStick.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            int count = 0;
+            double ratio = 0.0;
+            int height1 = 0;
+            int width1 = 0;
+
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+
+                if (preview.getWidth() != 0 && preview.getHeight() != 0) {
+                    if (preview.getWidth() > width1 && preview.getHeight() > height1) {
+                        width1 = preview.getWidth();
+                        height1 = preview.getHeight();
+                        count++;
+                    }
+
+                    if(count!=0) {
+                        ratio = ((double) height1)/((double) width1);
+                    }
+                }
+
+                if(bottom<oldBottom) {
+                    int newWidth = (int) (bottom/ratio);
+                    RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(newWidth,bottom);
+                    lp.addRule(RelativeLayout.CENTER_HORIZONTAL);
+                    lp.addRule(RelativeLayout.ALIGN_TOP);
+                    preview.setLayoutParams(lp);
+                }
+
+                if(oldBottom<bottom) {
+                    RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(width1,height1);
+                    preview.setLayoutParams(lp);
+                }
+
+                //makeToast(String.valueOf(bottom) + " " + String.valueOf(oldBottom));
+                //makeToast(String.valueOf(preview.getHeight()));
+            }
+        });
     }
 
     private void createDirs() {
@@ -304,8 +352,9 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         // Create our Preview view and set it as the content of our activity.
         mPreview = new CameraPreview(this, mCamera);
-        FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
         preview.addView(mPreview);
+
+
     }
 
     private void goToTop() {
@@ -329,12 +378,17 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                         + temp[3] + " " + temp[4] + " " + temp[5] + " "
                         + temp[6] + " " + temp[7]);
 
-                createNewTableEntry(temp[0], temp[5],
-                        String.format("%.2f", Double.parseDouble(temp[6])),
-                        String.format("%.2f", Double.parseDouble(temp[7])),
-                        String.format("%.2f", Double.parseDouble(temp[8])));
+                createNewTableEntry(temp[0], temp[5], stringDecimal(temp[7]), stringDecimal(temp[8]), stringDecimal(temp[6]));
             }
         }
+    }
+
+    private String stringDecimal(String input) {
+        if (!input.equals("null")) {
+            return String.format("%.2f", Double.parseDouble(input));
+        }
+
+        return "null";
     }
 
     /**
@@ -359,27 +413,35 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         // Add all measured seeds to database
         for (int j = 0; j < seeds.size(); j++) {
-            //TODO add other parameters (area, colour, weight)
-            db.addSeedRecord(new SeedRecord(inputText.getText().toString(), seeds.get(j).getLength(), seeds.get(j).getWidth(), seeds.get(j).getCirc(), "", "", ""));
+            //TODO add other parameters (weight, color)
+            db.addSeedRecord(new SeedRecord(inputText.getText().toString(), seeds.get(j).getLength(), seeds.get(j).getWidth(), seeds.get(j).getCirc(), seeds.get(j).getArea(), "", ""));
         }
 
         // Calculate averages
-        double avgLength;
-        double avgWidth;
-        double avgArea;
+        double lengthAvg = db.averageSample(inputText.getText().toString(), "length");
+        double lengthVar = Math.pow(db.sdSample(inputText.getText().toString(), "length"), 2);
+        double lengthCV = (db.sdSample(inputText.getText().toString(), "length")) / (db.averageSample(inputText.getText().toString(), "length"));
 
-        avgLength = db.averageSample(inputText.getText().toString(), "length");
-        avgWidth = db.averageSample(inputText.getText().toString(), "width");
-        avgArea = db.averageSample(inputText.getText().toString(), "area");
+        double widthAvg = db.averageSample(inputText.getText().toString(), "width");
+        double widthVar = Math.pow(db.sdSample(inputText.getText().toString(), "width"), 2);
+        double widthCV = (db.sdSample(inputText.getText().toString(), "width")) / db.averageSample(inputText.getText().toString(), "width");
+
+        double areaAvg = db.averageSample(inputText.getText().toString(), "area");
+        double areaVar = Math.pow(db.sdSample(inputText.getText().toString(), "area"), 2);
+        double areaCV = (db.sdSample(inputText.getText().toString(), "area")) / (db.averageSample(inputText.getText().toString(), "area"));
 
         String seedCountString = String.valueOf(seedCount);
 
         // Add sample to database
-        db.addSampleRecord(new SampleRecord(inputText.getText().toString(), photoName, ep.getString("FirstName", "").toLowerCase() + "_" + ep.getString("LastName", "").toLowerCase(), date, seedCountString, weight, avgArea, avgLength, avgWidth));
+        db.addSampleRecord(new SampleRecord(inputText.getText().toString(), photoName,
+                ep.getString("FirstName", "").toLowerCase() + "_" + ep.getString("LastName", "").toLowerCase(),
+                date, seedCountString, weight, lengthAvg, lengthVar, lengthCV, widthAvg,
+                widthVar, widthCV, areaAvg, areaVar, areaCV));
+
 
         // Round values for UI
-        String avgLengthStr = String.format("%.2f", avgLength);
-        String avgWidthStr = String.format("%.2f", avgWidth);
+        String avgLengthStr = String.format("%.2f", lengthAvg);
+        String avgWidthStr = String.format("%.2f", widthAvg);
 
         createNewTableEntry(inputText.getText().toString(), seedCountString, avgLengthStr, avgWidthStr, weight);
         currentItemNum++;
@@ -696,10 +758,12 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         final Switch cropImage = (Switch) settingsView.findViewById(R.id.swCropImage);
         final EditText refDiam = (EditText) settingsView.findViewById(R.id.etReferenceDiameter);
         final EditText minSize = (EditText) settingsView.findViewById(R.id.etMinSize);
+        final EditText maxSize = (EditText) settingsView.findViewById(R.id.etMaxSize);
 
         refDiam.setText(ep.getString("refDiam", "1"));
         analysisPreview.setChecked(ep.getBoolean("analysisPreview", false));
         minSize.setText(ep.getString("minSize", "0.0"));
+        maxSize.setText(ep.getString("maxSize", "0.0"));
         cropImage.setChecked(ep.getBoolean("cropImage", true));
 
         alert.setCancelable(false);
@@ -710,6 +774,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                 Editor ed = ep.edit();
                 ed.putString("refDiam", refDiam.getText().toString());
                 ed.putString("minSize", minSize.getText().toString());
+                ed.putString("maxSize", maxSize.getText().toString());
                 ed.putBoolean("analysisPreview", analysisPreview.isChecked());
                 ed.putBoolean("cropImage", cropImage.isChecked());
                 ed.apply();
@@ -776,7 +841,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         double refDiam = Double.valueOf(ep.getString("refDiam", "1")); // Wheat default
 
-        ImgProcess1KK imgP = new ImgProcess1KK(Constants.PHOTO_PATH.toString() + "/" + photoName, refDiam, ep.getBoolean("crop", true), Double.valueOf(ep.getString("minSize", "0.0")));
+        ImgProcess1KK imgP = new ImgProcess1KK(Constants.PHOTO_PATH.toString() + "/" + photoName, refDiam, ep.getBoolean("crop", true), Double.valueOf(ep.getString("minSize", "0.0")), Double.valueOf(ep.getString("maxSize", "0.0")));
         imgP.writeProcessedImg(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg");
         makeFileDiscoverable(new File(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg"), this);
 
@@ -836,12 +901,13 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         LayoutInflater inflater = this.getLayoutInflater();
         final View personView = inflater.inflate(R.layout.about, new LinearLayout(this), false);
         TextView version = (TextView) personView.findViewById(R.id.tvVersion);
+        TextView otherApps = (TextView) personView.findViewById(R.id.tvOtherApps);
 
 
         final PackageManager packageManager = this.getPackageManager();
         try {
             PackageInfo packageInfo = packageManager.getPackageInfo(this.getPackageName(), 0);
-            version.setText(getResources().getString(R.string.versiontitle) + packageInfo.versionName);
+            version.setText(getResources().getString(R.string.versiontitle) + " " + packageInfo.versionName);
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, e.getMessage());
         }
@@ -853,6 +919,14 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             }
         });
 
+        otherApps.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showOtherAppsDialog();
+            }
+        });
+
+
         alert.setCancelable(true);
         alert.setTitle(getResources().getString(R.string.about));
         alert.setView(personView);
@@ -862,6 +936,86 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             }
         });
         alert.show();
+    }
+
+    private void showOtherAppsDialog() {
+        final AlertDialog.Builder otherAppsAlert = new AlertDialog.Builder(this);
+
+        ListView myList = new ListView(this);
+        myList.setDivider(null);
+        myList.setDividerHeight(0);
+        String[] appsArray = new String[3];
+
+        appsArray[0] = "Field Book";
+        appsArray[1] = "Inventory";
+        appsArray[2] = "Coordinate";
+        //appsArray[3] = "Intercross";
+        //appsArray[4] = "Rangle";
+
+        Integer app_images[] = {R.drawable.other_ic_field_book, R.drawable.other_ic_inventory, R.drawable.other_ic_coordinate};
+        final String[] links = {"https://play.google.com/store/apps/details?id=com.fieldbook.tracker",
+                "https://play.google.com/store/apps/details?id=org.wheatgenetics.inventory",
+                "http://wheatgenetics.org/apps"}; //TODO update these links
+
+        myList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> av, View arg1, int which, long arg3) {
+                Uri uri = Uri.parse(links[which]);
+                Intent intent;
+
+                switch (which) {
+                    case 0:
+                        intent = new Intent(Intent.ACTION_VIEW, uri);
+                        startActivity(intent);
+                        break;
+                    case 1:
+                        intent = new Intent(Intent.ACTION_VIEW, uri);
+                        startActivity(intent);
+                        break;
+                    case 2:
+                        intent = new Intent(Intent.ACTION_VIEW, uri);
+                        startActivity(intent);
+                        break;
+                }
+            }
+        });
+
+        CustomListAdapter adapterImg = new CustomListAdapter(this, app_images, appsArray);
+        myList.setAdapter(adapterImg);
+
+        otherAppsAlert.setCancelable(true);
+        otherAppsAlert.setTitle(getResources().getString(R.string.otherapps));
+        otherAppsAlert.setView(myList);
+        otherAppsAlert.setNegativeButton(getResources().getString(R.string.ok), new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                dialog.dismiss();
+            }
+        });
+        otherAppsAlert.show();
+    }
+
+    public class CustomListAdapter extends ArrayAdapter<String> {
+        String[] color_names;
+        Integer[] image_id;
+        Context context;
+
+        public CustomListAdapter(Activity context, Integer[] image_id, String[] text) {
+            super(context, R.layout.appline, text);
+            this.color_names = text;
+            this.image_id = image_id;
+            this.context = context;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            LayoutInflater inflater = (LayoutInflater) context
+                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            View single_row = inflater.inflate(R.layout.appline, null, true);
+            TextView textView = (TextView) single_row.findViewById(R.id.txt);
+            ImageView imageView = (ImageView) single_row.findViewById(R.id.img);
+            textView.setText(color_names[position]);
+            imageView.setImageResource(image_id[position]);
+            return single_row;
+        }
     }
 
     public void makeToast(String message) {
@@ -1005,7 +1159,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         File file = null;
 
         try {
-            file = new File(Environment.getExternalStorageDirectory(), "OneKK/Export/export_" + type + "_" + getDate() + ".csv");
+            file = new File(Constants.EXPORT_PATH, "export_" + type + "_" + getDate() + ".csv");
         } catch (Exception e) {
             Toast.makeText(getBaseContext(), e.getMessage(), Toast.LENGTH_SHORT)
                     .show();

@@ -33,7 +33,7 @@
         <activity
             android:name=".MainActivity"
             android:configChanges="keyboardHidden|orientation|screenSize|keyboard"
-            android:label="OneKK"
+            android:label="@string/app_name"
             android:launchMode="singleTask"
             android:screenOrientation="sensorPortrait"
             android:windowSoftInputMode="adjustResize">

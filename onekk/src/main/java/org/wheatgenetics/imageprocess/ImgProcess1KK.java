@@ -26,6 +26,8 @@ public class ImgProcess1KK {
     private double refDiam = 1;
 
     private int seedCount = 0;
+    private double minimumSize = 0.0;
+    private double maximumSize = 0.0;
 
     private double pixelSize = 0; // pixel size in mm
     public boolean cropImage = true;
@@ -41,11 +43,15 @@ public class ImgProcess1KK {
 
     List<MatOfInt> hull = new ArrayList<>();
 
-    public ImgProcess1KK(String inputFILE, double refDiameter, boolean crop, double minSize) {
+    public ImgProcess1KK(String inputFILE, double refDiameter, boolean crop, double minSize, double maxSize) {
         double start = System.currentTimeMillis();
 
         refDiam = refDiameter;
         imageFile = inputFILE;
+        minimumSize = minSize;
+        maximumSize = maxSize;
+        cropImage = crop;
+
         this.initialize();
         this.processImage();
 
@@ -192,7 +198,6 @@ public class ImgProcess1KK {
 
     }
 
-    //TODO minimum size option
     //TODO minimum number option
 
     /**
@@ -240,6 +245,7 @@ public class ImgProcess1KK {
             seedMatA.add(area);
             seedMatP.add(Imgproc.arcLength(tmp, true));
         }
+
         //System.out.println(seedMatW.size());
         //store all measurements in single variable
         double[][] seedMatValues = new double[4][seedMatW.size()];
@@ -287,11 +293,9 @@ public class ImgProcess1KK {
                 }
 
                 seedMatCalcMax[k][i] = count;
-
                 count = 0;
             }
         }
-
 
         // find mode for true seed count
         int[] trueSeedCount = new int[4];
@@ -343,13 +347,11 @@ public class ImgProcess1KK {
         if (goodContours.size() <= 12) {
             goodContours = contours;
             System.out.println("\n" + "UNABLE TO IDENTIFY FIVE INDIVIDUAL OBJECTS");
-            System.out.println("YOUR SAMPLE IS LIKELY HETEROGENOUS OR THE IMAGE IS NOISY");
+            System.out.println("YOUR SAMPLE IS VERY HETEROGENOUS OR THE IMAGE IS TOO NOISY");
             System.out.println("USING ALL OBJECTS INSTEAD");
         }
 
-
         // median counting approach
-
         Mat pixels = imgNG.clone();
         double seedSizeMedian = findMedian(contours);
         int i = Double.valueOf(seedSizeMedian).intValue();
@@ -442,6 +444,7 @@ public class ImgProcess1KK {
             dims[1] = testsz.height;
             double area = Imgproc.contourArea(goodContours.get(i));
 
+            //TODO check these
             if (findMin(dims) / findMax(dims) == 0.0 || area == 0.0 || findMax(dims) / findMin(dims) >= 10.0 || findMax(dims) <= 10 || findMin(dims) <= 10) {
                 goodContours.remove(i);
                 i = i - 1;
@@ -460,7 +463,17 @@ public class ImgProcess1KK {
                 //roi = Imgproc.boundingRect(goodContours.get(i)); // TODO add switch for analyzing color
 
                 Seed s = new Seed(tmp, tmp2);
-                seedArray.add(s);
+
+                //TODO check this
+                //Size filtering - add seed if minimum or maximum are set and seed length falls within bounds
+                if((minimumSize!=0.0 && s.length>=minimumSize*pixelSize)||(maximumSize!=0.0 && s.length<=maximumSize*pixelSize)) {
+                    seedArray.add(s);
+                }
+
+                // Add if size parameters not set
+                if((minimumSize==0.0)||(maximumSize==0.0)){
+                    seedArray.add(s);
+                }
             }
         }
 
@@ -587,6 +600,7 @@ public class ImgProcess1KK {
             Core.line(pImg, seedArray.get(i).ptsW[0], seedArray.get(i).ptsW[1], blue, 2); // width
             Core.line(pImg, seedArray.get(i).ptsL[0], seedArray.get(i).ptsL[1], green, 2); // length
             Core.circle(pImg, seedArray.get(i).centgrav, 2, white, 2); // center gravity
+            Core.putText(pImg,String.valueOf(i+1),seedArray.get(i).centgrav,Core.FONT_HERSHEY_PLAIN,2,black,2);
         }
 
         return pImg;
@@ -619,7 +633,6 @@ public class ImgProcess1KK {
         private double tolerance = 0.2;
         private boolean isCanonical = false;
 
-        // TODO add factors for expected size and filter accordingly
         private MatOfPoint2f seedMat = new MatOfPoint2f();
         private MatOfPoint perm = new MatOfPoint();
         private MatOfPoint perm2 = new MatOfPoint();
@@ -644,7 +657,7 @@ public class ImgProcess1KK {
         }
 
         public double getArea() {
-            return area * pixelSize;
+            return area * pixelSize * pixelSize;
         }
 
         public double getPerim() {

@@ -6,6 +6,6 @@
 
     <color name="main_primary">#FFC107</color>
     <color name="main_primaryDark">#FFA000</color>
-    <color name="main_colorAccent">#FFC400</color>
+    <color name="main_colorAccent">#448AFF</color>
 
 </resources>

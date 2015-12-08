@@ -2,23 +2,23 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/nav_settings"
-        android:icon="@drawable/ic_action_settings"
+        android:icon="@drawable/ic_settings"
         android:title="@string/settings" />
     <item
-        android:id="@+id/nav_export"
-        android:icon="@drawable/ic_action_save"
-        android:title="@string/export" />
-    <item
         android:id="@+id/nav_person"
-        android:icon="@drawable/ic_action_person"
+        android:icon="@drawable/ic_person"
         android:title="@string/set_person" />
     <item
         android:id="@+id/nav_scaleConnect"
         android:icon="@drawable/ic_usb"
         android:title="@string/connect_scale_title" />
     <item
+        android:id="@+id/nav_export"
+        android:icon="@drawable/ic_save"
+        android:title="@string/export" />
+    <item
         android:id="@+id/nav_clearData"
-        android:icon="@drawable/ic_action_discard"
+        android:icon="@drawable/ic_delete"
         android:title="@string/clear_data" />
     <item
         android:id="@+id/nav_help"
@@ -26,6 +26,6 @@
         android:title="@string/help" />
     <item
         android:id="@+id/nav_about"
-        android:icon="@drawable/ic_action_about"
+        android:icon="@drawable/ic_info"
         android:title="@string/about_title" />
 </menu>

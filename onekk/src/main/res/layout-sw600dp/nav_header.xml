@@ -18,7 +18,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/nameLabel"
         android:paddingLeft="15dp"
-        android:textSize="@dimen/text_size_large"
+        android:textSize="@dimen/text_size_medium"
         android:textStyle="bold"
         android:textColor="@android:color/white" />
 </LinearLayout>

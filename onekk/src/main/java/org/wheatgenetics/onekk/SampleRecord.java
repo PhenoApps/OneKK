@@ -9,16 +9,23 @@ public class SampleRecord {
     private String date;
     private String seedCount;
     private String weight;
-    private Double avgArea;
-    private Double avgLength;
-    private Double avgWidth;
+    private Double areaAvg;
+    private Double areaVar;
+    private Double areaCV;
+    private Double lengthAvg;
+    private Double lengthVar;
+    private Double lengthCV;
+    private Double widthAvg;
+    private Double widthVar;
+    private Double widthCV;
 
     public SampleRecord() {
     }
 
     public SampleRecord(String sampleId, String photo,
-                        String personId, String date, String seedCount, String weight, Double avgArea,
-                        Double avgLength, Double avgWidth) {
+                        String personId, String date, String seedCount, String weight, Double avgLength,
+                        Double varLength, Double cvLength, Double avgWidth, Double varWidth, Double cvWidth,
+                        Double avgArea, Double varArea, Double cvArea) {
         super();
         this.sampleId = sampleId;
         this.photo = photo;
@@ -26,9 +33,15 @@ public class SampleRecord {
         this.date = date;
         this.seedCount = seedCount;
         this.weight = weight;
-        this.avgArea = avgArea;
-        this.avgLength = avgLength;
-        this.avgWidth = avgWidth;
+        this.lengthAvg = avgLength;
+        this.lengthVar = varLength;
+        this.lengthCV = cvLength;
+        this.widthAvg = avgWidth;
+        this.widthVar = varWidth;
+        this.widthCV = cvWidth;
+        this.areaAvg = avgArea;
+        this.areaVar = varArea;
+        this.areaCV = cvArea;
     }
 
     public int getId() {
@@ -87,37 +100,84 @@ public class SampleRecord {
         this.weight = weight;
     }
 
-    public Double getAvgArea() {
-        // TODO Auto-generated method stub
-        return avgArea;
+
+    public Double getLengthAvg() { return lengthAvg; }
+
+    public void setLengthAvg(Double avgLength) {
+        this.lengthAvg = avgLength;
     }
 
-    public Double getAvgLength() {
-        // TODO Auto-generated method stub
-        return avgLength;
+    public Double getLengthVar() {
+        return lengthVar;
     }
 
-    public Double getAvgWidth() {
-        // TODO Auto-generated method stub
-        return avgWidth;
+    public void setLengthVar(Double varLength) {
+        this.lengthVar = varLength;
     }
 
-    public void setAvgArea(Double avgArea) {
-        this.avgArea = avgArea;
+    public Double getLengthCV() {
+        return lengthCV;
     }
 
-    public void setAvgLength(Double avgLength) {
-        this.avgLength = avgLength;
+    public void setLengthCV(Double cvLength) {
+        this.lengthCV = cvLength;
     }
 
-    public void setAvgWidth(Double avgWidth) {
-        this.avgWidth = avgWidth;
+
+    public Double getWidthAvg() {
+        return widthAvg;
     }
+
+    public void setWidthAvg(Double avgWidth) {
+        this.widthAvg = avgWidth;
+    }
+
+    public Double getWidthVar() {
+        return widthVar;
+    }
+
+    public void setWidthVar(Double varWidth) {
+        this.widthVar = varWidth;
+    }
+
+    public Double getWidthCV() {
+        return widthCV;
+    }
+
+    public void setWidthCV(Double cvWidth) {
+        this.widthCV = cvWidth;
+    }
+
+
+    public Double getAreaAvg() {
+        return areaAvg;
+    }
+
+    public void setAreaAvg(Double avgArea) {
+        this.areaAvg = avgArea;
+    }
+
+    public Double getAreaVar() {
+        return areaVar;
+    }
+
+    public void setAreaVar(Double varArea) {
+        this.areaVar = varArea;
+    }
+
+    public Double getAreaCV() {
+        return areaCV;
+    }
+
+    public void setAreaCV(Double cvArea) {
+        this.areaCV = cvArea;
+    }
+
 
     @Override
     public String toString() {
         return sampleId + "," + photo + "," + personId + "," + date + "," + seedCount + ","
-                + weight + "," + avgArea + "," + avgLength + "," + avgWidth;
+                + weight + "," + areaAvg + "," + lengthAvg + "," + widthAvg;
     }
 
 }

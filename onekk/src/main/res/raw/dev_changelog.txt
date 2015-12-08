@@ -1,3 +1,6 @@
+5
+Added Other Apps dialog
+
 4
 Updated layout
 

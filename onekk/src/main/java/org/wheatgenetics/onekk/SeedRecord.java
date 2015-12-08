@@ -8,13 +8,13 @@ public class SeedRecord {
     private double width;
     private double circularity;
     private String color;
-    private String area;
+    private double area;
     private String weight;
 
     public SeedRecord() {
     }
 
-    public SeedRecord(String sampleId, double length, double width, double circularity, String color, String area, String weight) {
+    public SeedRecord(String sampleId, double length, double width, double circularity, double area, String weight, String color) {
         super();
         this.sampleId = sampleId;
         this.length = length;
@@ -73,11 +73,11 @@ public class SeedRecord {
         this.color = color;
     }
 
-    public String getArea() {
+    public double getArea() {
         return area;
     }
 
-    public void setArea(String area) {
+    public void setArea(double area) {
         this.area = area;
     }
 
