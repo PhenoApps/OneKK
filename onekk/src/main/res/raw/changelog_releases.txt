@@ -1,3 +1,6 @@
+3/1.0.1
+Fixed a bug causing the app to crash on startup
+
 2/1.0.0
 Updated with new algorithm
 New material layout
