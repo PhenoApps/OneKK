@@ -1,3 +1,6 @@
+4/1.0.2
+Fixed a bug causing crashes
+
 3/1.0.1
 Fixed a bug causing the app to crash on startup
 

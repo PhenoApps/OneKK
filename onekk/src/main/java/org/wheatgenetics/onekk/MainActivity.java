@@ -229,7 +229,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         goToTop();
         settingsDialog();
 
-        makeToast(String.valueOf(preview.getHeight()) + " " + String.valueOf(preview.getWidth()));
+        //makeToast(String.valueOf(preview.getHeight()) + " " + String.valueOf(preview.getWidth()));
 
         if (!OpenCVLoader.initDebug()) {
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.INIT_FAILED);
@@ -349,7 +349,13 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         PackageManager pm = getPackageManager();
         if(pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_AUTOFOCUS)){
             Camera.Parameters params = mCamera.getParameters();
-            params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+
+            if(params.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
+                params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+            } else if(params.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
+                params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+            }
+
             mCamera.setParameters(params);
         }
 
@@ -870,7 +876,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
             Matrix matrix = new Matrix();
             matrix.postRotate(90);
-            Bitmap rbmImg = Bitmap.createBitmap(bmImg, 0, 0, bmImg.getWidth(), bmImg.getHeight(), matrix, true);
+            Bitmap rbmImg = Bitmap.createBitmap(bmImg, 0, 0, bmImg.getWidth(), bmImg.getHeight(), matrix, true); //TODO change preview size to avoid out of memory errors
 
             imgView.setImageBitmap(rbmImg);
         }
