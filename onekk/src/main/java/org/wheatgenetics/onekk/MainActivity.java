@@ -848,7 +848,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         double refDiam = Double.valueOf(ep.getString("refDiam", "1")); // Wheat default
 
-        ImgProcess1KK imgP = new ImgProcess1KK(Constants.PHOTO_PATH.toString() + "/" + photoName, refDiam, ep.getBoolean("crop", true), Double.valueOf(ep.getString("minSize", "0.0")), Double.valueOf(ep.getString("maxSize", "0.0")));
+        ImgProcess1KK imgP = new ImgProcess1KK(Constants.PHOTO_PATH.toString() + "/" + photoName, refDiam, ep.getBoolean("crop", true), Double.valueOf(ep.getString("minSize", "0.0")), Double.valueOf(ep.getString("maxSize", "0.0"))); //TODO the min/max sizes are bad
         imgP.writeProcessedImg(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg");
         makeFileDiscoverable(new File(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg"), this);
 

@@ -11,11 +11,11 @@
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.wheatgenetics.onekk"
-    android:versionCode="102"
-    android:versionName="1.0.2">
+    android:versionCode="103"
+    android:versionName="1.0.3">
 
-    <uses-feature android:name="android.hardware.usb.host" />
     <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.usb.host" android:required="false"/>
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 
     <uses-permission android:name="android.permission.INTERNET" />
