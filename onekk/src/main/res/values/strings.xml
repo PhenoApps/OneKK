@@ -1,6 +1,6 @@
 <resources>
 
-    <string name="app_name">1KK</string>
+    <string name="app_name">OneKK</string>
 
     <!-- Main strings -->
     <string name="input">Input:</string>
@@ -55,7 +55,7 @@
 
 
     <!-- About strings -->
-    <string name="about">About 1KK</string>
+    <string name="about">About OneKK</string>
     <string name="dev_trevor">Trevor Rife</string>
     <string name="ksu">Kansas State University</string>
     <string name="dev_trevor_email">trife@ksu.edu</string>
@@ -64,8 +64,8 @@
     <string name="dev_jesse">Jesse Poland</string>
     <string name="dev_jesse_email">jpoland@ksu.edu</string>
     <string name="wg_site">http://wheatgenetics.org\n</string>
-    <string name="onekk_description">\n1KK is a free and open source application that can be used to phenotype seed lots while also collecting and storing sample weight data. The app was designed to work with Elane USB Plus 5kg Scales (http://www.elane.net) and a fixed background mat.\n</string>
-    <string name="onekk_libraries">1KK uses code from the following open source projects:</string>
+    <string name="onekk_description">\nOneKK is a free and open source application that can be used to phenotype seed lots while also collecting and storing sample weight data. The app was designed to work with Elane USB Plus 5kg Scales (http://www.elane.net) and a fixed background mat.\n</string>
+    <string name="onekk_libraries">OneKK uses code from the following open source projects:</string>
     <string name="library_touchimageview">TouchImageView https://github.com/MikeOrtiz/TouchImageView</string>
     <string name="library_opencsv">opencsv http://opencsv.sourceforge.net</string>
     <string name="otherapps">Other Apps</string>
