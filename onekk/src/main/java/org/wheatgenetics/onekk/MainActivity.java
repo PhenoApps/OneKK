@@ -20,10 +20,17 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.wheatgenetics.imageprocess.ImgProcess1KK;
 import org.wheatgenetics.imageprocess.ImgProcess1KK.Seed;
+import org.wheatgenetics.imageprocess.watershed.Watershed;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Typeface;
+import android.media.audiofx.BassBoost;
+import android.os.Handler;
+import android.os.Message;
+import android.preference.PreferenceManager;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -139,7 +146,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         setupDrawerContent(nvDrawer);
         setupDrawer();
 
-        ep = getSharedPreferences("Settings", 0);
+        ep = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
 
         inputText = (EditText) findViewById(R.id.etInput);
         mWeightEditText = (EditText) findViewById(R.id.etWeight);
@@ -227,7 +234,13 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         createDirs();
         parseDbToTable();
         goToTop();
-        settingsDialog();
+
+
+        /**
+         * uncomment to show the settings preferences at the start of the app
+         */
+        //final Intent settingsIntent = new Intent(this,SettingsActivity.class);
+        //startActivity(settingsIntent);
 
         //makeToast(String.valueOf(preview.getHeight()) + " " + String.valueOf(preview.getWidth()));
 
@@ -237,7 +250,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
         }
 
-        if (ep.getString("FirstName", "").length() == 0) {
+        if (ep.getString(SettingsFragment.FIRST_NAME, "").length() == 0) {
             setPersonDialog();
         }
 
@@ -362,6 +375,9 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         // Create our Preview view and set it as the content of our activity.
         mPreview = new CameraPreview(this, mCamera);
         preview.addView(mPreview);
+        guideBox gb = new guideBox(this,Integer.parseInt(ep.getString(SettingsFragment.COIN_SIZE,"4")));
+        preview.addView(gb,new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+        //addContentView(gb,new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
     }
 
     private void goToTop() {
@@ -398,9 +414,10 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         return "null";
     }
 
-    /**
+    /************************************************************************************
      * Adds a new record to the internal list of records
-     */
+     ************************************************************************************/
+
     private void addRecord() {
         String ut;
         String date = getDate();
@@ -441,10 +458,9 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         // Add sample to database
         db.addSampleRecord(new SampleRecord(inputText.getText().toString(), photoName,
-                ep.getString("FirstName", "").toLowerCase() + "_" + ep.getString("LastName", "").toLowerCase(),
+                ep.getString(SettingsFragment.FIRST_NAME, "").toLowerCase() + "_" + ep.getString(SettingsFragment.LAST_NAME, "").toLowerCase(),
                 date, seedCountString, weight, lengthAvg, lengthVar, lengthCV, widthAvg,
                 widthVar, widthCV, areaAvg, areaVar, areaCV));
-
 
         // Round values for UI
         String avgLengthStr = String.format("%.2f", lengthAvg);
@@ -473,9 +489,10 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         return date.format(cal.getTime());
     }
 
-    /**
+    /************************************************************************************
      * Adds a new entry to the end of the TableView
-     */
+     ************************************************************************************/
+
     private void createNewTableEntry(String sample, String seedCount, String avgL, String avgW, String wt) {
         inputText.setText("");
 
@@ -649,7 +666,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             /** Called when a drawer has settled in a completely open state. */
             public void onDrawerOpened(View drawerView) {
                 TextView person = (TextView) findViewById(R.id.nameLabel);
-                person.setText(ep.getString("FirstName", "") + " " + ep.getString("LastName", ""));
+                person.setText(ep.getString(SettingsFragment.FIRST_NAME, "") + " " + ep.getString(SettingsFragment.LAST_NAME, ""));
             }
 
             /** Called when a drawer has settled in a completely closed state. */
@@ -676,15 +693,13 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         switch (menuItem.getItemId()) {
             case R.id.nav_settings:
-                settingsDialog();
+                //settingsDialog();
+                final Intent settingsIntent = new Intent(this,SettingsActivity.class);
+                startActivity(settingsIntent);
                 break;
 
             case R.id.nav_export:
                 exportDialog();
-                break;
-
-            case R.id.nav_person:
-                setPersonDialog();
                 break;
 
             case R.id.nav_scaleConnect:
@@ -756,40 +771,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         return true;
     }
 
-    private void settingsDialog() {
-        final AlertDialog.Builder alert = new AlertDialog.Builder(this);
-        LayoutInflater inflater = this.getLayoutInflater();
-        final View settingsView = inflater.inflate(R.layout.settings, new LinearLayout(this), false);
-
-        final Switch analysisPreview = (Switch) settingsView.findViewById(R.id.swAnalysisPreview);
-        final Switch cropImage = (Switch) settingsView.findViewById(R.id.swCropImage);
-        final EditText refDiam = (EditText) settingsView.findViewById(R.id.etReferenceDiameter);
-        final EditText minSize = (EditText) settingsView.findViewById(R.id.etMinSize);
-        final EditText maxSize = (EditText) settingsView.findViewById(R.id.etMaxSize);
-
-        refDiam.setText(ep.getString("refDiam", "1"));
-        analysisPreview.setChecked(ep.getBoolean("analysisPreview", false));
-        minSize.setText(ep.getString("minSize", "0.0"));
-        maxSize.setText(ep.getString("maxSize", "0.0"));
-        cropImage.setChecked(ep.getBoolean("cropImage", true));
-
-        alert.setCancelable(false);
-        alert.setTitle(getResources().getString(R.string.settings));
-        alert.setView(settingsView);
-        alert.setPositiveButton(getResources().getString(R.string.ok), new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-                Editor ed = ep.edit();
-                ed.putString("refDiam", refDiam.getText().toString());
-                ed.putString("minSize", minSize.getText().toString());
-                ed.putString("maxSize", maxSize.getText().toString());
-                ed.putBoolean("analysisPreview", analysisPreview.isChecked());
-                ed.putBoolean("cropImage", cropImage.isChecked());
-                ed.apply();
-            }
-        });
-        alert.show();
-    }
-
     private void takePic() {
         //inputText.setEnabled(false); //TODO fix camera preview and enable this
         mCamera.takePicture(null, null, mPicture);
@@ -814,8 +795,10 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             Uri outputFileUri = Uri.fromFile(pictureFile);
             makeFileDiscoverable(pictureFile, MainActivity.this);
 
-            imageAnalysis(outputFileUri);
-
+            if(ep.getBoolean(SettingsFragment.ASK_PROCESSING_TECHNIQUE,true))
+                processingTechniqueDialog();
+            //imageAnalysis(outputFileUri);
+            imageAnalysis(outputFileUri,"Watershed");
             mCamera.startPreview();
 
             inputText.setEnabled(true);
@@ -841,14 +824,56 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         mediaFile = new File(Constants.PHOTO_PATH, fileName + "IMG_" + getDate() + ".jpg");
         return mediaFile;
     }
+    /************************************************************************************
+     * displays a dialogue after capturing the image, prompting the user to select a
+     * processing technique, only if "Processing" -> "Always Ask" setting is checked
+     * else proceed with the default technique set in the settings panel
+     ************************************************************************************/
+
+    // TODO: check the user selection and call the respective processing technique
+    // TODO: complete the function implementation
+
+    public void processingTechniqueDialog(){
+        final ArrayList mSelectedItems = new ArrayList();  // Where we track the selected items
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+
+        builder.setTitle("Processing technique")
+
+                .setSingleChoiceItems(R.array.processing_techniques, 0,
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Log.v(TAG,which+"");
+                            }
+                        })
+
+                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        Log.d(TAG,"clicked");
+                    }
+                })
+                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        Log.d(TAG,"clicked negative");
+                    }
+                });
+
+        builder.create().show();
+    }
+
+    /************************************************************************************
+     * image analysis method call to perform the default processing ImgProcess1KK
+     ************************************************************************************/
 
     private void imageAnalysis(Uri photo) {
         photoName = photo.getLastPathSegment();
         makeToast(photoName);
 
-        double refDiam = Double.valueOf(ep.getString("refDiam", "1")); // Wheat default
+        double refDiam = Double.valueOf(ep.getString(SettingsFragment.COIN_SIZE, "1")); // Wheat default
 
-        ImgProcess1KK imgP = new ImgProcess1KK(Constants.PHOTO_PATH.toString() + "/" + photoName, refDiam, ep.getBoolean("crop", true), Double.valueOf(ep.getString("minSize", "0.0")), Double.valueOf(ep.getString("maxSize", "0.0"))); //TODO the min/max sizes are bad
+        ImgProcess1KK imgP = new ImgProcess1KK(Constants.PHOTO_PATH.toString() + "/" + photoName, refDiam, ep.getBoolean(SettingsFragment.AUTO_CROP, true), Double.valueOf(ep.getInt(SettingsFragment.MIN_SEED_VALUE, 0)), Double.valueOf(ep.getInt(SettingsFragment.MAX_SEED_VALUE, 0))); //TODO the min/max sizes are bad
         imgP.writeProcessedImg(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg");
         makeFileDiscoverable(new File(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg"), this);
 
@@ -857,9 +882,74 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         seeds = imgP.getList();
         addRecord(); // Add the current record to the table
 
-        if (ep.getBoolean("analysisPreview", false)) {
+        if (ep.getBoolean(SettingsFragment.DISPLAY_ANALYSIS, false)) {
             postImageDialog(photoName);
         }
+    }
+
+    /************************************************************************************
+     * image analysis method call to perform Watershed, the algorithmName parameter can
+     * be used to extend different algorithm implementations using the same function call
+     ************************************************************************************/
+
+    // TODO: post analysis store the data in the database with the new format
+
+    private void imageAnalysis(final Uri photo, String algorithmName) {
+        photoName = photo.getLastPathSegment();
+        makeToast(photoName);
+
+        double refDiam = Double.valueOf(ep.getString(SettingsFragment.COIN_SIZE, "1")); // Wheat default
+
+        final Watershed w = new Watershed(photoName);
+        w.setMultiHue(false,"");
+
+        //after processing the image on a separate thread this handler is called
+        final Handler handler = new Handler(){
+            @Override
+            public void handleMessage(Message msg){
+
+                w.writeProcessedImg(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg");
+                makeFileDiscoverable(new File(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg"), MainActivity.this);
+                seedCount = w.getSeedCount();
+
+                //update the seed count in the database
+
+                //old format
+                //myDB.updateData(seedCount);
+
+                //new format
+                //addRecord();
+
+                if(ep.getBoolean(SettingsFragment.DISPLAY_SEED_COUNT,false))
+                    seedCountDialog(seedCount);
+
+                if (ep.getBoolean(SettingsFragment.DISPLAY_ANALYSIS, false)) {
+                    postImageDialog(photoName);
+                }
+                //can be used to ask the user if he/she wants to process another sample
+                /*this.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        feedbackDialog();
+                    }
+                }, 3000);*/
+            }
+        };
+
+        w.setThresh(ep.getInt(SettingsFragment.THRESHOLD, 1));
+        w.setHue(ep.getInt(SettingsFragment.MIN_HUE_VALUE, 30),ep.getInt(SettingsFragment.MAX_HUE_VALUE, 70));
+        w.setCropImage(ep.getBoolean(SettingsFragment.AUTO_CROP,true));
+
+        // creates a new thread and starts processing the image using watershed
+        final ProgressDialog progressDialog = ProgressDialog.show(this, "Processing", "Please wait .. ");
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                w.process();
+                progressDialog.dismiss();
+                handler.sendEmptyMessage(0);
+            }
+        }).start();
     }
 
     private void postImageDialog(String imageName) {
@@ -889,6 +979,36 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                 dialog.dismiss();
             }
         });
+        alert.show();
+    }
+
+    /************************************************************************************
+     * displays a seed count dialog after processing the image, only if the
+     * "Display count" setting is checked in the settings panel
+     ************************************************************************************/
+
+    public void seedCountDialog(int numberOfSeeds){
+        android.support.v7.app.AlertDialog.Builder dialg = new android.support.v7.app.AlertDialog.Builder(this);
+        final LayoutInflater inflater = (LayoutInflater)this.getSystemService(LAYOUT_INFLATER_SERVICE);
+        final View viewLayout = inflater.inflate(R.layout.seed_dialog, (ViewGroup)findViewById(R.id.seedcount_dialog));
+        final TextView tv = (TextView)viewLayout.findViewById(R.id.tvSeedCount);
+        Typeface myTypeFace = Typeface.createFromAsset(getAssets(), "AllerDisplay.ttf");
+        tv.setTypeface(myTypeFace);
+        tv.setText(""+numberOfSeeds);
+        dialg.setIcon(android.R.drawable.sym_def_app_icon);
+        dialg.setTitle("Seed Count!");
+        // dialg.setView(viewLayout);
+        dialg.setView(viewLayout);
+        dialg.setMessage("The number of seeds in the image are: ")
+                .setCancelable(false)
+                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                        dialogInterface.dismiss();
+                    }
+                });
+        android.support.v7.app.AlertDialog alert = dialg.create();
         alert.show();
     }
 
@@ -1039,8 +1159,8 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         final EditText lName = (EditText) personView
                 .findViewById(R.id.lastName);
 
-        fName.setText(ep.getString("FirstName", ""));
-        lName.setText(ep.getString("LastName", ""));
+        fName.setText(ep.getString(SettingsFragment.FIRST_NAME, ""));
+        lName.setText(ep.getString(SettingsFragment.LAST_NAME, ""));
 
         alert.setCancelable(false);
         alert.setTitle(getResources().getString(R.string.set_person));
@@ -1058,8 +1178,8 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
                 makeToast(getResources().getString(R.string.person_set) + " " + firstName + " " + lastName);
                 Editor ed = ep.edit();
-                ed.putString("FirstName", firstName);
-                ed.putString("LastName", lastName);
+                ed.putString(SettingsFragment.FIRST_NAME, firstName);
+                ed.putString(SettingsFragment.LAST_NAME, lastName);
                 ed.apply();
             }
         });
@@ -1226,7 +1346,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         if (mDevice != null) {
             mWeightEditText.setText("0");
-            new ScaleListener().execute();
+            //new ScaleListener().execute();
         } else {
             new AlertDialog.Builder(MainActivity.this)
                     .setTitle(getResources().getString(R.string.no_scale))

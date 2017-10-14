@@ -72,12 +72,24 @@
 
 
     <!-- Settings strings -->
-    <string name="min_size">Minimum seed size (Optional)</string>
-    <string name="max_size">Maximum seed size (Optional)</string>
-    <string name="ref_size">Reference circle size (mm)</string>
+    <string name="processing_techniques">Processing Techniques</string>
+    <string name="processing">Processing</string>
+    <string name="processing_ranges">Processing Ranges</string>
+    <string name="seed_size_range">Seed Size Range (Optional)</string>
+    <string name="min_size">Minimum seed size </string>
+    <string name="max_size">Maximum seed size </string>
     <string name="display_analysis">Display analysis preview</string>
+    <string name="display_seed_count">Display seed count</string>
     <string name="auto_crop">Automatically attempt to crop photos</string>
-
+    <string name="hue_range">Hue Range</string>
+    <string name="min_hue_value">Minimum Hue value</string>
+    <string name="max_hue_value">Maximum Hue Value</string>
+    <string name="threshold">Threshold</string>
+    <string name="coin_size">Reference coin size </string>
+    <string name="user_range">User Ranges </string>
+    <string name="background_color">Background Color </string>
+    <string name="ask_processing_technique">Always Ask</string>
+    <string name="types_processing_techniques">Processing Techniques </string>
 
     <!-- Scale not found -->
     <string name="no_scale">Scale Not Found</string>
@@ -90,7 +102,7 @@
     <!-- Person  strings -->
     <string name="first_name">First Name</string>
     <string name="last_name">Last Name</string>
-
+    <string name="user_name">User Name</string>
 
     <!-- Toast strings -->
     <string name="dir_problem">Problem making directories</string>

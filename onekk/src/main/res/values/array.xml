@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="processing_techniques">
+        <item>Default</item>
+        <item>Watershed</item>
+    </string-array>
+    <string-array name="processing_technique_values">
+        <item>0</item>
+        <item>1</item>
+    </string-array>
+</resources>

@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 22
+    compileSdkVersion 25
     buildToolsVersion '25.0.0'
 
     defaultConfig {
@@ -19,12 +19,15 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:support-v4:22.2.0'
-    compile 'com.android.support:design:22.2.0'
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support:preference-v7:25.3.1'
+    compile 'com.android.support:support-v4:25.3.1'
+    compile 'com.android.support:design:25.3.1'
+    //compile project(':openCVLibrary310')
     compile project(':openCVLibrary249')
     compile files('libs/ffmpeg.jar')
     compile files('libs/javacpp.jar')
     compile files('libs/opencsv-3.1.jar')
     compile files('libs/opencv.jar')
-    compile files('libs/watershed.jar')
+    compile 'com.github.kizitonwose.colorpreference:core:1.0.3'
 }

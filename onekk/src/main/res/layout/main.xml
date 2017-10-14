@@ -28,11 +28,12 @@
 
             <FrameLayout
                 android:id="@+id/camera_preview"
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:layout_above="@+id/dataEntry"
                 android:layout_centerHorizontal="true"
-                android:layout_centerVertical="true" />
+                android:layout_centerVertical="true" >
+            </FrameLayout>
 
             <FrameLayout
                 android:id="@+id/measureStick"
@@ -45,12 +46,13 @@
                 android:id="@+id/dataEntry"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:layout_above="@+id/dataTable"
-                android:layout_centerHorizontal="true"
                 android:layout_gravity="center"
                 android:background="#FFFFFF"
                 android:gravity="center"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:layout_alignParentBottom="true"
+                android:layout_toRightOf="@+id/dataTable"
+                android:layout_toEndOf="@+id/dataTable">
 
                 <TextView
                     android:id="@+id/tvInput"
@@ -97,7 +99,9 @@
                 android:layout_width="fill_parent"
                 android:layout_height="65dp"
                 android:layout_alignParentBottom="true"
-                android:background="#FFFFFF">
+                android:background="#FFFFFF"
+                android:visibility="gone"
+                >
 
                 <TableLayout
                     android:layout_width="fill_parent"
