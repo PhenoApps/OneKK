@@ -18,16 +18,20 @@ import java.util.Locale;
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.android.Utils;
+import org.opencv.core.Mat;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.wheatgenetics.imageprocess.ImgProcess1KK;
 import org.wheatgenetics.imageprocess.ImgProcess1KK.Seed;
 import org.wheatgenetics.imageprocess.watershed.Watershed;
+import org.wheatgenetics.imageprocess.watershedLB.*;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
-import android.media.audiofx.BassBoost;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
@@ -61,9 +65,9 @@ import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.speech.tts.TextToSpeech.OnInitListener;
 import android.util.Log;
+import android.util.Pair;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -73,6 +77,7 @@ import android.view.View;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -83,7 +88,6 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
-import android.widget.Switch;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -117,8 +121,9 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     private CameraPreview mPreview;
     private String picName = "";
     private String photoName;
+    private String photoPath;
     public static final int MEDIA_TYPE_IMAGE = 1;
-
+    private Mat finalMat;
     private LinearLayout parent;
     private ScrollView changeContainer;
 
@@ -243,11 +248,12 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         //startActivity(settingsIntent);
 
         //makeToast(String.valueOf(preview.getHeight()) + " " + String.valueOf(preview.getWidth()));
-
+        //OpenCVLoader.initAsync()
         if (!OpenCVLoader.initDebug()) {
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.INIT_FAILED);
         } else {
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+            finalMat = new Mat();
         }
 
         if (ep.getString(SettingsFragment.FIRST_NAME, "").length() == 0) {
@@ -798,7 +804,8 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             if(ep.getBoolean(SettingsFragment.ASK_PROCESSING_TECHNIQUE,true))
                 processingTechniqueDialog();
             //imageAnalysis(outputFileUri);
-            imageAnalysis(outputFileUri,"Watershed");
+            //imageAnalysis(outputFileUri,"Watershed");
+            imageAnalysisLB(outputFileUri,"WatershedLB");
             mCamera.startPreview();
 
             inputText.setEnabled(true);
@@ -888,7 +895,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     }
 
     /************************************************************************************
-     * image analysis method call to perform Watershed, the algorithmName parameter can
+     * image analysis method call to perform WatershedLB, the algorithmName parameter can
      * be used to extend different algorithm implementations using the same function call
      ************************************************************************************/
 
@@ -946,6 +953,86 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             @Override
             public void run() {
                 w.process();
+                progressDialog.dismiss();
+                handler.sendEmptyMessage(0);
+            }
+        }).start();
+    }
+
+    private void imageAnalysisLB(final Uri photo, String algorithmName) {
+        //photoPath = photo.getPath();
+        //photoName = photo.getLastPathSegment();
+        photoPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/soybean0005.jpg";
+        photoName = "soybean0008.jpg";
+        makeToast(photoName);
+
+        //seed counter utility
+        final WatershedLB mSeedCounter;
+        final Pair<Bitmap, String> ret;
+        final int areaLow = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_LOW, "200"));
+        final int areaHigh = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_HIGH, "160000"));
+        final int defaultRate = Integer.valueOf(ep.getString(SettingsFragment.PARAM_DEFAULT_RATE, "34"));
+        final double sizeLowerBoundRatio = Double.valueOf(ep.getString(SettingsFragment.PARAM_SIZE_LOWER_BOUND_RATIO, "0.25"));
+        final double newSeedDistRatio = Double.valueOf(ep.getString(SettingsFragment.PARAM_NEW_SEED_DIST_RATIO, "4.0"));
+
+        final WatershedLB.WatershedParams params = new WatershedLB.WatershedParams(areaLow, areaHigh, defaultRate, sizeLowerBoundRatio, newSeedDistRatio);
+        mSeedCounter = new WatershedLB(params);
+
+        //getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        /*mSurfaceView = (ImageView) findViewById(R.id.surfaceView);
+        mSurfaceView.setEnabled(true);
+        mSurfaceView.setVisibility(ImageView.VISIBLE);
+        */
+
+        //final String filePath = getIntent().getStringExtra(SeedCounterConstants.FILE_PATH_EXTRA);
+
+        final Bitmap inputBitmap = BitmapFactory.decodeFile(photoPath);
+        //mSurfaceView.setImageBitmap(inputBitmap);
+
+        //double refDiam = Double.valueOf(ep.getString(SettingsFragment.COIN_SIZE, "1")); // Wheat default
+        Utils.bitmapToMat(inputBitmap,finalMat);
+
+
+        //after processing the image on a separate thread this handler is called
+        final Handler handler = new Handler(){
+            @Override
+            public void handleMessage(Message msg){
+                Imgcodecs.imwrite(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg",finalMat);
+                //w.writeProcessedImg(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg");
+                makeFileDiscoverable(new File(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg"), MainActivity.this);
+                seedCount = (int) mSeedCounter.getNumSeeds();
+
+                //update the seed count in the database
+
+                //old format
+                //myDB.updateData(seedCount);
+
+                //new format
+                //addRecord();
+
+                if(ep.getBoolean(SettingsFragment.DISPLAY_SEED_COUNT,false))
+                    seedCountDialog(seedCount);
+
+                if (ep.getBoolean(SettingsFragment.DISPLAY_ANALYSIS, false)) {
+                    postImageDialog(photoName);
+                }
+                //can be used to ask the user if he/she wants to process another sample
+                /*this.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        feedbackDialog();
+                    }
+                }, 3000);*/
+            }
+        };
+
+        // creates a new thread and starts processing the image using watershed
+        final ProgressDialog progressDialog = ProgressDialog.show(this, "Processing", "Please wait .. ");
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                mSeedCounter.process(inputBitmap);
                 progressDialog.dismiss();
                 handler.sendEmptyMessage(0);
             }

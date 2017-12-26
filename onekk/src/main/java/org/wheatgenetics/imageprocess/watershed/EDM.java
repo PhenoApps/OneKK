@@ -156,7 +156,7 @@ public class EDM {
         File outFile = null;
         try {
             File MyDir = Environment.getExternalStorageDirectory();
-            File dir = new File(MyDir.getAbsolutePath() + "/Watershed/WatershedImages");
+            File dir = new File(MyDir.getAbsolutePath() + "/WatershedLB/WatershedImages");
             dir.mkdirs();
 
             String fileName = "bitmap" + MyDate + ".jpg";
@@ -327,7 +327,7 @@ public class EDM {
         File outFile = null;
         try {
             File MyDir = Environment.getExternalStorageDirectory();
-            File dir = new File(MyDir.getAbsolutePath() + "/Watershed/");
+            File dir = new File(MyDir.getAbsolutePath() + "/WatershedLB/");
             dir.mkdirs();
 
             String fileName = "my.jpg";

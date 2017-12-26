@@ -23,8 +23,9 @@ dependencies {
     compile 'com.android.support:preference-v7:25.3.1'
     compile 'com.android.support:support-v4:25.3.1'
     compile 'com.android.support:design:25.3.1'
+    compile project(':openCVLibrary320')
     //compile project(':openCVLibrary310')
-    compile project(':openCVLibrary249')
+    //compile project(':openCVLibrary249')
     compile files('libs/ffmpeg.jar')
     compile files('libs/javacpp.jar')
     compile files('libs/opencsv-3.1.jar')

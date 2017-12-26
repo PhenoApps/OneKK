@@ -19,7 +19,6 @@ import org.opencv.core.Point;
 import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
-import org.opencv.highgui.Highgui;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.wheatgenetics.onekk.Constants;
@@ -82,7 +81,7 @@ public class Watershed {
         File file1 = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/0815171641.jpg");
         File file = new File(Constants.PHOTO_PATH.toString() + "/" + fileName);
         print("Path is :"+file1.getAbsolutePath());
-        this.originalImage   = Highgui.imread(file1.getAbsolutePath());
+        this.originalImage   = Imgcodecs.imread(file1.getAbsolutePath());
     }
 
     /**
@@ -148,7 +147,7 @@ public class Watershed {
         //if (cropImage) {
         //    this.cropImage();
         //}
-        //File file1 = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/Watershed/WatershedImages", "Image_input_101.jpg");
+        //File file1 = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedLB/WatershedImages", "Image_input_101.jpg");
 
         //print("Path is :"+file1.getAbsolutePath());
         //Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
@@ -871,7 +870,7 @@ public class Watershed {
 
     public void writeProcessedImg(String filename) {
         System.out.println(String.format("\nWriting %s", filename));
-        Highgui.imwrite(filename, this.mat5gray2);
+        Imgcodecs.imwrite(filename, this.mat5gray2);
     }
 
     public Mat preProcess1(Mat imageMat){

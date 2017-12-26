@@ -25,6 +25,16 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     public static String ASK_PROCESSING_TECHNIQUE = "org.wheatgenetics.onekk.ASK_PROCESSING_TECHNIQUE";
     public static String PROCESSING_TECHNIQUE = "org.wheatgenetics.onekk.PROCESSING_TECHNIQUE";
 
+    public static String DEBUG_MODE = "edu.ksu.wheatgenetics.seedcounter.DEBUG_MODE";
+    public static String TUTORIAL_MODE = "edu.ksu.wheatgenetics.seedcounter.TUTORIAL_MODE";
+    public static String PARAM_AREA_LOW = "edu.ksu.wheatgenetics.seedcounter.AREA_LOW";
+    public static String PARAM_AREA_HIGH = "edu.ksu.wheatgenetics.seedcounter.AREA_HIGH";
+    public static String PARAM_DEFAULT_RATE = "edu.ksu.wheatgenetics.seedcounter.DEFAULT_RATE";
+    public static String PARAM_SIZE_LOWER_BOUND_RATIO =
+            "edu.ksu.wheatgenetics.seedcounter.SIZE_LOWER_BOUND_RATIO";
+    public static String PARAM_NEW_SEED_DIST_RATIO =
+            "edu.ksu.wheatgenetics.seedcounter.NEW_SEED_DIST_RATIO";
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
