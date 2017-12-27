@@ -804,8 +804,8 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             if(ep.getBoolean(SettingsFragment.ASK_PROCESSING_TECHNIQUE,true))
                 processingTechniqueDialog();
             //imageAnalysis(outputFileUri);
-            //imageAnalysis(outputFileUri,"Watershed");
-            imageAnalysisLB(outputFileUri,"WatershedLB");
+            imageAnalysis(outputFileUri,"Watershed");
+            //imageAnalysisLB(outputFileUri,"WatershedLB");
             mCamera.startPreview();
 
             inputText.setEnabled(true);
@@ -910,7 +910,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         final Watershed w = new Watershed(photoName);
         w.setMultiHue(false,"");
 
-        //after processing the image on a separate thread this handler is called
+        /*//after processing the image on a separate thread this handler is called
         final Handler handler = new Handler(){
             @Override
             public void handleMessage(Message msg){
@@ -934,43 +934,45 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                     postImageDialog(photoName);
                 }
                 //can be used to ask the user if he/she wants to process another sample
-                /*this.postDelayed(new Runnable() {
+                *//*this.postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         feedbackDialog();
                     }
-                }, 3000);*/
+                }, 3000);*//*
             }
-        };
+        };*/
 
         w.setThresh(ep.getInt(SettingsFragment.THRESHOLD, 1));
-        w.setHue(ep.getInt(SettingsFragment.MIN_HUE_VALUE, 30),ep.getInt(SettingsFragment.MAX_HUE_VALUE, 70));
+        w.setHue(ep.getInt(SettingsFragment.MIN_HUE_VALUE, 30),ep.getInt(SettingsFragment.MAX_HUE_VALUE, 255));
         w.setCropImage(ep.getBoolean(SettingsFragment.AUTO_CROP,true));
 
-        // creates a new thread and starts processing the image using watershed
+       /* // creates a new thread and starts processing the image using watershed
         final ProgressDialog progressDialog = ProgressDialog.show(this, "Processing", "Please wait .. ");
         new Thread(new Runnable() {
             @Override
-            public void run() {
-                w.process();
-                progressDialog.dismiss();
+            public void run() {*/
+        File imageFile = w.process(getApplicationContext());
+        Uri imageUri = Uri.fromFile(imageFile);
+        imageAnalysisLB(imageUri,"WatershedLB");
+                /*progressDialog.dismiss();
                 handler.sendEmptyMessage(0);
             }
-        }).start();
+        }).start();*/
     }
 
     private void imageAnalysisLB(final Uri photo, String algorithmName) {
-        //photoPath = photo.getPath();
-        //photoName = photo.getLastPathSegment();
-        photoPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/soybean0005.jpg";
-        photoName = "soybean0008.jpg";
+        photoPath = photo.getPath();
+        photoName = photo.getLastPathSegment();
+        //photoPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/soybean0005.jpg";
+        //photoName = "soybean0005.jpg";
         makeToast(photoName);
 
         //seed counter utility
         final WatershedLB mSeedCounter;
         final Pair<Bitmap, String> ret;
         final int areaLow = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_LOW, "200"));
-        final int areaHigh = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_HIGH, "160000"));
+        final int areaHigh = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_HIGH, "1000"));
         final int defaultRate = Integer.valueOf(ep.getString(SettingsFragment.PARAM_DEFAULT_RATE, "34"));
         final double sizeLowerBoundRatio = Double.valueOf(ep.getString(SettingsFragment.PARAM_SIZE_LOWER_BOUND_RATIO, "0.25"));
         final double newSeedDistRatio = Double.valueOf(ep.getString(SettingsFragment.PARAM_NEW_SEED_DIST_RATIO, "4.0"));
