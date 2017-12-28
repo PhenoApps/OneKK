@@ -161,8 +161,7 @@ public class Watershed {
         //Mat originalImage = Imgcodecs.imread(file.getAbsolutePath());
 
         print("Image available for processing");
-
-
+        
         //thresh = myThreshold;
         //Bitmap originalBitmap = Bitmap.createBitmap(originalImage.cols(), originalImage.rows(), Bitmap.Config.ARGB_8888);
         //Utils.matToBitmap(originalImage, originalBitmap);
@@ -233,42 +232,6 @@ public class Watershed {
     public int getSeedCount(){
         return seeds;
     }
-
-    public File saveImage(Bitmap ImageToSave) {
-        MyDate = getCurrentDateAndTime();
-        FileOutputStream outStream = null;
-        File outFile = null;
-        try {
-            File MyDir = Environment.getExternalStorageDirectory();
-            File dir = new File(MyDir.getAbsolutePath() + "/WatershedImages");
-            dir.mkdirs();
-
-            String fileName = "threshBitmap" + MyDate + ".jpg";
-            outFile = new File(dir, fileName);
-
-            outStream = new FileOutputStream(outFile);
-            ImageToSave.compress(Bitmap.CompressFormat.JPEG, 100, outStream);
-            outStream.flush();
-            outStream.close();
-            path = outFile.getAbsolutePath();
-            //  print("File saved at " + path);
-            refreshGallery(path);
-            //return outFile;
-
-        } catch (FileNotFoundException e) {
-            print("FileNotFound exception");
-            e.printStackTrace();
-        } catch (IOException e) {
-            print("IOException");
-            e.printStackTrace();
-        } finally {
-
-        }return outFile;
-    }
-
-
-
-
 
     public File saveImage1(Bitmap ImageToSave,String fileName) {
         MyDate = getCurrentDateAndTime();

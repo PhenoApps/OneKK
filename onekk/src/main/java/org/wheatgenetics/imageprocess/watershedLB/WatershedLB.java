@@ -2,6 +2,7 @@ package org.wheatgenetics.imageprocess.watershedLB;
 
 import android.graphics.Bitmap;
 import android.graphics.Region;
+import android.os.Environment;
 import android.util.Log;
 import android.util.Pair;
 
@@ -17,8 +18,10 @@ import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.imgproc.Moments;
+import org.wheatgenetics.imageprocess.watershed.Watershed;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -97,6 +100,7 @@ public class WatershedLB {
         int ave = (int) (hsum / pixels);
         int thresh = 256;
 
+
         while (thresh > ave) {
             thresh = ave;
             hsum = 0;
@@ -131,10 +135,16 @@ public class WatershedLB {
         Imgproc.distanceTransform(opening, dt, 2, 3);
 
         Mat sure_fg = new Mat();
-        Imgproc.threshold(dt, sure_fg, 12, 255, 0);
+        Imgproc.threshold(dt, sure_fg, 3, 255, 0);
 
         Mat unknown = new Mat();
         Core.subtract(sure_bg, sure_fg, unknown, new Mat(), CvType.CV_8UC1);
+
+        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/binMat.jpg",binMat);
+        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/dt.jpg",dt);
+        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/surefg.jpg",sure_fg);
+        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/surebg.jpg",sure_bg);
+        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/unknown.jpg",unknown);
         //////Mat invertMat = Mat.ones(sure_fg.size(), sure_fg.type()).setTo(new Scalar(255));
 
        // Core.subtract(invertMat, sure_fg, unknown);

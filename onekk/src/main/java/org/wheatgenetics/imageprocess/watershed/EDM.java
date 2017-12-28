@@ -77,21 +77,21 @@ public class EDM {
         float a, b;
         a = Float.MIN_VALUE;
         b = Float.MIN_VALUE;
-        int backgroundValue = black;
+        int backgroundValue = white;
         float[][] floatedm = makeFloatEDM(bitmap, backgroundValue, false);
 
         // int[][] maxIp = maxFinder.findMaxima(floatedm, width, height, MAXFINDER_TOLERANCE,
         //         -808080.0, MaximumFinder.SEGMENTED, false, true);
 
         int[][] maxIp = maxFinder.findMaxima(floatedm, width, height, MAXFINDER_TOLERANCE,
-                Threshold, MaximumFinder.SEGMENTED, false, true);
+                Threshold, MaximumFinder.MAXIMUM, false, true);
 
         int[] pixels = new int[width * height];
 
         for (int i = 0, k = 0; i < height; i++) {
             for (int j = 0; j < width; k++, j++) {
                 if(maxIp[j][i]==0)
-                    pixels[k]=black;
+                    pixels[k]=white;
                 else
                     pixels[k] = maxIp[j][i];
             }

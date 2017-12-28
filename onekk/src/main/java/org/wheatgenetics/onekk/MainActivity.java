@@ -971,8 +971,8 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         //seed counter utility
         final WatershedLB mSeedCounter;
         final Pair<Bitmap, String> ret;
-        final int areaLow = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_LOW, "200"));
-        final int areaHigh = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_HIGH, "1000"));
+        final int areaLow = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_LOW, "400"));
+        final int areaHigh = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_HIGH, "160000"));
         final int defaultRate = Integer.valueOf(ep.getString(SettingsFragment.PARAM_DEFAULT_RATE, "34"));
         final double sizeLowerBoundRatio = Double.valueOf(ep.getString(SettingsFragment.PARAM_SIZE_LOWER_BOUND_RATIO, "0.25"));
         final double newSeedDistRatio = Double.valueOf(ep.getString(SettingsFragment.PARAM_NEW_SEED_DIST_RATIO, "4.0"));

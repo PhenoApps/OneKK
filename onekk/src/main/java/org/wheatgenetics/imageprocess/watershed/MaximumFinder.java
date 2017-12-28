@@ -98,7 +98,10 @@ public class MaximumFinder {
          //   print("FIndmaxima after calling watershedpostprocess\n");
             //if (excludeOnEdges) deleteEdgeParticles(outIp, typeP);
         }
-
+        else {
+            outIp = make8bit(floatedm, typeP, isEDM, globalMin, globalMax, threshold);
+            //cleanupMaxima(outIp, typeP, maxPoints);
+        }
             for (int y=0, i=0; y<height; y++) { //delete everything outside roi
                 for (int x=0; x<width; x++, i++) {
                     if (x<0 || x>=width || y<0 || y>=height) outIp[x][y] = (byte)0;
@@ -109,6 +112,7 @@ public class MaximumFinder {
      //   print("outip at 1 0 "+outIp[1][0]);
     //    print("Outip after print\n");
         return outIp; //check this
+
     }
 
     long[] getSortedMaxPoints(float[][] floatedm, int width, int height, int[][] typeP, boolean excludeEdgesNow,
