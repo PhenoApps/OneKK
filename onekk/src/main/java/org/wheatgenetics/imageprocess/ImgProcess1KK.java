@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.opencv.core.*;
-import org.opencv.highgui.Highgui;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 public class ImgProcess1KK {
@@ -61,7 +61,7 @@ public class ImgProcess1KK {
 
     private void initialize() {
         checkOS();
-        image = Highgui.imread(imageFile);
+        image = Imgcodecs.imread(imageFile);
         System.out.println(String.format("Processing %s", imageFile));
         Imgproc.cvtColor(image, image, Imgproc.COLOR_BGR2HSV);
     }
@@ -597,10 +597,10 @@ public class ImgProcess1KK {
         Imgproc.drawContours(pImg, seeds, -1, red, 2); //From contours
 
         for (int i = 0; i < seedArray.size(); i++) {
-            Core.line(pImg, seedArray.get(i).ptsW[0], seedArray.get(i).ptsW[1], blue, 2); // width
-            Core.line(pImg, seedArray.get(i).ptsL[0], seedArray.get(i).ptsL[1], green, 2); // length
-            Core.circle(pImg, seedArray.get(i).centgrav, 2, white, 2); // center gravity
-            Core.putText(pImg,String.valueOf(i+1),seedArray.get(i).centgrav,Core.FONT_HERSHEY_PLAIN,2,black,2);
+            Imgproc.line(pImg, seedArray.get(i).ptsW[0], seedArray.get(i).ptsW[1], blue, 2); // width
+            Imgproc.line(pImg, seedArray.get(i).ptsL[0], seedArray.get(i).ptsL[1], green, 2); // length
+            Imgproc.circle(pImg, seedArray.get(i).centgrav, 2, white, 2); // center gravity
+            Imgproc.putText(pImg,String.valueOf(i+1),seedArray.get(i).centgrav,Core.FONT_HERSHEY_PLAIN,2,black,2);
         }
 
         return pImg;
@@ -616,7 +616,7 @@ public class ImgProcess1KK {
 
     public void writeProcessedImg(String filename) {
         System.out.println(String.format("\nWriting %s", filename));
-        Highgui.imwrite(filename, this.getProcessedImg());
+        Imgcodecs.imwrite(filename, this.getProcessedImg());
     }
 
     public class Seed {
