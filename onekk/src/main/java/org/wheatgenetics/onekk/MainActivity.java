@@ -21,9 +21,9 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.wheatgenetics.imageprocess.HueThreshold.HueThreshold;
 import org.wheatgenetics.imageprocess.ImgProcess1KK;
 import org.wheatgenetics.imageprocess.ImgProcess1KK.Seed;
-import org.wheatgenetics.imageprocess.watershed.Watershed;
 import org.wheatgenetics.imageprocess.watershedLB.*;
 
 import android.app.Activity;
@@ -67,7 +67,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech.OnInitListener;
 import android.util.Log;
-import android.util.Pair;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -77,7 +76,6 @@ import android.view.View;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -123,6 +121,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     private String photoName;
     private String photoPath;
     public static final int MEDIA_TYPE_IMAGE = 1;
+    private Bitmap outputBitmap;
     private Mat finalMat;
     private LinearLayout parent;
     private ScrollView changeContainer;
@@ -804,8 +803,8 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             if(ep.getBoolean(SettingsFragment.ASK_PROCESSING_TECHNIQUE,true))
                 processingTechniqueDialog();
             //imageAnalysis(outputFileUri);
-            imageAnalysis(outputFileUri,"Watershed");
-            //imageAnalysisLB(outputFileUri,"WatershedLB");
+            hueThreshold(outputFileUri);
+            //imageAnalysisLB(outputFileUri);
             mCamera.startPreview();
 
             inputText.setEnabled(true);
@@ -814,6 +813,36 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             imm.showSoftInput(inputText, InputMethodManager.SHOW_IMPLICIT);
         }
     };
+
+    /**
+     * Create a File for saving an image or video
+     */
+
+    public void saveImage(Bitmap ImageToSave,String fileName) {
+        FileOutputStream outStream = null;
+        File outFile = null;
+        try {
+            File MyDir = Environment.getExternalStorageDirectory();
+            File dir = new File(MyDir.getAbsolutePath() + "/WatershedImages");
+            dir.mkdirs();
+
+            fileName = fileName  + ".jpg";
+            outFile = new File(dir, fileName);
+
+            outStream = new FileOutputStream(outFile);
+            ImageToSave.compress(Bitmap.CompressFormat.JPEG, 100, outStream);
+            outStream.flush();
+            outStream.close();
+        } catch (FileNotFoundException e) {
+            Log.e("Save Image","File not found");
+            e.printStackTrace();
+        } catch (IOException e) {
+            Log.e("Save Image","Unable to perform IO operation");
+            e.printStackTrace();
+        } finally {
+
+        }
+    }
 
     /**
      * Create a File for saving an image or video
@@ -901,14 +930,18 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
     // TODO: post analysis store the data in the database with the new format
 
-    private void imageAnalysis(final Uri photo, String algorithmName) {
+    private void hueThreshold(final Uri photo) {
+        photoPath = photo.getPath();
         photoName = photo.getLastPathSegment();
+
         makeToast(photoName);
-
+        final HueThreshold hueThreshold;
         double refDiam = Double.valueOf(ep.getString(SettingsFragment.COIN_SIZE, "1")); // Wheat default
-
-        final Watershed w = new Watershed(photoName);
-        w.setMultiHue(false,"");
+        double thresh = ep.getInt(SettingsFragment.THRESHOLD, 1);
+        int minHue = ep.getInt(SettingsFragment.MIN_HUE_VALUE, 30);
+        int maxHue = ep.getInt(SettingsFragment.MAX_HUE_VALUE, 255);
+        final HueThreshold.HueThresholdParams params = new HueThreshold.HueThresholdParams(thresh,minHue,maxHue);
+        hueThreshold = new HueThreshold(params);
 
         /*//after processing the image on a separate thread this handler is called
         final Handler handler = new Handler(){
@@ -943,34 +976,31 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             }
         };*/
 
-        w.setThresh(ep.getInt(SettingsFragment.THRESHOLD, 1));
-        w.setHue(ep.getInt(SettingsFragment.MIN_HUE_VALUE, 30),ep.getInt(SettingsFragment.MAX_HUE_VALUE, 255));
-        w.setCropImage(ep.getBoolean(SettingsFragment.AUTO_CROP,true));
-
+        final Bitmap inputBitmap = BitmapFactory.decodeFile(photoPath);
        /* // creates a new thread and starts processing the image using watershed
         final ProgressDialog progressDialog = ProgressDialog.show(this, "Processing", "Please wait .. ");
         new Thread(new Runnable() {
             @Override
             public void run() {*/
-        File imageFile = w.process(getApplicationContext());
+        File imageFile = hueThreshold.process(inputBitmap);
         Uri imageUri = Uri.fromFile(imageFile);
-        imageAnalysisLB(imageUri,"WatershedLB");
+        imageAnalysisLB(imageUri);
                 /*progressDialog.dismiss();
                 handler.sendEmptyMessage(0);
             }
         }).start();*/
     }
 
-    private void imageAnalysisLB(final Uri photo, String algorithmName) {
+    private void imageAnalysisLB(final Uri photo) {
         photoPath = photo.getPath();
         photoName = photo.getLastPathSegment();
-        //photoPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/soybean0005.jpg";
-        //photoName = "soybean0005.jpg";
+
         makeToast(photoName);
 
+        Bitmap sampleBitmap = BitmapFactory.decodeFile(photo.getPath());
+        saveImage(sampleBitmap,"sample_input_image");
         //seed counter utility
         final WatershedLB mSeedCounter;
-        final Pair<Bitmap, String> ret;
         final int areaLow = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_LOW, "400"));
         final int areaHigh = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_HIGH, "160000"));
         final int defaultRate = Integer.valueOf(ep.getString(SettingsFragment.PARAM_DEFAULT_RATE, "34"));
@@ -990,16 +1020,19 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         //final String filePath = getIntent().getStringExtra(SeedCounterConstants.FILE_PATH_EXTRA);
 
         final Bitmap inputBitmap = BitmapFactory.decodeFile(photoPath);
+
         //mSurfaceView.setImageBitmap(inputBitmap);
 
         //double refDiam = Double.valueOf(ep.getString(SettingsFragment.COIN_SIZE, "1")); // Wheat default
-        Utils.bitmapToMat(inputBitmap,finalMat);
+        //Utils.bitmapToMat(inputBitmap,this.finalMat);
 
 
         //after processing the image on a separate thread this handler is called
         final Handler handler = new Handler(){
             @Override
             public void handleMessage(Message msg){
+                Utils.bitmapToMat(outputBitmap,finalMat);
+                Imgcodecs.imwrite(Constants.ANALYZED_PHOTO_PATH.toString() + "/analyzed_new.jpg",finalMat);
                 Imgcodecs.imwrite(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg",finalMat);
                 //w.writeProcessedImg(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg");
                 makeFileDiscoverable(new File(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg"), MainActivity.this);
@@ -1034,7 +1067,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                mSeedCounter.process(inputBitmap);
+                outputBitmap = mSeedCounter.process(inputBitmap);
                 progressDialog.dismiss();
                 handler.sendEmptyMessage(0);
             }

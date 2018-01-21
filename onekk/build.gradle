@@ -8,12 +8,18 @@ android {
         applicationId "org.wheatgenetics.onekk"
         minSdkVersion 14
         targetSdkVersion 22
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        vectorDrawables.useSupportLibrary = true
     }
 
     buildTypes {
         release {
+            debuggable true
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+        debug {
+            debuggable true
         }
     }
 }
@@ -23,12 +29,14 @@ dependencies {
     compile 'com.android.support:preference-v7:25.3.1'
     compile 'com.android.support:support-v4:25.3.1'
     compile 'com.android.support:design:25.3.1'
+    compile 'com.android.support:recyclerview-v7:25.0.1'
     compile project(':openCVLibrary320')
-    //compile project(':openCVLibrary310')
-    //compile project(':openCVLibrary249')
     compile files('libs/ffmpeg.jar')
     compile files('libs/javacpp.jar')
     compile files('libs/opencsv-3.1.jar')
     compile files('libs/opencv.jar')
     compile 'com.github.kizitonwose.colorpreference:core:1.0.3'
+    androidTestCompile 'com.android.support:support-annotations:24.0.0'
+    androidTestCompile 'com.android.support.test:runner:0.5'
+    androidTestCompile 'com.android.support.test:rules:0.5'
 }

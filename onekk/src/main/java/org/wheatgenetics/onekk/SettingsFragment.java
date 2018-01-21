@@ -3,6 +3,8 @@ package org.wheatgenetics.onekk;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.widget.Toast;
 
 /************************************************************************************
@@ -25,8 +27,6 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     public static String ASK_PROCESSING_TECHNIQUE = "org.wheatgenetics.onekk.ASK_PROCESSING_TECHNIQUE";
     public static String PROCESSING_TECHNIQUE = "org.wheatgenetics.onekk.PROCESSING_TECHNIQUE";
 
-    public static String DEBUG_MODE = "edu.ksu.wheatgenetics.seedcounter.DEBUG_MODE";
-    public static String TUTORIAL_MODE = "edu.ksu.wheatgenetics.seedcounter.TUTORIAL_MODE";
     public static String PARAM_AREA_LOW = "edu.ksu.wheatgenetics.seedcounter.AREA_LOW";
     public static String PARAM_AREA_HIGH = "edu.ksu.wheatgenetics.seedcounter.AREA_HIGH";
     public static String PARAM_DEFAULT_RATE = "edu.ksu.wheatgenetics.seedcounter.DEFAULT_RATE";
@@ -38,6 +38,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         addPreferencesFromResource(R.xml.preferences);
 
         //additional setup for MIN/MAX checks in Range settings
@@ -48,22 +49,19 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         additionalPreferenceSetup(findPreference(THRESHOLD), "Threshold");
     }
 
-    //adding additional preferences to MIN/MAX range sliders
-
+    /** Adding additional preferences to MIN/MAX range sliders*/
     private void additionalPreferenceSetup(Preference preference, String text) {
         bindPreferenceToValue(preference);
         preference.setTitle(text + " - " + preference.getSharedPreferences().getInt(preference.getKey(), 0));
     }
 
-    // Set the listener onPreferenceChange to watch for MIN/MAX value changes.
+    /** Set the listener onPreferenceChange to watch for MIN/MAX value changes.*/
     private void bindPreferenceToValue(Preference preference) {
         preference.setOnPreferenceChangeListener(this);
-
     }
 
-    //returns true if the range seek bar value is within the
-    //compared value(MIN<MAX or MAX>MIN), else returns false and restores the original value
-
+    /** Returns true if the range seek bar value is within the
+    compared value(MIN<MAX or MAX>MIN), else returns false and restores the original value */
     public boolean onPreferenceChange(Preference preference, Object value) {
         String stringValue = value.toString();
         int tempVal;
