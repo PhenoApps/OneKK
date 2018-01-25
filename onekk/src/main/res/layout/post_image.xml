@@ -2,7 +2,17 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
+    android:orientation="vertical"
     android:padding="1dp">
+
+    <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/tvSeedCount"
+            android:textSize="30dp"
+            android:padding="5dp"
+            android:textAlignment="center"
+    />
 
     <org.wheatgenetics.onekk.TouchImageView
         android:id="@+id/postImage"

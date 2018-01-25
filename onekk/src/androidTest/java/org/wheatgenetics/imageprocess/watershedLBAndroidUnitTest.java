@@ -13,7 +13,7 @@ import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.wheatgenetics.imageprocess.HueThreshold.HueThreshold;
-import org.wheatgenetics.imageprocess.watershedLB.*;
+import org.wheatgenetics.imageprocess.WatershedLB.*;
 
 import java.io.File;
 
@@ -66,6 +66,20 @@ public class watershedLBAndroidUnitTest{
         mSeedCounter = new WatershedLB(params);
     }
 
+    @org.junit.Test
+    public void imgprocess1kk_soybeans_test(){
+        if(!setupDoneFlag)
+            setup();
+        photoPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/soybeans.jpg";
+        photoName = "soybeans.jpg";
+        inputBitmap = BitmapFactory.decodeFile(photoPath);
+        outputBitmap = mSeedCounter.process(inputBitmap);
+        Utils.bitmapToMat(outputBitmap,outputMat);
+        //Imgproc.cvtColor(outputMat,outputMat,Imgproc.COLOR_BGR2RGB);
+        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/analyzed_test_new.jpg",outputMat);
+        seedCount = (int) mSeedCounter.getNumSeeds();
+        assertTrue(seedCount == SEEDCOUNT_SOYBEANS);
+    }
 
     @org.junit.Test
     public void ht_watershedLB_wheat_test(){

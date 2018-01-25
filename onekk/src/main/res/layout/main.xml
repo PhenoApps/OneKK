@@ -14,7 +14,7 @@
 
         <RelativeLayout
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
+            android:layout_height="wrap_content"
             android:background="#343434">
 
             <android.support.v7.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
@@ -28,152 +28,94 @@
 
             <FrameLayout
                 android:id="@+id/camera_preview"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
                 android:layout_above="@+id/dataEntry"
                 android:layout_centerHorizontal="true"
-                android:layout_centerVertical="true" >
-            </FrameLayout>
+                android:layout_centerVertical="true"/>
 
             <FrameLayout
                 android:id="@+id/measureStick"
                 android:layout_width="1dp"
                 android:layout_height="fill_parent"
-                android:layout_above="@+id/dataEntry"
-                android:layout_toRightOf="@id/camera_preview" />
+                android:layout_above="@+id/lastSample"
+                android:layout_toRightOf="@id/camera_preview"/>
+
+            <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_above="@+id/dataEntry"
+                    android:layout_centerHorizontal="true"
+                    android:layout_centerVertical="true"
+                    android:id="@+id/camera_button"
+                    android:background="@drawable/ic_camera_black_72dp"
+                    android:backgroundTint="@color/main_primaryDark"/>
 
             <LinearLayout
-                android:id="@+id/dataEntry"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:background="#FFFFFF"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:layout_alignParentBottom="true"
-                android:layout_toRightOf="@+id/dataTable"
-                android:layout_toEndOf="@+id/dataTable">
+                          android:id="@+id/dataEntry"
+                          android:layout_width="fill_parent"
+                          android:layout_height="wrap_content"
+                          android:layout_above="@+id/lastSample"
+                          android:layout_centerHorizontal="true"
+                          android:layout_gravity="center"
+                          android:background="#FFFFFF"
+                          android:gravity="center"
+                          android:orientation="horizontal"
+                          android:visibility="visible">
 
                 <TextView
-                    android:id="@+id/tvInput"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="10dp"
-                    android:text="@string/input"
-                    android:textSize="20sp" />
+                        android:id="@+id/tvInput"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:text="@string/input"
+                        android:textSize="20sp" />
 
                 <EditText
-                    android:id="@+id/etInput"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight=".85"
-                    android:inputType="textFilter"
-                    android:lines="1"
-                    android:singleLine="true" />
+                        android:id="@+id/etInput"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight=".85"
+                        android:inputType="textFilter"
+                        android:lines="1"
+                        android:singleLine="true" />
 
                 <TextView
-                    android:id="@+id/tvWeightLabel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="5sp"
-                    android:text="@string/weight"
-                    android:textSize="20sp" />
+                        android:id="@+id/tvWeightLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5sp"
+                        android:text="@string/weight"
+                        android:textSize="20sp" />
 
                 <EditText
-                    android:id="@+id/etWeight"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginRight="10dp"
-                    android:layout_weight=".15"
-                    android:gravity="center_horizontal"
-                    android:hint="@string/nullStr"
-                    android:inputType="number"
-                    android:lines="1"
-                    android:selectAllOnFocus="true"
-                    android:singleLine="true"
-                    android:textSize="20sp" />
+                        android:id="@+id/etWeight"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginRight="10dp"
+                        android:layout_weight=".15"
+                        android:gravity="center_horizontal"
+                        android:hint="@string/nullStr"
+                        android:inputType="number"
+                        android:lines="1"
+                        android:selectAllOnFocus="true"
+                        android:singleLine="true"
+                        android:textSize="20sp" />
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/dataTable"
+                android:orientation="vertical"
+                android:id="@+id/lastSample"
                 android:layout_width="fill_parent"
-                android:layout_height="65dp"
+                android:layout_height="30dp"
                 android:layout_alignParentBottom="true"
-                android:background="#FFFFFF"
-                android:visibility="gone"
-                >
+                android:background="#FFFFFF">
 
                 <TableLayout
+                    android:id="@+id/lastSampleTable"
                     android:layout_width="fill_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="fill_parent"/>
 
-                    <TableRow
-                        android:id="@+id/tableRowTitles"
-                        android:layout_width="fill_parent"
-                        android:layout_height="wrap_content">
-
-                        <TextView
-                            android:id="@+id/tvSampleName"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight=".4"
-                            android:gravity="center"
-                            android:text="@string/sample"
-                            android:textSize="20sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvNumSeeds"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight=".12"
-                            android:gravity="center"
-                            android:text="@string/countAbr"
-                            android:textSize="20sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvAvgLen"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight=".12"
-                            android:gravity="center"
-                            android:text="@string/lengthAbr"
-                            android:textSize="20sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvAvgWid"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight=".12"
-                            android:gravity="center"
-                            android:text="@string/widthAbr"
-                            android:textSize="20sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvWeight"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight=".12"
-                            android:gravity="center"
-                            android:text="@string/weightAbr"
-                            android:textSize="20sp"
-                            android:textStyle="bold" />
-                    </TableRow>
-
-                    <ScrollView
-                        android:id="@+id/svData"
-                        android:layout_width="fill_parent"
-                        android:layout_height="wrap_content">
-
-                        <TableLayout
-                            android:id="@+id/tlInventory"
-                            android:layout_width="fill_parent"
-                            android:layout_height="fill_parent"></TableLayout>
-                    </ScrollView>
-                </TableLayout>
             </LinearLayout>
         </RelativeLayout>
 

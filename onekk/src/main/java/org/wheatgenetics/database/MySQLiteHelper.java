@@ -1,4 +1,4 @@
-package org.wheatgenetics.onekk;
+package org.wheatgenetics.database;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -196,6 +196,40 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
                                 "WHERE seed.sample_id = sample.sample_id",
                         null);
         return cursor;
+    }
+
+    public List<SampleRecord> getLastSample() {
+        List<SampleRecord> samples = new LinkedList<>();
+
+        // 1. build the query
+        String query = "SELECT * FROM " + TABLE_SAMPLE + " ORDER BY id desc limit 1";
+
+        // 2. get reference to writable DB
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
+
+        // 3. go over each row, build sample and add it to list
+        SampleRecord sample;
+
+        if (cursor.moveToFirst()) {
+            do {
+                sample = new SampleRecord();
+
+                sample.setSampleId(cursor.getString(1));
+                sample.setPhoto(cursor.getString(2));
+                sample.setPersonId(cursor.getString(3));
+                sample.setDate(cursor.getString(4));
+                sample.setWeight(cursor.getString(5));
+                sample.setSeedCount(cursor.getString(6));
+                sample.setLengthAvg(Double.parseDouble(cursor.getString(7)));
+                sample.setWidthAvg(Double.parseDouble(cursor.getString(10)));
+                samples.add(sample);
+            } while (cursor.moveToNext());
+        }
+        Log.d("getLastSample()", samples.toString());
+        cursor.close();
+        // return samples
+        return samples;
     }
 
     public List<SampleRecord> getAllSamples() {

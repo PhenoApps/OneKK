@@ -39,7 +39,7 @@
             android:label="@string/app_name"
             android:launchMode="singleTask"
             android:screenOrientation="sensorPortrait"
-            android:windowSoftInputMode="adjustResize">
+            android:windowSoftInputMode="stateHidden">
             <intent-filter>
                 <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
             </intent-filter>
@@ -65,8 +65,14 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".SettingsActivity2"
-            android:label="@string/title_activity_settings2"></activity>
+            android:name=".ViewTableActivity"
+            android:label="@string/title_activity_data_table"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="org.wheatgenetics.onekk.MainActivity" />
+        </activity>
     </application>
 
 </manifest>

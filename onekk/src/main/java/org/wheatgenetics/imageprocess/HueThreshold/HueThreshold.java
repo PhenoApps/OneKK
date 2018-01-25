@@ -28,42 +28,55 @@ public class HueThreshold {
 
     /**
      * This class consists of variables and methods used to setup hue thresholding parameters
-     * <p>
      *
      */
     public static class HueThresholdParams{
-        private double threshold;
-        private int h1, h2;
+        protected double threshold;
+        protected int min_hue, max_hue;
 
         /**
-         * Method to initialize the hue thresholding parameters before processing
+         * Constructor to initialize the hue thresholding parameters before processing
          * <p>
          *  This is a convenience for calling
          * {@link org.wheatgenetics.imageprocess.HueThreshold.HueThreshold.HueThresholdParams#HueThresholdParams(double, int, int)}.
          * </p>
          *
+         *  @param min_hue minimum hue value to be used for thresholding
+         *  @param max_hue maximum hue value to be used for thresholding
          */
-        public HueThresholdParams(double thresh, int h1, int h2){
+        public HueThresholdParams(double thresh, int min_hue, int max_hue){
             this.threshold = thresh;
-            this.h1 = h1;
-            this.h2 = h2;
+            this.min_hue = min_hue;
+            this.max_hue = max_hue;
         }
 
-        public void setThresh(double threshold){
+        public double getThreshold() {
+            return threshold;
+        }
+
+        public int getMin_hue() {
+            return min_hue;
+        }
+
+        public int getMax_hue() {
+            return max_hue;
+        }
+
+        public void setThreshold(double threshold){
             this.threshold = threshold;
         }
 
-        public void setHue(int h1, int h2 ){
-            this.h1 = h1;
-            this.h2 = h2;
+        public void setHue(int min_hue, int max_hue){
+            this.min_hue = min_hue;
+            this.max_hue = max_hue;
         }
     }
 
     /**
-     * Hue Threshold constructor to initialize the hue thresholding parameters before processing
+     * Hue Threshold constructor to setup the hue thresholding parameters
      * <p>
      *  This is a convenience for calling
-     * {@link org.wheatgenetics.imageprocess.HueThreshold.HueThreshold.HueThresholdParams}.
+     * {@link org.wheatgenetics.imageprocess.HueThreshold.HueThreshold#HueThreshold(HueThresholdParams)}.
      * </p>
      *
      */
@@ -107,7 +120,7 @@ public class HueThreshold {
 
     public Mat preProcess(Mat imageMat){
         Mat mat3 = new Mat();
-        Core.inRange(imageMat, new Scalar(mparams.h1, 0, 0), new Scalar(mparams.h2, 255, 255), mat3);
+        Core.inRange(imageMat, new Scalar(mparams.getMin_hue(), 0, 0), new Scalar(mparams.getMax_hue(), 255, 255), mat3);
         Log.d(TAG,"PreProcess1 : Mat3 with user hue values created");
         return mat3;
     }

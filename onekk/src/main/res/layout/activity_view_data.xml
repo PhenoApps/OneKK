@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    tools:context="org.wheatgenetics.onekk.ViewTableActivity"
+    android:theme="@style/AppTheme">
+
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/view_data_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="@style/AppToolbar"
+        app:navigationContentDescription="View Data"
+        app:navigationIcon="?attr/homeAsUpIndicator"
+        app:title="@string/view_data">
+
+    </android.support.v7.widget.Toolbar>
+    <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+
+    <TableRow
+        android:id="@+id/tableRowTitles"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="20dp"
+        android:background="@color/light">
+
+        <TextView
+            android:id="@+id/tvSampleName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight=".2"
+            android:gravity="center"
+            android:text="@string/sample"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvNumSeeds"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight=".12"
+            android:gravity="center"
+            android:text="@string/countAbr"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvAvgLen"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight=".12"
+            android:gravity="center"
+            android:text="@string/lengthAbr"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvAvgWid"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight=".12"
+            android:gravity="center"
+            android:text="@string/widthAbr"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvWeight"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight=".12"
+            android:gravity="center"
+            android:text="@string/weightAbr"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+    </TableRow>
+    </TableLayout>
+    <include
+        android:id="@+id/include"
+
+        layout="@layout/content_view_data" />
+
+</LinearLayout>

@@ -1,4 +1,4 @@
-package org.wheatgenetics.imageprocess;
+package org.wheatgenetics.imageprocess.ImgProcess1KK;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,7 +30,7 @@ public class ImgProcess1KK {
     private double maximumSize = 0.0;
 
     private double pixelSize = 0; // pixel size in mm
-    public boolean cropImage = true;
+    public boolean cropImage = false;
 
     private ArrayList<Seed> seedArray = new ArrayList<>();
 
@@ -570,12 +570,10 @@ public class ImgProcess1KK {
         }
     }
 
-
     /**
      * Returns a false color image with the reference and seeds colored
      */
-
-    public Mat getProcessedImg() {
+    public Mat getProcessedMat() {
         Mat pImg = image.clone();
         Imgproc.cvtColor(pImg, pImg, Imgproc.COLOR_HSV2BGR);
 
@@ -608,15 +606,6 @@ public class ImgProcess1KK {
 
     public int getSeedCount() {
         return seedCount;
-    }
-
-    /**
-     * Writes a false color image with the reference and seeds colored to the specified image path
-     */
-
-    public void writeProcessedImg(String filename) {
-        System.out.println(String.format("\nWriting %s", filename));
-        Imgcodecs.imwrite(filename, this.getProcessedImg());
     }
 
     public class Seed {

@@ -16,6 +16,9 @@ package org.wheatgenetics.onekk;
  * limitations under the License.
  */
 
+import org.wheatgenetics.database.ResultSetHelper;
+import org.wheatgenetics.database.ResultSetHelperService;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.PrintWriter;

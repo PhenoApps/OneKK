@@ -1,4 +1,4 @@
-package org.wheatgenetics.imageprocess.watershedLB;
+package org.wheatgenetics.imageprocess.WatershedLB;
 
 import android.graphics.Bitmap;
 import android.os.Environment;
@@ -36,20 +36,31 @@ import static org.opencv.imgproc.Imgproc.cvtColor;
 
 public class WatershedLB {
 
-    //opencv constants
-    private final Scalar mContourColor = new Scalar(255, 0, 0);
-    private final Scalar mContourMomentsColor = new Scalar(0, 0, 0);
-
-    //seed counter algorithm variables
-    private int mNumSeeds = 0;
-    double ssum = 0;
-    //seed counter parameters
     private WatershedParams mParams;
+    private Mat processedMat;
+    double ssum = 0;
 
-    //class used to define user-tunable parameters
+    /**
+     * This class consists of variables and methods used to setup Watershed light box parameters
+     *
+     */
     public static class WatershedParams {
-        private int areaLow, areaHigh, defaultRate;
-        private double sizeLowerBoundRatio, newSeedDistRatio;
+        protected int areaLow, areaHigh, defaultRate;
+        protected double sizeLowerBoundRatio, newSeedDistRatio;
+
+        /**
+         * Constructor to initialize the Watershed parameters before processing
+         * <p>
+         *  This is a convenience for calling
+         * {@link org.wheatgenetics.imageprocess.WatershedLB.WatershedLB.WatershedParams#WatershedParams(int, int, int, double, double)}.
+         * </p>
+         *
+         *  @param areaLow minimum area value of the seed
+         *  @param areaHigh maximum hue value of the seed
+         *  @param defaultRate default rate at which the seeds are flowing
+         *  @param sizeLowerBoundRatio
+         *  @param newSeedDistRatio
+         */
 
         public WatershedParams(int areaLow, int areaHigh, int defaultRate,
                         double sizeLowerBoundRatio, double newSeedDistRatio) {
@@ -59,18 +70,42 @@ public class WatershedLB {
             this.sizeLowerBoundRatio = sizeLowerBoundRatio;
             this.newSeedDistRatio = newSeedDistRatio;
         }
-        int getAreaLow() { return areaLow; }
-        int getAreaHigh() { return areaHigh; }
-        int getDefaultRate() { return defaultRate; }
-        double getSizeLowerBoundRatio() { return sizeLowerBoundRatio; }
-        double getNewSeedDistRatio() { return newSeedDistRatio; }
+
+        public int getAreaLow() { return areaLow; }
+
+        public int getAreaHigh() { return areaHigh; }
+
+        public int getDefaultRate() { return defaultRate; }
+
+        public double getSizeLowerBoundRatio() { return sizeLowerBoundRatio; }
+
+        public double getNewSeedDistRatio() { return newSeedDistRatio; }
     }
 
+    /**
+     * WatershedLB constructor to setup the watershed light box parameters
+     * <p>
+     *  This is a convenience for calling
+     * {@link org.wheatgenetics.imageprocess.WatershedLB.WatershedLB#WatershedLB(WatershedParams)}.
+     * </p>
+     *
+     */
     public WatershedLB(WatershedParams params) {
         mParams = params;
     }
 
-    public Mat process(Mat frame) {
+    public Bitmap process(Bitmap inputBitmap) {
+
+        Mat frame = new Mat();
+        Utils.bitmapToMat(inputBitmap, frame);
+        Mat ret = subProcess(frame);
+        Utils.matToBitmap(ret, inputBitmap);
+        processedMat = new Mat();
+        processedMat = ret;
+        return inputBitmap;
+    }
+
+    private Mat subProcess(Mat frame) {
 
         Imgproc.cvtColor(frame,frame,COLOR_BGR2RGB);
 
@@ -448,13 +483,8 @@ public class WatershedLB {
         return frame;
     }
 
-    public Bitmap process(Bitmap inputBitmap) {
-
-        Mat frame = new Mat();
-        Utils.bitmapToMat(inputBitmap, frame);
-        Mat ret = process(frame);
-        Utils.matToBitmap(ret, inputBitmap);
-        return inputBitmap;
+    public Mat getProcessedMat(){
+        return processedMat;
     }
 
     public double getNumSeeds() {
