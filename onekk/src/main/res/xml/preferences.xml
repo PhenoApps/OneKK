@@ -4,18 +4,18 @@
     android:layout_height="wrap_content">
 
     <PreferenceScreen
-        android:icon="@drawable/ic_settings"
+        android:icon="@drawable/ic_people_black_24dp"
         android:persistent="false"
         android:summary="set User name"
         android:title="@string/user_name">
         <PreferenceCategory android:title="@string/user_name">
             <EditTextPreference
-                android:icon="@drawable/ic_settings"
+                android:icon="@drawable/ic_person_black_24dp"
                 android:key="org.wheatgenetics.onekk.FIRST_NAME"
                 android:summary="First Name"
                 android:title="@string/first_name" />
             <EditTextPreference
-                android:icon="@drawable/ic_settings"
+                android:icon="@drawable/ic_person_black_24dp"
                 android:key="org.wheatgenetics.onekk.LAST_NAME"
                 android:summary="Last Name"
                 android:title="@string/last_name" />
@@ -24,60 +24,85 @@
 
     <CheckBoxPreference
         android:defaultValue="true"
-        android:icon="@drawable/ic_settings"
+        android:icon="@drawable/ic_image_black_24dp"
         android:key="org.wheatgenetics.onekk.DISPLAY_ANALYSIS"
         android:summary="Display analysis preview"
         android:title="@string/display_analysis" />
 
-    <CheckBoxPreference
-        android:defaultValue="true"
-        android:icon="@drawable/ic_settings"
-        android:key="org.wheatgenetics.onekk.DISPLAY_SEED_COUNT"
-        android:summary="Display seed count"
-        android:title="@string/display_seed_count" />
-
-    <CheckBoxPreference
-        android:defaultValue="true"
-        android:icon="@drawable/ic_settings"
-        android:key="org.wheatgenetics.onekk.AUTO_CROP"
-        android:summary="Automatically attempt to crop photos"
-        android:title="@string/auto_crop" />
-
     <PreferenceScreen
-        android:icon="@drawable/ic_settings"
+        android:icon="@drawable/ic_settings_applications_black_24dp"
         android:key="org.wheatgenetics.onekk.PROCESSING_RANGES"
         android:persistent="false"
         android:summary="Set different processing settings"
         android:title="@string/processing">
 
         <PreferenceCategory
-            android:icon="@drawable/ic_settings"
+
             android:title="@string/types_processing_techniques">
 
             <CheckBoxPreference
+                android:icon="@drawable/ic_live_help_black_24dp"
                 android:defaultValue="true"
                 android:disableDependentsState="true"
                 android:key="org.wheatgenetics.onekk.ASK_PROCESSING_TECHNIQUE"
                 android:summary="prompt user for a processing technique"
                 android:title="@string/ask_processing_technique" />
             <ListPreference
+                android:icon="@drawable/ic_build_black_24dp"
+                android:summary="%s"
                 android:dependency="org.wheatgenetics.onekk.ASK_PROCESSING_TECHNIQUE"
                 android:entries="@array/processing_techniques"
                 android:entryValues="@array/processing_technique_values"
                 android:key="org.wheatgenetics.onekk.PROCESSING_TECHNIQUE"
-                android:title="Select Processing Technique" />
+                android:title="Processing Technique" />
         </PreferenceCategory>
 
-        <PreferenceCategory android:title="Processing Ranges"></PreferenceCategory>
+        <PreferenceCategory
+            android:icon="@drawable/ic_settings"
+            android:key="org.wheatgenetics.onekk.COIN_SIZE"
+            android:persistent="false"
+            android:summary="Set Reference Coin Size"
+            android:title="@string/coin_size">
+            <ListPreference
+                android:defaultValue="1"
+                android:icon="@drawable/ic_public_black_24dp"
+                android:key="org.wheatgenetics.onekk.COUNTRY"
+                android:summary="%s"
+                android:title="@string/country"
+                android:entries="@array/country"
+                android:entryValues="@array/country_values"
+                />
+            <ListPreference
+                android:defaultValue="1"
+                android:icon="@drawable/ic_attach_money_black_24dp"
+                android:key="org.wheatgenetics.onekk.CURRENCY"
+                android:summary="%s"
+                android:title="@string/currency"
+                android:entries="@array/currency"
+                android:entryValues="@array/currency_values"
+                />
+            <ListPreference
+                android:defaultValue="1"
+                android:icon="@drawable/ic_local_atm_black_24dp"
+                android:key="org.wheatgenetics.onekk.VALUE"
+                android:summary="%s"
+                android:title="@string/value"
+                android:entries="@array/value"
+                android:entryValues="@array/value_values"
+                />
+
+        </PreferenceCategory>
+
+        <PreferenceCategory android:title="Pre Processing"></PreferenceCategory>
         <CheckBoxPreference
             android:defaultValue="false"
-            android:icon="@drawable/ic_settings"
-            android:key="org.wheatgenetics.onekk.USER_PROCESSING_RANGES"
-            android:summary="user defined processing ranges"
-            android:title="@string/user_range" />
+            android:icon="@drawable/ic_tune_black_24dp"
+            android:key="org.wheatgenetics.onekk.HUE_THRESHOLD"
+            android:summary="perform hue thresholding before Watershed"
+            android:title="@string/hue_threshold" />
 
         <PreferenceCategory
-            android:dependency="org.wheatgenetics.onekk.USER_PROCESSING_RANGES"
+            android:dependency="org.wheatgenetics.onekk.HUE_THRESHOLD"
             android:title="@string/seed_size_range">
             <SeekBarPreference
                 android:defaultValue="50"
@@ -94,7 +119,7 @@
         </PreferenceCategory>
 
         <PreferenceCategory
-            android:dependency="org.wheatgenetics.onekk.USER_PROCESSING_RANGES"
+            android:dependency="org.wheatgenetics.onekk.HUE_THRESHOLD"
             android:title="@string/hue_range">
             <SeekBarPreference
                 android:defaultValue="50"
@@ -110,7 +135,7 @@
                 android:title="@string/max_hue_value" />
         </PreferenceCategory>
         <PreferenceCategory
-            android:dependency="org.wheatgenetics.onekk.USER_PROCESSING_RANGES"
+            android:dependency="org.wheatgenetics.onekk.HUE_THRESHOLD"
             android:title="@string/threshold">
             <SeekBarPreference
                 android:defaultValue="1"
@@ -121,14 +146,11 @@
         </PreferenceCategory>
     </PreferenceScreen>
 
-    <EditTextPreference
-        android:defaultValue="4"
-        android:icon="@drawable/ic_settings"
-        android:key="org.wheatgenetics.onekk.COIN_SIZE"
-        android:summary="Reference coin size "
-        android:title="@string/coin_size" />
+
+
     <PreferenceCategory android:title="Background Color">
         <com.kizitonwose.colorpreference.ColorPreference
+            android:icon="@drawable/ic_palette_black_24dp"
             android:defaultValue="@color/main_colorAccent"
             android:key="org.wheatgenetics.onekk.COLOR_PREFERENCE"
             android:summary="background color to use"

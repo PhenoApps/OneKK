@@ -15,10 +15,12 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Switch;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import org.wheatgenetics.database.CoinRecord;
 import org.wheatgenetics.database.MySQLiteHelper;
 import org.wheatgenetics.database.SampleRecord;
 
@@ -26,6 +28,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.util.List;
 
+import static java.lang.Math.min;
+import static org.wheatgenetics.onekkUtils.oneKKUtils.adjustFontSize;
 import static org.wheatgenetics.onekkUtils.oneKKUtils.getDate;
 import static org.wheatgenetics.onekkUtils.oneKKUtils.makeFileDiscoverable;
 import static org.wheatgenetics.onekkUtils.oneKKUtils.stringDecimal;
@@ -51,34 +55,114 @@ public class ViewTableContent {
     public static void getLastData() {
         OneKKTable.removeAllViews();
         List<SampleRecord> list = db.getLastSample();
+        db.close();
         parseListToTable(list);
     }
 
-    public static void getAllData() {
+    /** Single method to get data from different tables in the Database
+     *
+     * <p>
+     *     {@link org.wheatgenetics.onekk.ViewTableContent#getAllData(String)}
+     *     {@value "sample, seed, coins"}
+     * </p>
+     *
+     * @param tableName takes the table name from which all the rows are fetched
+     *
+     * */
+    public static void getAllData(String tableName) {
+
+        List<?> list = null;
         OneKKTable.removeAllViews();
-        List<SampleRecord> list = db.getAllSamples();
+        switch(tableName){
+            case "sample" :
+                list = db.getAllSamples();
+                break;
+            case "seed" :
+                list = db.getAllSamples();
+                break;
+            case "coins" :
+                list = db.getAllCoins();
+                break;
+        }
+        db.close();
+
         parseListToTable(list);
     }
 
     // FIXME: 1/23/18
-    public static void parseListToTable(List<SampleRecord> list) {
+    public static void parseListToTable(List<?> list) {
 
         int itemCount = list.size();
         if (itemCount != 0 && itemCount > 1) {
             for (int i = 0; i < itemCount; i++) {
                 String[] temp = list.get(i).toString().split(",");
-
-                /*Log.d(TAG, temp[0] + " " + temp[1] + " " + temp[2] + " "
-                        + temp[3] + " " + temp[4] + " " + temp[5] + " "
-                        + temp[6] + " " + temp[7]);
-*/
-                createNewTableEntry(temp[0], temp[5], stringDecimal(temp[7]), stringDecimal(temp[8]), stringDecimal(temp[6]));
+                if(temp.length == 4) {
+                    createNewTableEntry(temp[0], temp[1], stringDecimal(temp[2]), stringDecimal(temp[3]));
+                }
+                else
+                    createNewTableEntry(temp[0], temp[5], stringDecimal(temp[7]), stringDecimal(temp[8]), stringDecimal(temp[6]));
             }
         } else {
             String[] temp = list.get(0).toString().split(",");
             createNewTableEntry(temp[0], temp[5]);
         }
 
+    }
+
+    public static void createNewTableEntry(String country, String currency, String value, String diameter) {
+        //inputText.setText("");
+
+		/* Create a new row to be added. */
+        TableRow tr = new TableRow(context);
+        tr.setLayoutParams(new TableLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        tr.setPadding(0,30,0,30);
+        float fontSize = min(adjustFontSize(country),adjustFontSize(currency));
+        /* Create the country field */
+        TextView tvCountry = new TextView(context);
+        tvCountry.setGravity(Gravity.START | Gravity.BOTTOM);
+        tvCountry.setTextColor(Color.BLACK);
+        tvCountry.setTextSize(fontSize);
+        tvCountry.setText(country);
+        tvCountry.setTag(country);
+        tvCountry.setLayoutParams(new TableRow.LayoutParams(0,
+                ViewGroup.LayoutParams.WRAP_CONTENT, 0.3f));
+
+		/* Create the currency field */
+        TextView tvCurrency = new TextView(context);
+        tvCurrency.setGravity(Gravity.START | Gravity.BOTTOM);
+        tvCurrency.setTextColor(Color.BLACK);
+        tvCurrency.setTextSize(fontSize);
+        tvCurrency.setText(currency);
+        tvCurrency.setLayoutParams(new TableRow.LayoutParams(0,
+                ViewGroup.LayoutParams.WRAP_CONTENT, 0.3f));
+
+        /* Create the value field */
+        TextView tvValue = new TextView(context);
+        tvValue.setGravity(Gravity.CENTER | Gravity.BOTTOM);
+        tvValue.setTextColor(Color.BLACK);
+        tvValue.setTextSize(fontSize);
+        tvValue.setText(value);
+        tvValue.setLayoutParams(new TableRow.LayoutParams(0,
+                ViewGroup.LayoutParams.WRAP_CONTENT, 0.14f));
+
+        /* Create the diameter field */
+        TextView tvDiameter = new TextView(context);
+        tvDiameter.setGravity(Gravity.CENTER | Gravity.BOTTOM);
+        tvDiameter.setTextColor(Color.BLACK);
+        tvDiameter.setTextSize(fontSize);
+        tvDiameter.setText(diameter);
+        tvDiameter.setLayoutParams(new TableRow.LayoutParams(0,
+                ViewGroup.LayoutParams.WRAP_CONTENT, 0.14f));
+
+        tr.addView(tvCountry);
+        tr.addView(tvCurrency);
+        tr.addView(tvValue);
+        tr.addView(tvDiameter);
+
+        OneKKTable.addView(tr, 0, new ViewGroup.LayoutParams( // Adds row to top of table
+                TableLayout.LayoutParams.MATCH_PARENT,
+                TableLayout.LayoutParams.MATCH_PARENT));
     }
 
     public static void createNewTableEntry(String sample, String seedCount) {
@@ -93,7 +177,7 @@ public class ViewTableContent {
         TextView sampleName = new TextView(context);
         sampleName.setGravity(Gravity.CENTER | Gravity.BOTTOM);
         sampleName.setTextColor(Color.BLACK);
-        sampleName.setTextSize(20.0f);
+        sampleName.setTextSize(adjustFontSize(sample));
         sampleName.setText("Last Sample : " + sample);
         sampleName.setTag(sample);
         sampleName.setLayoutParams(new TableRow.LayoutParams(0,
@@ -128,12 +212,12 @@ public class ViewTableContent {
         tr.setLayoutParams(new TableLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         tr.setPadding(0,30,0,30);
-
+        float fontSize = adjustFontSize(sample);
         /* Create the sample name field */
         TextView sampleName = new TextView(context);
-        sampleName.setGravity(Gravity.CENTER | Gravity.BOTTOM);
+        sampleName.setGravity(Gravity.LEFT | Gravity.BOTTOM);
         sampleName.setTextColor(Color.BLACK);
-        sampleName.setTextSize(20.0f);
+        sampleName.setTextSize(fontSize);
         sampleName.setText(sample);
         sampleName.setTag(sample);
         sampleName.setLayoutParams(new TableRow.LayoutParams(0,
@@ -141,36 +225,36 @@ public class ViewTableContent {
 
 		/* Create the number of seeds field */
         TextView numSeeds = new TextView(context);
-        numSeeds.setGravity(Gravity.CENTER | Gravity.BOTTOM);
+        numSeeds.setGravity(Gravity.RIGHT | Gravity.BOTTOM);
         numSeeds.setTextColor(Color.BLACK);
-        numSeeds.setTextSize(20.0f);
+        numSeeds.setTextSize(fontSize);
         numSeeds.setText(seedCount);
         numSeeds.setLayoutParams(new TableRow.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 0.12f));
 
 		/* Create the length field */
         TextView avgLength = new TextView(context);
-        avgLength.setGravity(Gravity.CENTER | Gravity.BOTTOM);
+        avgLength.setGravity(Gravity.RIGHT | Gravity.BOTTOM);
         avgLength.setTextColor(Color.BLACK);
-        avgLength.setTextSize(20.0f);
+        avgLength.setTextSize(fontSize);
         avgLength.setText(avgL);
         avgLength.setLayoutParams(new TableRow.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 0.12f));
 
 		/* Create the width field */
         TextView avgWidth = new TextView(context);
-        avgWidth.setGravity(Gravity.CENTER | Gravity.BOTTOM);
+        avgWidth.setGravity(Gravity.RIGHT | Gravity.BOTTOM);
         avgWidth.setTextColor(Color.BLACK);
-        avgWidth.setTextSize(20.0f);
+        avgWidth.setTextSize(fontSize);
         avgWidth.setText(avgW);
         avgWidth.setLayoutParams(new TableRow.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 0.12f));
 
 		/* Create the area field */
         TextView sampleWeight = new TextView(context);
-        sampleWeight.setGravity(Gravity.CENTER | Gravity.BOTTOM);
+        sampleWeight.setGravity(Gravity.RIGHT | Gravity.BOTTOM);
         sampleWeight.setTextColor(Color.BLACK);
-        sampleWeight.setTextSize(20.0f);
+        sampleWeight.setTextSize(fontSize);
         sampleWeight.setText(wt);
         sampleWeight.setLayoutParams(new TableRow.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 0.12f));
@@ -295,7 +379,7 @@ public class ViewTableContent {
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 db.deleteSample(sampleName);
-                                getAllData();
+                                getAllData("sample");
                             }
                         })
                 .setNegativeButton(context.getResources().getString(R.string.no), new DialogInterface.OnClickListener() {

@@ -1,49 +1,68 @@
 package org.wheatgenetics.onekk;
 
-import android.os.Bundle;
+import android.support.design.widget.TabLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.widget.TableLayout;
 
-/**
- * This class is the activity class for View Data feature and is
- * initialized from the Navigation Drawer setup in the main menu of MainActivity
- * */
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+
 public class ViewTableActivity extends AppCompatActivity {
 
+    /**
+     * The {@link android.support.v4.view.PagerAdapter} that will provide
+     * fragments for each of the sections. We use a
+     * {@link FragmentPagerAdapter} derivative, which will keep every
+     * loaded fragment in memory. If this becomes too memory intensive, it
+     * may be best to switch to a
+     * {@link android.support.v4.app.FragmentStatePagerAdapter}.
+     */
+    private SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewTableContent viewTableContent;
+    /**
+     * The {@link ViewPager} that will host the section contents.
+     */
+    private ViewPager mViewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
-
-        TableLayout OneKKTable;
-        Toolbar toolbar;
-
-        setContentView(R.layout.activity_view_data);
-
-        toolbar = (Toolbar) findViewById(R.id.view_data_toolbar);
+        setContentView(R.layout.view_data_activity);
+        viewTableContent = new ViewTableContent(ViewTableActivity.this);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.view_data_toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
+        // Create the adapter that will return a fragment for each of the three
+        // primary sections of the activity.
+        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
-        OneKKTable = (TableLayout) findViewById(R.id.tlInventory);
-        viewTableContent = new ViewTableContent(ViewTableActivity.this,OneKKTable);
-        viewTableContent.getAllData();
+        // Set up the ViewPager with the sections adapter.
+        mViewPager = (ViewPager) findViewById(R.id.container);
+        mViewPager.setAdapter(mSectionsPagerAdapter);
+
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+
+        mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+        tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
     }
 
+
     @Override
-    public boolean onCreateOptionsMenu(Menu menu){
-        MenuInflater menuInflater = getMenuInflater();
-        menuInflater.inflate(R.menu.menu_data_table, menu);
+    public boolean onCreateOptionsMenu(Menu menu) {
+
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_data_table, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+
         // Handle item selection
         switch (item.getItemId()) {
             case R.id.action_export:
@@ -57,3 +76,5 @@ public class ViewTableActivity extends AppCompatActivity {
         }
     }
 }
+
+

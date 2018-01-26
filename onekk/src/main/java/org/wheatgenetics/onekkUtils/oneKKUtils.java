@@ -75,9 +75,20 @@ public class oneKKUtils {
      */
     public static String stringDecimal(String input) {
         if (!input.equals("null")) {
+            if(!input.equals("NA"))
             return String.format("%.2f", Double.parseDouble(input));
         }
 
         return "null";
+    }
+
+    public static Float adjustFontSize(String text){
+        int fontSize = text.length();
+        if(fontSize > 15) {
+            float size = ((float)(fontSize) - 10f)/2;
+            return (20.0f - size);
+        }
+        else
+            return(15.0f);
     }
 }

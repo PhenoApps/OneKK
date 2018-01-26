@@ -1,0 +1,249 @@
+Country,Currency,Value,Diameter
+Australia,Cent,1,17.65
+Australia,Cents,2,21.59
+Australia,Cents,5,19.41
+Australia,Cents,10,23.6
+Australia,Cents,20,28.65
+Australia,Cents,50,NA
+Australia,Dollar,1,25
+Australia,Dollar,2,20.5
+Bangladesh,Taka,1,21.5
+Bangladesh,Taka,2,24
+Bangladesh,Taka,5,25.5
+Benin,West African CFA franc,1,23
+Benin,West African CFA franc,5,20
+Benin,West African CFA franc,10,23.5
+Benin,West African CFA franc,25,27
+Benin,West African CFA franc,50,22
+Benin,West African CFA franc,100,26
+Benin,West African CFA franc,200,24.5
+Benin,West African CFA franc,250,26.3
+Benin,West African CFA franc,500,28
+Benin,West African CFA franc,1,23
+Benin,West African CFA franc,5,20
+Benin,West African CFA franc,10,23.5
+Benin,West African CFA franc,25,27
+Benin,West African CFA franc,50,22
+Benin,West African CFA franc,100,26
+Benin,West African CFA franc,200,24.5
+Benin,West African CFA franc,250,26.3
+Benin,West African CFA franc,500,28
+Burkina Faso,West African CFA franc,1,23
+Burkina Faso,West African CFA franc,5,20
+Burkina Faso,West African CFA franc,10,23.5
+Burkina Faso,West African CFA franc,25,27
+Burkina Faso,West African CFA franc,50,22
+Burkina Faso,West African CFA franc,100,26
+Burkina Faso,West African CFA franc,200,24.5
+Burkina Faso,West African CFA franc,250,26.3
+Burkina Faso,West African CFA franc,500,28
+Cameroon,Central African CFA franc,1,14.94
+Cameroon,Central African CFA franc,2,18
+Cameroon,Central African CFA franc,5,16
+Cameroon,Central African CFA franc,10,18
+Cameroon,Central African CFA franc,25,22.75
+Cameroon,Central African CFA franc,50,22
+Cameroon,Central African CFA franc,100,24
+Cameroon,Central African CFA franc,500,26
+Canada,Cent,1,19.05
+Canada,Cents,5,21.2
+Canada,Cents,10,18.03
+Canada,Cents,25,23.88
+Canada,Cents,50,27.13
+Canada,Dollar,1,NA
+Canada,Dollar,2,28
+Central African Republic,Central African CFA franc,1,14.94
+Central African Republic,Central African CFA franc,2,18
+Central African Republic,Central African CFA franc,5,16
+Central African Republic,Central African CFA franc,10,18
+Central African Republic,Central African CFA franc,25,22.75
+Central African Republic,Central African CFA franc,50,22
+Central African Republic,Central African CFA franc,100,24
+Central African Republic,Central African CFA franc,500,26
+Chad,Central African CFA franc,1,14.94
+Chad,Central African CFA franc,2,18
+Chad,Central African CFA franc,5,16
+Chad,Central African CFA franc,10,18
+Chad,Central African CFA franc,25,22.75
+Chad,Central African CFA franc,50,22
+Chad,Central African CFA franc,100,24
+Chad,Central African CFA franc,500,26
+China,Jiao,1,19
+China,Jiao,5,20.5
+China,Yuan,1,25
+Colombia,Peso,20,17.2
+Colombia,Peso,50,17
+Colombia,Peso,100,20.3
+Colombia,Peso,200,22.4
+Colombia,Peso,500,23.7
+Colombia,Peso,1000,26.7
+Cote d'Ivoire,West African CFA franc,1,23
+Cote d'Ivoire,West African CFA franc,5,20
+Cote d'Ivoire,West African CFA franc,10,23.5
+Cote d'Ivoire,West African CFA franc,25,27
+Cote d'Ivoire,West African CFA franc,50,22
+Cote d'Ivoire,West African CFA franc,100,26
+Cote d'Ivoire,West African CFA franc,200,24.5
+Cote d'Ivoire,West African CFA franc,250,26.3
+Cote d'Ivoire,West African CFA franc,500,28
+Equatorial Guinea,Central African CFA franc,1,14.94
+Equatorial Guinea,Central African CFA franc,2,18
+Equatorial Guinea,Central African CFA franc,5,16
+Equatorial Guinea,Central African CFA franc,10,18
+Equatorial Guinea,Central African CFA franc,25,22.75
+Equatorial Guinea,Central African CFA franc,50,22
+Equatorial Guinea,Central African CFA franc,100,24
+Equatorial Guinea,Central African CFA franc,500,26
+Ethiopia,Santim,1,17
+Ethiopia,Santim,5,20
+Ethiopia,Santim,10,23
+Ethiopia,Santim,25,21.45
+Ethiopia,Santim,50,25
+Ethiopia,Birr,1,27
+European Union,Cent,1,16.25
+European Union,Cents,2,18.75
+European Union,Cents,5,21.25
+European Union,Cents,10,19.75
+European Union,Cents,20,22.25
+European Union,Cents,50,24.25
+European Union,Euro,1,23.25
+European Union,Euro,2,25.75
+Gabon,Central African CFA franc,1,14.94
+Gabon,Central African CFA franc,2,18
+Gabon,Central African CFA franc,5,16
+Gabon,Central African CFA franc,10,18
+Gabon,Central African CFA franc,25,22.75
+Gabon,Central African CFA franc,50,22
+Gabon,Central African CFA franc,100,24
+Gabon,Central African CFA franc,500,26
+Guinea-Bissau,West African CFA franc,1,23
+Guinea-Bissau,West African CFA franc,5,20
+Guinea-Bissau,West African CFA franc,10,23.5
+Guinea-Bissau,West African CFA franc,25,27
+Guinea-Bissau,West African CFA franc,50,22
+Guinea-Bissau,West African CFA franc,100,26
+Guinea-Bissau,West African CFA franc,200,24.5
+Guinea-Bissau,West African CFA franc,250,26.3
+Guinea-Bissau,West African CFA franc,500,28
+India,Paise,10,16
+India,Paise,25,19
+India,Paise,50,19
+India,Rupee,1,21.93
+India,Rupee,2,25
+India,Rupee,5,27
+India,Rupee,10,27
+Indonesia,Rupiah,100,23
+Indonesia,Rupiah,200,25
+Indonesia,Rupiah,500,27
+Indonesia,Rupiah,1000,24.15
+Japan,Yen,1,20
+Japan,Yen,5,22
+Japan,Yen,10,23.5
+Japan,Yen,50,21
+Japan,Yen,100,22.6
+Japan,Yen,500,26.5
+Kenya,Shilling,1,23.9
+Kenya,Shilling,5,19.5
+Kenya,Shilling,10,23
+Kenya,Shilling,20,26
+Kenya,Shilling,40,27.5
+Mali,West African CFA franc,1,23
+Mali,West African CFA franc,5,20
+Mali,West African CFA franc,10,23.5
+Mali,West African CFA franc,25,27
+Mali,West African CFA franc,50,22
+Mali,West African CFA franc,100,26
+Mali,West African CFA franc,200,24.5
+Mali,West African CFA franc,250,26.3
+Mali,West African CFA franc,500,28
+Mexico,Centavos,5,15.5
+Mexico,Centavos,10,17
+Mexico,Centavos,20,NA
+Mexico,Centavos,50,17
+Mexico,Peso,1,21
+Mexico,Peso,5,25.5
+Mexico,Peso,10,28
+Mexico,Peso,20,32
+Morocco,Santim,1,17
+Morocco,Santimat,5,17.5
+Morocco,Santimat,10,20
+Morocco,Santimat,20,23
+Morocco,Dirham,0.5,21
+Morocco,Dirham,1,24
+Morocco,Dirham,2,26
+Morocco,Dirham,5,25
+Morocco,Dirham,10,28
+Niger,West African CFA franc,1,23
+Niger,West African CFA franc,5,20
+Niger,West African CFA franc,10,23.5
+Niger,West African CFA franc,25,27
+Niger,West African CFA franc,50,22
+Niger,West African CFA franc,100,26
+Niger,West African CFA franc,200,24.5
+Niger,West African CFA franc,250,26.3
+Niger,West African CFA franc,500,28
+Nigeria,Kobo,50,NA
+Nigeria,Naira,1,27.5
+Nigeria,Naira,2,24.5
+Pakistan,Rupee,1,20
+Pakistan,Rupee,2,22.5
+Pakistan,Rupee,5,18.5
+Pakistan,Rupee,10,25.5
+Peru,Centimos,5,18
+Peru,Centimos,10,20.5
+Peru,Centimos,20,23
+Peru,Centimos,50,22
+Peru,Sol,1,25.5
+Peru,Sol,2,22.2
+Peru,Sol,5,24.3
+Phillipines,Sentimo,1,15.5
+Phillipines,Sentimo,5,15.5
+Phillipines,Sentimo,10,17
+Phillipines,Sentimo,25,20
+Phillipines,Piso,1,24
+Phillipines,Piso,5,27
+Phillipines,Piso,10,26.5
+Congo,Central African CFA franc,1,14.94
+Congo,Central African CFA franc,2,18
+Congo,Central African CFA franc,5,16
+Congo,Central African CFA franc,10,18
+Congo,Central African CFA franc,25,22.75
+Congo,Central African CFA franc,50,22
+Congo,Central African CFA franc,100,24
+Congo,Central African CFA franc,500,26
+Senegal,West African CFA franc,1,23
+Senegal,West African CFA franc,5,20
+Senegal,West African CFA franc,10,23.5
+Senegal,West African CFA franc,25,27
+Senegal,West African CFA franc,50,22
+Senegal,West African CFA franc,100,26
+Senegal,West African CFA franc,200,24.5
+Senegal,West African CFA franc,250,26.3
+Senegal,West African CFA franc,500,28
+Togo,West African CFA franc,1,23
+Togo,West African CFA franc,5,20
+Togo,West African CFA franc,10,23.5
+Togo,West African CFA franc,25,27
+Togo,West African CFA franc,50,22
+Togo,West African CFA franc,100,26
+Togo,West African CFA franc,200,24.5
+Togo,West African CFA franc,250,26.3
+Togo,West African CFA franc,500,28
+Uganda,Shilling,50,21
+Uganda,Shilling,100,27
+Uganda,Shilling,200,24.9
+Uganda,Shilling,500,23.5
+UK,Penny,1,20.3
+UK,Pence,2,25.9
+UK,Pence,5,18
+UK,Pence,10,24.5
+UK,Pence,20,NA
+UK,Pence,50,NA
+UK,Pound,1,NA
+UK,Pound,2,28.4
+USA,Cent,1,19.05
+USA,Cents,5,21.21
+USA,Cents,10,17.91
+USA,Cents,25,24.26
+USA,Cents,50,30.61
+USA,Dollar,1,26.5

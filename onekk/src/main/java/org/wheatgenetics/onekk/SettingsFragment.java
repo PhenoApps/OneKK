@@ -16,14 +16,15 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     public static String FIRST_NAME = "org.wheatgenetics.onekk.FIRST_NAME";
     public static String LAST_NAME = "org.wheatgenetics.onekk.LAST_NAME";
     public static String DISPLAY_ANALYSIS = "org.wheatgenetics.onekk.DISPLAY_ANALYSIS";
-    public static String DISPLAY_SEED_COUNT = "org.wheatgenetics.onekk.DISPLAY_SEED_COUNT";
-    public static String AUTO_CROP = "org.wheatgenetics.onekk.AUTO_CROP";
     public static String MIN_SEED_VALUE = "org.wheatgenetics.onekk.MIN_SEED_VALUE";
     public static String MAX_SEED_VALUE = "org.wheatgenetics.onekk.MAX_SEED_VALUE";
     public static String MIN_HUE_VALUE = "org.wheatgenetics.onekk.MIN_HUE_VALUE";
     public static String MAX_HUE_VALUE = "org.wheatgenetics.onekk.MAX_HUE_VALUE";
     public static String THRESHOLD = "org.wheatgenetics.onekk.THRESHOLD";
     public static String COIN_SIZE = "org.wheatgenetics.onekk.COIN_SIZE";
+    public static String COUNTRY = "org.wheatgenetics.onekk.COUNTRY";
+    public static String CURRENCY = "org.wheatgenetics.onekk.CURRENCY";
+    public static String VALUE = "org.wheatgenetics.onekk.VALUE";
     public static String ASK_PROCESSING_TECHNIQUE = "org.wheatgenetics.onekk.ASK_PROCESSING_TECHNIQUE";
     public static String PROCESSING_TECHNIQUE = "org.wheatgenetics.onekk.PROCESSING_TECHNIQUE";
 
@@ -66,6 +67,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         String stringValue = value.toString();
         int tempVal;
         String text = "";
+
         if (preference.getKey().equals(MIN_SEED_VALUE)) {
             text = "Minimum seed value";
             tempVal = findPreference(MAX_SEED_VALUE).getSharedPreferences().getInt(MAX_SEED_VALUE, 0);
@@ -97,7 +99,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         } else if (preference.getKey().equals(THRESHOLD)) {
             text = "Threshold";
         }
-        preference.setTitle(text + " - " + stringValue);
+        preference.setTitle(preference.getTitle());
         return true;
     }
 }

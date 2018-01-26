@@ -62,14 +62,13 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech.OnInitListener;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
-import android.view.inputmethod.InputMethodManager;
+
 import org.wheatgenetics.onekkUtils.oneKKUtils;
 
 import static org.wheatgenetics.onekkUtils.oneKKUtils.*;
@@ -150,7 +149,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         ImageButton cameraButton = (ImageButton) findViewById(R.id.camera_button);
         cameraButton.setOnClickListener(new ImageButton.OnClickListener(
         ){
-
             @Override
             public void onClick(View view) {
                 picName = inputText.getText().toString();
@@ -389,8 +387,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         }
     }
 
-
-
     private void setupDrawer() {
         mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
                 R.string.drawer_open, R.string.drawer_close) {
@@ -429,9 +425,14 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                 startActivity(settingsIntent);
                 break;
 
-            case R.id.view_data:
+            /*case R.id.view_data:
                 final Intent viewTableIntent = new Intent(this,ViewTableActivity.class);
                 startActivity(viewTableIntent);
+                break;*/
+
+            case R.id.view_data:
+                final Intent coinTableIntent = new Intent(this,ViewTableActivity.class);
+                startActivity(coinTableIntent);
                 break;
 
             case R.id.nav_scaleConnect:
@@ -557,10 +558,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                 imageAnalysisLB(outputFileUri);
                 mCamera.startPreview();
             }
-            //inputText.setEnabled(true);
-            //inputText.requestFocus();
-            //InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            //imm.showSoftInput(inputText, InputMethodManager.SHOW_IMPLICIT);
         }
     };
 
@@ -613,7 +610,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         double refDiam = Double.valueOf(ep.getString(SettingsFragment.COIN_SIZE, "1")); // Wheat default
 
-        ImgProcess1KK imgP = new ImgProcess1KK(Constants.PHOTO_PATH.toString() + "/" + photoName, refDiam, ep.getBoolean(SettingsFragment.AUTO_CROP, true), Double.valueOf(ep.getInt(SettingsFragment.MIN_SEED_VALUE, 0)), Double.valueOf(ep.getInt(SettingsFragment.MAX_SEED_VALUE, 0))); //TODO the min/max sizes are bad
+        ImgProcess1KK imgP = new ImgProcess1KK(Constants.PHOTO_PATH.toString() + "/" + photoName, refDiam, true, Double.valueOf(ep.getInt(SettingsFragment.MIN_SEED_VALUE, 0)), Double.valueOf(ep.getInt(SettingsFragment.MAX_SEED_VALUE, 0))); //TODO the min/max sizes are bad
 
 
         writeMat2File(imgP.getProcessedMat(),Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg");

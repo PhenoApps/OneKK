@@ -7,19 +7,28 @@
     <string name="weight">Weight:</string>
     <string name="nullStr">null</string>
 
+    <string name="not_connected">null</string>
+
+    <!-- View Data strings -->
+    <string name="add">Add</string>
+    <string name="export">Export data</string>
+    <string name="clear_data">Clear data</string>
+    <string name="reset_data">Reset data</string>
+
+    <!-- Seed Data strings -->
     <string name="sample">Sample</string>
     <string name="countAbr">Count</string>
     <string name="lengthAbr">Length</string>
     <string name="widthAbr">Width</string>
     <string name="weightAbr">Weight</string>
 
-    <string name="not_connected">null</string>
+    <!-- Coin Data strings -->
+    <!-- Country, Currency and Value declared as part of Settings below -->
+    <string name="secondary">Secondary</string>
+    <string name="nominal">Nominal</string>
+    <string name="diameter">Diameter</string>
 
-    <!-- View Data strings -->
-    <string name="export">Export data</string>
-    <string name="clear_data">Clear data</string>
-
-    <!-- Menu strings -->
+    <!-- Navigation Menu strings -->
     <string name="settings">Settings</string>
     <string name="view_data">View Data</string>
 
@@ -76,20 +85,26 @@
     <!-- Settings strings -->
     <string name="processing">Processing</string>
     <string name="seed_size_range">Seed Size Range (Optional)</string>
-    <string name="min_size">Minimum seed size </string>
-    <string name="max_size">Maximum seed size </string>
     <string name="display_analysis">Display analysis preview</string>
-    <string name="display_seed_count">Display seed count</string>
-    <string name="auto_crop">Automatically attempt to crop photos</string>
+    <string name="background_color">Background Color </string>
+
+    <!-- Settings -> Processing strings -->
+    <string name="ask_processing_technique">Always Ask</string>
+    <string name="types_processing_techniques">Processing Techniques </string>
+    <string name="hue_threshold">Hue Threshold </string>
     <string name="hue_range">Hue Range</string>
     <string name="min_hue_value">Minimum Hue value</string>
     <string name="max_hue_value">Maximum Hue Value</string>
+    <string name="min_size">Minimum seed size </string>
+    <string name="max_size">Maximum seed size </string>
     <string name="threshold">Threshold</string>
+
+    <!-- Settings -> Coin Size -->
     <string name="coin_size">Reference coin size </string>
-    <string name="user_range">User Ranges </string>
-    <string name="background_color">Background Color </string>
-    <string name="ask_processing_technique">Always Ask</string>
-    <string name="types_processing_techniques">Processing Techniques </string>
+    <string name="country">Country </string>
+    <string name="currency">Currency </string>
+    <string name="value">Value </string>
+
 
     <!-- Scale not found -->
     <string name="no_scale">Scale Not Found</string>
@@ -277,4 +292,8 @@
     </string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_scrolling">ScrollingActivity</string>
+    <string name="title_activity_main2">Main2Activity</string>
+    <string name="tab_seed_data">Seed Data</string>
+    <string name="tab_coin_data">Coin Data</string>
+    <string name="section_format">Hello World from section: %1$d</string>
 </resources>

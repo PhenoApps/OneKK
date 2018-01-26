@@ -1,5 +1,9 @@
 package org.wheatgenetics.database;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -9,6 +13,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+
+import com.opencsv.CSVReader;
 
 public class MySQLiteHelper extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
@@ -23,6 +29,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE sample (id INTEGER PRIMARY KEY AUTOINCREMENT, sample_id TEXT, photo TEXT, person TEXT, date TEXT, seed_count TEXT, weight TEXT, " +
                 "length_avg TEXT, length_var TEXT, length_cv TEXT, width_avg TEXT, width_var TEXT, width_cv TEXT, area_avg TEXT, area_var TEXT, area_cv TEXT)");
         db.execSQL("CREATE TABLE seed (id INTEGER PRIMARY KEY AUTOINCREMENT, sample_id TEXT, length TEXT, width TEXT, circularity TEXT, area TEXT, color TEXT, weight TEXT )");
+        db.execSQL("CREATE TABLE coins (id INTEGER PRIMARY KEY AUTOINCREMENT, country TEXT, currency TEXT, value TEXT, diameter TEXT)");
     }
 
     @Override
@@ -30,7 +37,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         // Drop older table if existed
         db.execSQL("DROP TABLE IF EXISTS sample");
         db.execSQL("DROP TABLE IF EXISTS seed");
-
+        db.execSQL("DROP TABLE IF EXISTS coins");
         // create fresh tables
         this.onCreate(db);
     }
@@ -38,6 +45,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     // Table names
     private static final String TABLE_SAMPLE = "sample";
     private static final String TABLE_SEED = "seed";
+    private static final String TABLE_COINS = "coins";
 
     // Sample table columns names
     private static final String SAMPLE_SID = "sample_id";
@@ -56,7 +64,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     private static final String SAMPLE_AREAVAR = "area_var";
     private static final String SAMPLE_AREACV = "area_cv";
 
-    // Sample table columns names
+    // Seed table columns names
     private static final String SEED_SID = "sample_id";
     private static final String SEED_LEN = "length";
     private static final String SEED_WID = "width";
@@ -64,6 +72,12 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     private static final String SEED_AREA = "area";
     private static final String SEED_COL = "color";
     private static final String SEED_WT = "weight";
+
+    // Coins table columns names
+    private static final String COIN_COUNTRY = "country";
+    private static final String COIN_CURRENCY = "currency";
+    private static final String COIN_VALUE = "value";
+    private static final String COIN_DIAMETER = "diameter";
 
     public void addSampleRecord(SampleRecord sample) {
         Log.d("Add Sample: ", sample.toString());
@@ -266,6 +280,36 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         return samples;
     }
 
+    public List<CoinRecord> getAllCoins() {
+        List<CoinRecord> coins = new LinkedList<>();
+
+        // 1. build the query
+        String query = "SELECT * FROM " + TABLE_COINS + " ORDER BY country desc";
+
+        // 2. get reference to writable DB
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
+
+        // 3. go over each row, build sample and add it to list
+        CoinRecord coinRecord;
+
+        if (cursor.moveToFirst()) {
+            do {
+                coinRecord = new CoinRecord();
+
+                coinRecord.setCountry(cursor.getString(1));
+                coinRecord.setCurrency(cursor.getString(2));
+                coinRecord.setValue(cursor.getString(3));
+                coinRecord.setDiameter(cursor.getString(4));
+                coins.add(coinRecord);
+            } while (cursor.moveToNext());
+        }
+        Log.d("getAllCoins()", coins.toString());
+        cursor.close();
+        // return samples
+        return coins;
+    }
+
     public void deleteSample(String sample) {
         SQLiteDatabase db = this.getWritableDatabase();
         Log.d("Delete sample: ", sample);
@@ -277,6 +321,45 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
             e.printStackTrace();
         } finally {
             db.close();
+        }
+    }
+
+    public void importCoinData(InputStream inputStream){
+        InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DROP TABLE IF EXISTS coins");
+        db.execSQL("CREATE TABLE coins (id INTEGER PRIMARY KEY AUTOINCREMENT, country TEXT, currency TEXT, value TEXT, diameter TEXT)");
+        CSVReader reader = new CSVReader(inputStreamReader);
+        String next[] = {};
+        try {
+            for(;;) {
+                next = reader.readNext();
+                if(next != null) {
+
+                    if((next[0].toLowerCase()).compareTo(COIN_COUNTRY) == 0) {
+                        Log.d("Loading Coin Data",next[0].toLowerCase());
+                        continue;
+                    }
+                    else {
+                        // 2. create ContentValues to add key "column"/value
+                        ContentValues values = new ContentValues();
+                        values.put(COIN_COUNTRY, next[0]);
+                        values.put(COIN_CURRENCY, next[1]);
+                        values.put(COIN_VALUE, next[2]);
+                        values.put(COIN_DIAMETER, next[3]);
+
+                        // 3. insert
+                        db.insert(TABLE_COINS, null, values);
+                    }
+                } else {
+                    break;
+                }
+            }
+            // 4. close
+            db.close();
+        }
+        catch(Exception ex){
+            Log.e("Failed loading Coin DB",ex.getMessage());
         }
     }
 
