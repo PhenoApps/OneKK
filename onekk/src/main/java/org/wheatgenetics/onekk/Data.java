@@ -91,7 +91,7 @@ public class Data {
                 list = db.getAllSamples();
                 break;
             case "coins" :
-                /* null as parameters mean that all the columns are selected and no where clauses
+                /* null as parameters means that all the columns are selected and no where clauses
                 are used */
                 list = db.getFromCoins(null,null,null,false);
                 break;
@@ -105,7 +105,7 @@ public class Data {
     public static void parseListToTable(List<?> list) {
 
         int itemCount = list.size();
-        if (itemCount != 0 ) {
+        if (itemCount > 1 ) {
             for (int i = 0; i < itemCount; i++) {
                 String[] temp = list.get(i).toString().split(",");
                 if(temp.length == 7) {

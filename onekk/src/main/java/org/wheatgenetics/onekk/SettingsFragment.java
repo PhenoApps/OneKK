@@ -36,7 +36,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     public static String ASK_PROCESSING_TECHNIQUE = "org.wheatgenetics.onekk.ASK_PROCESSING_TECHNIQUE";
     public static String PROCESSING_TECHNIQUE = "org.wheatgenetics.onekk.PROCESSING_TECHNIQUE";
     public static String ASK_BACKGROUND_PROCESSING = "org.wheatgenetics.onekk.ASK_BACKGROUND_PROCESSING";
-
+    public static String ASK_MULTI_PROCESSING = "org.wheatgenetics.onekk.ASK_MULTI_PROCESSING";
     public static String PARAM_AREA_LOW = "edu.ksu.wheatgenetics.seedcounter.AREA_LOW";
     public static String PARAM_AREA_HIGH = "edu.ksu.wheatgenetics.seedcounter.AREA_HIGH";
     public static String PARAM_DEFAULT_RATE = "edu.ksu.wheatgenetics.seedcounter.DEFAULT_RATE";

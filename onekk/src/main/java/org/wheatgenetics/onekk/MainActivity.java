@@ -196,6 +196,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         if (ep.getInt(SettingsFragment.COIN_DB, -1) == -1) {
             ed.putInt(SettingsFragment.COIN_DB, 1);
+            ed.apply();
             MySQLiteHelper mySQLiteHelper = new MySQLiteHelper(this);
             InputStream inputStream = null;
             try {
@@ -737,9 +738,14 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         Boolean showAnalysis = ep.getBoolean(SettingsFragment.DISPLAY_ANALYSIS, false);
         Boolean backgroundProcessing = ep.getBoolean(SettingsFragment.ASK_BACKGROUND_PROCESSING,false);
-
+        Boolean multiProcessing = ep.getBoolean(SettingsFragment.ASK_MULTI_PROCESSING,false);
         WatershedLBActivity watershedLBActivity = new WatershedLBActivity(MainActivity.this,mSeedCounter,photoName,showAnalysis,sampleName,weight,r.nextInt(20000),backgroundProcessing);
-        watershedLBActivity.execute(inputBitmap);
+
+        if(multiProcessing)
+            watershedLBActivity.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,inputBitmap);
+        else
+            watershedLBActivity.execute(inputBitmap);
+
         data.getLastData();
     }
 

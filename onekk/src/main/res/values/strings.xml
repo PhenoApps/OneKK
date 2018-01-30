@@ -109,6 +109,7 @@
 
     <!-- Settings -> Advanced Settings strings -->
     <string name="ask_background_processing">Background processing</string>
+    <string name="ask_multi_processing">Multi processing</string>
     <string name="background_multi_processing">Background and Multi processing</string>
 
     <!-- Settings -> Coin Size -->

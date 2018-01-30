@@ -170,10 +170,17 @@
             <CheckBoxPreference
                 android:icon="@drawable/ic_developer_mode_black_24dp"
                 android:defaultValue="false"
-                android:disableDependentsState="true"
+                android:disableDependentsState="false"
                 android:key="org.wheatgenetics.onekk.ASK_BACKGROUND_PROCESSING"
                 android:summary="run processes in the background"
                 android:title="@string/ask_background_processing" />
+            <CheckBoxPreference
+                android:icon="@drawable/ic_developer_mode_black_24dp"
+                android:defaultValue="false"
+                android:dependency="org.wheatgenetics.onekk.ASK_BACKGROUND_PROCESSING"
+                android:key="org.wheatgenetics.onekk.ASK_MULTI_PROCESSING"
+                android:summary="run multiple processes in the background"
+                android:title="@string/ask_multi_processing" />
         </PreferenceCategory>
     </PreferenceScreen>
     </PreferenceCategory>
