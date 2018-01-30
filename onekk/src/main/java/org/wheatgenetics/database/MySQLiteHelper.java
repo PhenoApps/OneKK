@@ -30,7 +30,6 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE sample (id INTEGER PRIMARY KEY AUTOINCREMENT, sample_id TEXT, photo TEXT, person TEXT, date TEXT, seed_count TEXT, weight TEXT, " +
                 "length_avg TEXT, length_var TEXT, length_cv TEXT, width_avg TEXT, width_var TEXT, width_cv TEXT, area_avg TEXT, area_var TEXT, area_cv TEXT)");
         db.execSQL("CREATE TABLE seed (id INTEGER PRIMARY KEY AUTOINCREMENT, sample_id TEXT, length TEXT, width TEXT, circularity TEXT, area TEXT, color TEXT, weight TEXT )");
-        db.execSQL("CREATE TABLE coins (id INTEGER PRIMARY KEY AUTOINCREMENT, country TEXT, primary_currency TEXT, value TEXT, secondary_currency TEXT, nominal TEXT, diameter TEXT,name TEXT)");
     }
 
     @Override
@@ -227,8 +226,9 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
                 Log.e("Failed loading Coin DB", ex.getMessage());
             }
         else {
+            String[] updatedRecord = {record[0],record[1]};
             try {
-                int id = db.update(TABLE_COINS, values, "country=? and name=? and diameter=?", record);
+                int id = db.update(TABLE_COINS, values, String.format("%s=? and %s=?","country","name"), updatedRecord);
                 Log.d("Update COIN", id + "");
             }
             catch(Exception ex) {
@@ -411,9 +411,10 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS coins");
         db.execSQL("CREATE TABLE coins (id INTEGER PRIMARY KEY AUTOINCREMENT, country TEXT, primary_currency TEXT, value TEXT, secondary_currency TEXT, nominal TEXT, diameter TEXT,name TEXT)");
         CSVReader reader = new CSVReader(inputStreamReader);
-        String next[] = {};
+        String[] next;
         try {
             for(;;) {
+                //TODO: include DB Transaction
                 next = reader.readNext();
                 if(next != null) {
 

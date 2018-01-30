@@ -114,7 +114,6 @@
     <PreferenceCategory
         android:icon="@drawable/ic_settings"
         android:key="org.wheatgenetics.onekk.COIN_SIZE"
-        android:persistent="false"
         android:summary="Set Reference Coin Size"
         android:title="@string/coin_size">
         <ListPreference
@@ -125,7 +124,7 @@
             android:title="@string/country"
             />
         <ListPreference
-            android:defaultValue="1"
+            android:defaultValue="-1"
             android:icon="@drawable/ic_attach_money_black_24dp"
             android:key="org.wheatgenetics.onekk.COIN_NAME"
             android:summary="%s"
@@ -134,7 +133,9 @@
         <Preference
             android:title="Manage coin database"
             android:summary="add/edit pre defined coin values"
-            android:icon="@drawable/ic_local_atm_black_24dp">
+            android:icon="@drawable/ic_local_atm_black_24dp"
+            android:key="org.wheatgenetics.onekk.COIN_DB"
+            android:defaultValue="-1">
 
             <intent
                 android:action="android.intent.action.EDIT"
