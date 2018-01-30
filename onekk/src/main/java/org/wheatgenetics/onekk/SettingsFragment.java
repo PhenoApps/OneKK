@@ -29,6 +29,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     public static String MIN_HUE_VALUE = "org.wheatgenetics.onekk.MIN_HUE_VALUE";
     public static String MAX_HUE_VALUE = "org.wheatgenetics.onekk.MAX_HUE_VALUE";
     public static String THRESHOLD = "org.wheatgenetics.onekk.THRESHOLD";
+    public static String COIN_DB = "org.wheatgenetics.onekk.COIN_DB";
     public static String COIN_SIZE = "org.wheatgenetics.onekk.COIN_SIZE";
     public static String COIN_COUNTRY = "org.wheatgenetics.onekk.COIN_COUNTRY";
     public static String COIN_NAME = "org.wheatgenetics.onekk.COIN_NAME";
@@ -63,7 +64,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
 
         mySQLiteHelper= new MySQLiteHelper(getPreferenceScreen().getContext());
 
-        //additional setup for MIN/MAX checks in Range settings
+        //additional setup for REFERENCE COIN SIZE settings
         additionalPreferenceSetup(findPreference(COIN_COUNTRY));
 
         //additional setup for MIN/MAX checks in Range settings
@@ -91,13 +92,14 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             }
         }
 
-        listPreference.setEntries(arrayList.toArray(new String[arrayList.size()]));
-        listPreference.setEntryValues(arrayList.toArray(new String[arrayList.size()]));
+        listPreference.setEntries(arrayList.toArray(new String[arrayList.size()])); //COIN COUNTRY
+        listPreference.setEntryValues(arrayList.toArray(new String[arrayList.size()])); // COIN COUNTRY
 
         listPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 listPreference = (ListPreference)findPreference(COIN_NAME);
+                ArrayList<String> anotherArrayList = new ArrayList<>();
                 arrayList = new ArrayList<>();
                 listPreference.setEnabled(true);
                 //String country = preference.getSharedPreferences().getString(COIN_COUNTRY,null);
@@ -106,13 +108,19 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                 int itemCount = coinRecordList.size();
                 if (itemCount != 0) {
                     for (int i = 0; i < itemCount; i++) {
-                        //String[] temp = coinRecordList.get(i).toString().split(",");
                         String temp = coinRecordList.get(i).getName();
                         arrayList.add(temp);
+                        temp = coinRecordList.get(i).getDiameter();
+                        anotherArrayList.add(temp);
                     }
                 }
+
+                // Adding COIN NAME as the entries to List Preference
                 listPreference.setEntries(arrayList.toArray(new String[arrayList.size()]));
-                listPreference.setEntryValues(arrayList.toArray(new String[arrayList.size()]));
+
+                // Adding COIN DIAMETERS as the entry values to List Preference
+                listPreference.setEntryValues(anotherArrayList.toArray(new String[anotherArrayList.size()]));
+
                 return true;
             }
         });
