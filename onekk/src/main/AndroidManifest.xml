@@ -26,6 +26,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
         android:allowBackup="true"
@@ -65,13 +66,22 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ViewTableActivity"
-            android:label="@string/title_activity_main2"
+            android:name=".ViewDataActivity"
+            android:label="@string/view_data_activity"
             android:parentActivityName=".MainActivity"
             android:theme="@style/AppTheme">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="org.wheatgenetics.onekk.MainActivity" />
+        </activity>
+        <activity
+            android:name=".CoinDataActivity"
+            android:label="@string/coin_data_activity"
+            android:parentActivityName=".SettingsActivity"
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="org.wheatgenetics.onekk.SettingsActivity" />
         </activity>
     </application>
 

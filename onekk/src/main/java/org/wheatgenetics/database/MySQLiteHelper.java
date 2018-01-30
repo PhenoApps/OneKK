@@ -13,6 +13,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.opencsv.CSVReader;
 
@@ -29,7 +30,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE sample (id INTEGER PRIMARY KEY AUTOINCREMENT, sample_id TEXT, photo TEXT, person TEXT, date TEXT, seed_count TEXT, weight TEXT, " +
                 "length_avg TEXT, length_var TEXT, length_cv TEXT, width_avg TEXT, width_var TEXT, width_cv TEXT, area_avg TEXT, area_var TEXT, area_cv TEXT)");
         db.execSQL("CREATE TABLE seed (id INTEGER PRIMARY KEY AUTOINCREMENT, sample_id TEXT, length TEXT, width TEXT, circularity TEXT, area TEXT, color TEXT, weight TEXT )");
-        db.execSQL("CREATE TABLE coins (id INTEGER PRIMARY KEY AUTOINCREMENT, country TEXT, currency TEXT, value TEXT, diameter TEXT)");
+        db.execSQL("CREATE TABLE coins (id INTEGER PRIMARY KEY AUTOINCREMENT, country TEXT, primary_currency TEXT, value TEXT, secondary_currency TEXT, nominal TEXT, diameter TEXT,name TEXT)");
     }
 
     @Override
@@ -75,9 +76,12 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
 
     // Coins table columns names
     private static final String COIN_COUNTRY = "country";
-    private static final String COIN_CURRENCY = "currency";
+    private static final String COIN_PRIMARY_CURRENCY = "primary_currency";
     private static final String COIN_VALUE = "value";
+    private static final String COIN_SECONDARY_CURRENCY = "secondary_currency";
+    private static final String COIN_NOMINAL = "nominal";
     private static final String COIN_DIAMETER = "diameter";
+    private static final String COIN_NAME = "name";
 
     public void addSampleRecord(SampleRecord sample) {
         Log.d("Add Sample: ", sample.toString());
@@ -189,6 +193,51 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         return Math.sqrt(variance);
     }
 
+    /**
+     * This method is used to add or update a coin record into coins table
+     *
+     * <p>
+     *     Usage : {@link org.wheatgenetics.database.MySQLiteHelper#coinData(String[], String[], boolean)}
+     * </p>
+     *
+     * @param record this is a String array, the value is <b>null</b> in case of a new record.
+     *               In case of an update consists of the existing coin details
+     *
+     * @param updates this is a String array consisting of the new coin details or update coin details
+     *                whether its a new or update record
+     *
+     * @param newRecord this is a boolean value indicating whether its a new record or update
+     *
+     * */
+    public void coinData(String[] record, String[] updates, boolean newRecord){
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(COIN_COUNTRY, updates[0]);
+        values.put(COIN_NAME, updates[1]);
+        values.put(COIN_DIAMETER, updates[2]);
+
+        if(newRecord)
+            try {
+                long id = db.insert(TABLE_COINS, "primary_currency,secondary_currency,value,nominal", values);
+                Log.d("Insert COIN",id+"");
+            }
+            catch(Exception ex) {
+                Log.e("Failed loading Coin DB", ex.getMessage());
+            }
+        else {
+            try {
+                int id = db.update(TABLE_COINS, values, "country=? and name=? and diameter=?", record);
+                Log.d("Update COIN", id + "");
+            }
+            catch(Exception ex) {
+                Log.e("Failed updating Coin DB", ex.getMessage());
+            }
+        }
+        db.close();
+    }
+
     // Export summary statistics
     public Cursor exportSummaryData() {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -208,6 +257,16 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
                         "SELECT seed.sample_id, photo, person, date, length, width, circularity, seed.weight, area, " +
                                 "color, sample.weight, length_avg, width_avg, area_avg, seed_count FROM seed, sample " +
                                 "WHERE seed.sample_id = sample.sample_id",
+                        null);
+        return cursor;
+    }
+
+    // Export coins data
+    public Cursor exportCoinsData() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db
+                .rawQuery(
+                        "SELECT  country, primary_currency, value, secondary_currency, nominal, diameter, name FROM coins",
                         null);
         return cursor;
     }
@@ -280,32 +339,41 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         return samples;
     }
 
-    public List<CoinRecord> getAllCoins() {
+    public List<CoinRecord> getFromCoins(String[] whichColumns, String[] whereColumns, String[] whereValues, boolean distinct) {
         List<CoinRecord> coins = new LinkedList<>();
+        String[] columns = null;
+        String wcolumns = "";
 
-        // 1. build the query
-        String query = "SELECT * FROM " + TABLE_COINS + " ORDER BY country desc";
+        if(whichColumns != null)
+            columns = whichColumns;
+        else
+            columns = new String[]{"country", "name", "diameter"};
 
-        // 2. get reference to writable DB
+        if(whereColumns != null)
+            for(int i = 0; i < whereColumns.length; i++)
+                wcolumns = whereColumns[i] + "=?";
+
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.rawQuery(query, null);
-
-        // 3. go over each row, build sample and add it to list
+        Cursor cursor = db.query(distinct,TABLE_COINS,columns,wcolumns,whereValues,"","","country asc","");
         CoinRecord coinRecord;
-
+        cursor.moveToLast();
         if (cursor.moveToFirst()) {
             do {
                 coinRecord = new CoinRecord();
-
-                coinRecord.setCountry(cursor.getString(1));
-                coinRecord.setCurrency(cursor.getString(2));
-                coinRecord.setValue(cursor.getString(3));
-                coinRecord.setDiameter(cursor.getString(4));
+                // TODO: Fix this to be more generic
+                if(distinct)
+                    coinRecord.setCountry(cursor.getString(0));
+                else{
+                    coinRecord.setCountry(cursor.getString(0));
+                    coinRecord.setName(cursor.getString(1));
+                    coinRecord.setDiameter(cursor.getString(2));
+                }
                 coins.add(coinRecord);
             } while (cursor.moveToNext());
         }
-        Log.d("getAllCoins()", coins.toString());
+        Log.d("getFromCoins()", coins.toString());
         cursor.close();
+        db.close();
         // return samples
         return coins;
     }
@@ -324,11 +392,24 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         }
     }
 
+    public void deleteCoin(String countryId, String nameId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        Log.d("Delete coin: ", nameId + " of " + countryId);
+
+        try {
+            db.execSQL("DELETE FROM coins WHERE country = \"" + countryId + "\" and name = \"" + nameId + "\"");
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            db.close();
+        }
+    }
+
     public void importCoinData(InputStream inputStream){
         InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
         SQLiteDatabase db = this.getWritableDatabase();
         db.execSQL("DROP TABLE IF EXISTS coins");
-        db.execSQL("CREATE TABLE coins (id INTEGER PRIMARY KEY AUTOINCREMENT, country TEXT, currency TEXT, value TEXT, diameter TEXT)");
+        db.execSQL("CREATE TABLE coins (id INTEGER PRIMARY KEY AUTOINCREMENT, country TEXT, primary_currency TEXT, value TEXT, secondary_currency TEXT, nominal TEXT, diameter TEXT,name TEXT)");
         CSVReader reader = new CSVReader(inputStreamReader);
         String next[] = {};
         try {
@@ -344,9 +425,12 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
                         // 2. create ContentValues to add key "column"/value
                         ContentValues values = new ContentValues();
                         values.put(COIN_COUNTRY, next[0]);
-                        values.put(COIN_CURRENCY, next[1]);
+                        values.put(COIN_PRIMARY_CURRENCY, next[1]);
                         values.put(COIN_VALUE, next[2]);
-                        values.put(COIN_DIAMETER, next[3]);
+                        values.put(COIN_SECONDARY_CURRENCY, next[3]);
+                        values.put(COIN_NOMINAL, next[4]);
+                        values.put(COIN_DIAMETER, next[5]);
+                        values.put(COIN_NAME, next[6]);
 
                         // 3. insert
                         db.insert(TABLE_COINS, null, values);

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="15sp">
+
+    <TextView
+        android:id="@+id/tvCountry"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight=".14"
+        android:gravity="center"
+        android:text="@string/country"
+        android:textStyle="bold" />
+    <EditText
+        android:id="@+id/newCountry"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/country"
+        android:maxLength="100"
+        android:paddingLeft="5sp"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:textSize="20sp" />
+    <TextView
+        android:id="@+id/tvCoinName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight=".14"
+        android:gravity="center"
+        android:text="@string/coin_name"
+        android:textStyle="bold" />
+    <EditText
+        android:id="@+id/newCoinName"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/coin_name"
+        android:maxLength="100"
+        android:paddingLeft="5sp"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:textSize="20sp" />
+    <TextView
+        android:id="@+id/tvDiameter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight=".14"
+        android:gravity="center"
+        android:text="@string/coin_diameter"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/newDiameter"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/coin_name"
+        android:inputType="numberDecimal"
+        android:maxLength="100"
+        android:paddingLeft="5sp"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:textSize="20sp" />
+
+</LinearLayout>

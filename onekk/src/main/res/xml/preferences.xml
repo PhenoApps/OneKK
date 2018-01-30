@@ -57,41 +57,6 @@
                 android:title="Processing Technique" />
         </PreferenceCategory>
 
-        <PreferenceCategory
-            android:icon="@drawable/ic_settings"
-            android:key="org.wheatgenetics.onekk.COIN_SIZE"
-            android:persistent="false"
-            android:summary="Set Reference Coin Size"
-            android:title="@string/coin_size">
-            <ListPreference
-                android:defaultValue="1"
-                android:icon="@drawable/ic_public_black_24dp"
-                android:key="org.wheatgenetics.onekk.COUNTRY"
-                android:summary="%s"
-                android:title="@string/country"
-                android:entries="@array/country"
-                android:entryValues="@array/country_values"
-                />
-            <ListPreference
-                android:defaultValue="1"
-                android:icon="@drawable/ic_attach_money_black_24dp"
-                android:key="org.wheatgenetics.onekk.CURRENCY"
-                android:summary="%s"
-                android:title="@string/currency"
-                android:entries="@array/currency"
-                android:entryValues="@array/currency_values"
-                />
-            <ListPreference
-                android:defaultValue="1"
-                android:icon="@drawable/ic_local_atm_black_24dp"
-                android:key="org.wheatgenetics.onekk.VALUE"
-                android:summary="%s"
-                android:title="@string/value"
-                android:entries="@array/value"
-                android:entryValues="@array/value_values"
-                />
-
-        </PreferenceCategory>
 
         <PreferenceCategory android:title="Pre Processing"></PreferenceCategory>
         <CheckBoxPreference
@@ -146,7 +111,38 @@
         </PreferenceCategory>
     </PreferenceScreen>
 
+    <PreferenceCategory
+        android:icon="@drawable/ic_settings"
+        android:key="org.wheatgenetics.onekk.COIN_SIZE"
+        android:persistent="false"
+        android:summary="Set Reference Coin Size"
+        android:title="@string/coin_size">
+        <ListPreference
+            android:defaultValue="1"
+            android:icon="@drawable/ic_public_black_24dp"
+            android:key="org.wheatgenetics.onekk.COIN_COUNTRY"
+            android:summary="%s"
+            android:title="@string/country"
+            />
+        <ListPreference
+            android:defaultValue="1"
+            android:icon="@drawable/ic_attach_money_black_24dp"
+            android:key="org.wheatgenetics.onekk.COIN_NAME"
+            android:summary="%s"
+            android:title="@string/coin_name"/>
 
+        <Preference
+            android:title="Manage coin database"
+            android:summary="add/edit pre defined coin values"
+            android:icon="@drawable/ic_local_atm_black_24dp">
+
+            <intent
+                android:action="android.intent.action.EDIT"
+                android:targetPackage="org.wheatgenetics.onekk"
+                android:targetClass="org.wheatgenetics.onekk.CoinDataActivity" />
+
+        </Preference>
+    </PreferenceCategory>
 
     <PreferenceCategory android:title="Background Color">
         <com.kizitonwose.colorpreference.ColorPreference
@@ -155,5 +151,29 @@
             android:key="org.wheatgenetics.onekk.COLOR_PREFERENCE"
             android:summary="background color to use"
             android:title="@string/background_color" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/advanced_settings">
+
+    <PreferenceScreen
+        android:icon="@drawable/ic_gavel_black_24dp"
+        android:key="org.wheatgenetics.onekk.ADVANCED_SETTINGS"
+        android:persistent="false"
+        android:summary="Set different advanced settings"
+        android:title="@string/advanced_settings">
+
+        <PreferenceCategory
+            android:title="@string/background_multi_processing">
+
+            <CheckBoxPreference
+                android:icon="@drawable/ic_developer_mode_black_24dp"
+                android:defaultValue="false"
+                android:disableDependentsState="true"
+                android:key="org.wheatgenetics.onekk.ASK_BACKGROUND_PROCESSING"
+                android:summary="run processes in the background"
+                android:title="@string/ask_background_processing" />
+        </PreferenceCategory>
+    </PreferenceScreen>
     </PreferenceCategory>
 </PreferenceScreen>

@@ -1,7 +1,13 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="org.wheatgenetics.onekk.ViewTableActivity">
+    tools:context="org.wheatgenetics.onekk.ViewDataActivity">
+    <item
+        android:id="@+id/action_add"
+        android:orderInCategory="100"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/ic_add_black_24dp"
+        android:title="@string/add"/>
 
     <item
         android:id="@+id/action_export"
@@ -11,9 +17,9 @@
         android:title="@string/export"/>
 
     <item
-        android:id="@+id/action_clear"
+        android:id="@+id/action_reset"
         android:orderInCategory="100"
         app:showAsAction="ifRoom"
-        android:icon="@drawable/ic_delete"
-        android:title="@string/clear_data"/>
+        android:icon="@drawable/ic_settings_backup_restore_black_24dp"
+        android:title="@string/reset_data"/>
 </menu>

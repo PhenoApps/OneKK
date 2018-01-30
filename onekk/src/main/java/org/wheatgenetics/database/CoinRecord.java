@@ -4,18 +4,20 @@ public class CoinRecord {
 
     private int id;
     private String country;
-    private String currency;
-    private String value;
-    private String diameter;
+    private String primary_currency, secondary_currency;
+    private String value, nominal, diameter, name;
 
     public CoinRecord() {
     }
 
-    public CoinRecord(String country, String currency, String value, String diameter) {
+    public CoinRecord(String country, String primary_currency, String value, String secondary_currency,String nominal, String diameter, String name) {
         this.country = country;
-        this.currency = currency;
+        this.primary_currency = primary_currency;
         this.value = value;
+        this.secondary_currency = secondary_currency;
+        this.nominal = nominal;
         this.diameter = diameter;
+        this.name = name;
     }
 
     public String getCountry() {
@@ -26,12 +28,36 @@ public class CoinRecord {
         this.country = country;
     }
 
-    public String getCurrency() {
-        return currency;
+    public String getPrimary_currency() {
+        return primary_currency;
     }
 
-    public void setCurrency(String currency) {
-        this.currency = currency;
+    public void setPrimary_currency(String primary_currency) {
+        this.primary_currency = primary_currency;
+    }
+
+    public String getSecondary_currency() {
+        return secondary_currency;
+    }
+
+    public void setSecondary_currency(String secondary_currency) {
+        this.secondary_currency = secondary_currency;
+    }
+
+    public String getNominal() {
+        return nominal;
+    }
+
+    public void setNominal(String nominal) {
+        this.nominal = nominal;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getValue() {
@@ -73,6 +99,6 @@ public class CoinRecord {
 
     @Override
     public String toString() {
-        return country + "," + currency + "," + value + "," + diameter;
+        return country + "," + primary_currency + "," + value + "," + secondary_currency + "," + nominal + "," + diameter + "," + name;
     }
 }

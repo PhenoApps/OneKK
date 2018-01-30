@@ -34,26 +34,25 @@
         <item>7</item>
         <item>8</item>
         <item>9</item>
-        <item>10</item>
-        <item>11</item>
-    </string-array>
-
-    <string-array name="currency">
-        <item>Dollar</item>
-        <item>Dollar</item>
-        <item>Dollar</item>
-        <item>Dollar</item>
-        <item>Dollar</item>
-        <item>Dollar</item>
-        <item>Dollar</item>
-        <item>Dollar</item>
-        <item>Dollar</item>
-        <item>Dollar</item>
-        <item>Dollar</item>
-        <item>Dollar</item>
 
     </string-array>
-    <string-array name="currency_values">
+
+    <string-array name="name">
+        <item>1 Cent</item>
+        <item>2 Cents</item>
+        <item>5 Cents</item>
+        <item>10 Cents</item>
+        <item>1 West African CFA franc</item>
+        <item>1 Central African CFA franc</item>
+        <item>50 Central African CFA franc</item>
+        <item>100 Central African CFA franc</item>
+        <item>500 Central African CFA franc</item>
+        <item>1 Jiao</item>
+        <item>5 Jiao</item>
+        <item>1 Yuan</item>
+
+    </string-array>
+    <string-array name="name_values">
         <item>0</item>
         <item>1</item>
         <item>2</item>
@@ -68,22 +67,4 @@
         <item>11</item>
     </string-array>
 
-    <string-array name="value">
-        <item>1</item>
-        <item>2</item>
-        <item>5</item>
-        <item>10</item>
-        <item>20</item>
-        <item>25</item>
-        <item>50</item>
-    </string-array>
-    <string-array name="value_values">
-        <item>1</item>
-        <item>2</item>
-        <item>5</item>
-        <item>10</item>
-        <item>20</item>
-        <item>25</item>
-        <item>50</item>
-    </string-array>
 </resources>

@@ -1,5 +1,4 @@
 <resources>
-
     <string name="app_name">OneKK</string>
 
     <!-- Main strings -->
@@ -10,6 +9,7 @@
     <string name="not_connected">null</string>
 
     <!-- View Data strings -->
+    <string name="view_data_activity">View Data Activity</string>
     <string name="add">Add</string>
     <string name="export">Export data</string>
     <string name="clear_data">Clear data</string>
@@ -24,9 +24,11 @@
 
     <!-- Coin Data strings -->
     <!-- Country, Currency and Value declared as part of Settings below -->
+    <string name="coin_data">Coin Data</string>
+    <string name="coin_data_activity">Coin Data Activity</string>
     <string name="secondary">Secondary</string>
     <string name="nominal">Nominal</string>
-    <string name="diameter">Diameter</string>
+    <string name="coin_diameter">Coin Diameter</string>
 
     <!-- Navigation Menu strings -->
     <string name="settings">Settings</string>
@@ -45,6 +47,7 @@
     <string name="delete_entry">Delete Entry</string>
     <string name="delete_msg_1">This will delete all samples and seeds associated with</string>
     <string name="delete_msg_2">Do you wish to proceed?</string>
+    <string name="delete_msg_3">This will delete the coin </string>
 
     <string name="yes">Yes</string>
     <string name="no">No</string>
@@ -55,6 +58,7 @@
     <string name="no_blank">Names cannot be left blank.</string>
     <string name="person_set">Person set as:</string>
 
+    <string name="reset_coin_database">"This will reset all data from the coin database. Proceed?"</string>
     <string name="delete_database">"This will delete all data from the database. Proceed?"</string>
     <string name="data_deleted">"Data deleted"</string>
 
@@ -65,6 +69,9 @@
     <string name="export_all">All data</string>
     <string name="export_summaries">Sample summaries</string>
     <string name="export_data">Export data</string>
+    <string name="export_coins">Are you sure you want to export Coin data?</string>
+    <string name="share">Share File</string>
+    <string name="share_file">Do you want to share the exported file?</string>
 
 
     <!-- About strings -->
@@ -87,6 +94,7 @@
     <string name="seed_size_range">Seed Size Range (Optional)</string>
     <string name="display_analysis">Display analysis preview</string>
     <string name="background_color">Background Color </string>
+    <string name="advanced_settings">Advanced Settings</string>
 
     <!-- Settings -> Processing strings -->
     <string name="ask_processing_technique">Always Ask</string>
@@ -99,11 +107,17 @@
     <string name="max_size">Maximum seed size </string>
     <string name="threshold">Threshold</string>
 
+    <!-- Settings -> Advanced Settings strings -->
+    <string name="ask_background_processing">Background processing</string>
+    <string name="background_multi_processing">Background and Multi processing</string>
+
     <!-- Settings -> Coin Size -->
     <string name="coin_size">Reference coin size </string>
     <string name="country">Country </string>
     <string name="currency">Currency </string>
+    <string name="coin_name">Coin Name </string>
     <string name="value">Value </string>
+    <string name="coin_edit_save">Save</string>
 
 
     <!-- Scale not found -->
@@ -296,4 +310,13 @@
     <string name="tab_seed_data">Seed Data</string>
     <string name="tab_coin_data">Coin Data</string>
     <string name="section_format">Hello World from section: %1$d</string>
+
+    <string name="new_message_notification_title_template">Sample Name : %1$s</string>
+
+    <!-- TODO: remove this placeholder text -->
+    <string name="new_message_notification_placeholder_text_template">%1$s
+    </string>
+
+    <string name="action_share">Share</string>
+    <string name="action_reply">Reply</string>
 </resources>

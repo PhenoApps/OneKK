@@ -11,27 +11,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
-import android.annotation.SuppressLint;
 import android.widget.*;
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.android.Utils;
 import org.opencv.core.Mat;
-import org.opencv.imgcodecs.Imgcodecs;
 import org.wheatgenetics.imageprocess.HueThreshold.HueThreshold;
 import org.wheatgenetics.imageprocess.ImgProcess1KK.ImgProcess1KK;
 import org.wheatgenetics.imageprocess.ImgProcess1KK.ImgProcess1KK.Seed;
 import org.wheatgenetics.imageprocess.WatershedLB.*;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.graphics.Typeface;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -48,7 +41,6 @@ import android.content.SharedPreferences.Editor;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.usb.UsbConstants;
@@ -80,14 +72,14 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
     private ArrayList<Seed> seeds;
     private TableLayout lastSampleTable;
-    private ViewTableContent viewTableContent;
+    private Data data;
     private static UsbDevice mDevice;
 
     private EditText mWeightEditText;
     private EditText inputText;
 
     int seedCount = 0;
-
+    int notificationCounter = 1;
     private String firstName = "";
     private String lastName = "";
 
@@ -105,9 +97,12 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     private Mat finalMat;
     private LinearLayout parent;
     private ScrollView changeContainer;
-
+    private String sampleName;
+    private String weight;
     private ActionBarDrawerToggle mDrawerToggle;
     private DrawerLayout mDrawerLayout;
+    private Random r;
+    private ImageButton cameraButton;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -146,7 +141,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         Intent intent = getIntent();
         mDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
-        ImageButton cameraButton = (ImageButton) findViewById(R.id.camera_button);
+        cameraButton = (ImageButton) findViewById(R.id.camera_button);
         cameraButton.setOnClickListener(new ImageButton.OnClickListener(
         ){
             @Override
@@ -158,8 +153,8 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         startCamera();
         createDirs();
-        viewTableContent = new ViewTableContent(MainActivity.this,lastSampleTable);
-        viewTableContent.getLastData();
+        data = new Data(MainActivity.this,lastSampleTable);
+        data.getLastData();
 
 
         /**
@@ -425,14 +420,9 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                 startActivity(settingsIntent);
                 break;
 
-            /*case R.id.view_data:
-                final Intent viewTableIntent = new Intent(this,ViewTableActivity.class);
-                startActivity(viewTableIntent);
-                break;*/
-
             case R.id.view_data:
-                final Intent coinTableIntent = new Intent(this,ViewTableActivity.class);
-                startActivity(coinTableIntent);
+                final Intent viewTableIntent = new Intent(this,ViewDataActivity.class);
+                startActivity(viewTableIntent);
                 break;
 
             case R.id.nav_scaleConnect:
@@ -534,7 +524,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                 processingTechniqueDialog();
 
             String input = inputText.getText().toString();
-            Random r = new Random();
+            r = new Random();
             if(input.charAt(0) == '$'){
                 outputFileUri = Uri.fromFile(new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/"+input.substring(3)+".jpg"));
                 inputText.setText(input.substring(3) + r.nextInt(200));
@@ -621,9 +611,9 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         seeds = imgP.getList();
         //addRecord(); // Add the current record to the table
 
-        if (ep.getBoolean(SettingsFragment.DISPLAY_ANALYSIS, false)) {
-            postImageDialog(photoName,seedCount);
-        }
+        //if (ep.getBoolean(SettingsFragment.DISPLAY_ANALYSIS, false)) {
+        //    postImageDialog(photoName,seedCount);
+        //}
     }
 
     /************************************************************************************
@@ -707,121 +697,29 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         final int defaultRate = Integer.valueOf(ep.getString(SettingsFragment.PARAM_DEFAULT_RATE, "34"));
         final double sizeLowerBoundRatio = Double.valueOf(ep.getString(SettingsFragment.PARAM_SIZE_LOWER_BOUND_RATIO, "0.25"));
         final double newSeedDistRatio = Double.valueOf(ep.getString(SettingsFragment.PARAM_NEW_SEED_DIST_RATIO, "4.0"));
-
+        final Bitmap inputBitmap = BitmapFactory.decodeFile(photoPath);
         final WatershedLB.WatershedParams params = new WatershedLB.WatershedParams(areaLow, areaHigh, defaultRate, sizeLowerBoundRatio, newSeedDistRatio);
         mSeedCounter = new WatershedLB(params);
 
-        //getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        sampleName = inputText.getText().toString();
 
-        /*mSurfaceView = (ImageView) findViewById(R.id.surfaceView);
-        mSurfaceView.setEnabled(true);
-        mSurfaceView.setVisibility(ImageView.VISIBLE);
-        */
-
-        //final String filePath = getIntent().getStringExtra(SeedCounterConstants.FILE_PATH_EXTRA);
-
-        final Bitmap inputBitmap = BitmapFactory.decodeFile(photoPath);
-
-        //mSurfaceView.setImageBitmap(inputBitmap);
-
-        //double refDiam = Double.valueOf(ep.getString(SettingsFragment.COIN_SIZE, "1")); // Wheat default
-        //Utils.bitmapToMat(inputBitmap,this.finalMat);
-
-
-        //after processing the image on a separate thread this handler is called
-        @SuppressLint("HandlerLeak") final Handler handler = new Handler(){
-            @Override
-            public void handleMessage(Message msg){
-
-                Utils.bitmapToMat(outputBitmap,finalMat);
-
-                Imgcodecs.imwrite(Constants.ANALYZED_PHOTO_PATH.toString() + "/analyzed_new.jpg",finalMat);
-                Imgcodecs.imwrite(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg",finalMat);
-
-                makeFileDiscoverable(new File(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg"), MainActivity.this);
-
-                seedCount = (int) mSeedCounter.getNumSeeds();
-
-                String ut;
-                String weight;
-
-                ut = inputText.getText().toString();
-
-                if (ut.equals("")) {
-                    if (ep.getBoolean(SettingsFragment.DISPLAY_ANALYSIS, false)) {
-                        postImageDialog(photoName,seedCount);
-                    }
-                    return; // check for empty user input
-                }
-
-                if (mDevice == null
-                        && mWeightEditText.getText().toString().equals("Not connected")) {
-                    weight = "null";
-                } else {
-                    weight = mWeightEditText.getText().toString();
-                }
-                inputText.setText("");
-                mWeightEditText.setText("0");
-                inputText.requestFocus();
-                //new format
-                ViewTableContent viewTableContent = new ViewTableContent(getApplicationContext());
-                viewTableContent.addSimpleRecord(ut,seedCount,weight);
-
-                if (ep.getBoolean(SettingsFragment.DISPLAY_ANALYSIS, false)) {
-                    postImageDialog(photoName,seedCount);
-                }
-                //can be used to ask the user if he/she wants to process another sample
-                /*this.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        feedbackDialog();
-                    }
-                }, 3000);*/
-            }
-        };
-
-        // creates a new thread and starts processing the image using watershed
-        final ProgressDialog progressDialog = ProgressDialog.show(this, "Processing", "Please wait .. ");
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                outputBitmap = mSeedCounter.process(inputBitmap);
-                progressDialog.dismiss();
-                handler.sendEmptyMessage(0);
-            }
-        }).start();
-    }
-
-    private void postImageDialog(String imageName, int numberOfSeeds) {
-        final AlertDialog.Builder alert = new AlertDialog.Builder(this);
-
-        LayoutInflater inflater = this.getLayoutInflater();
-        final View personView = inflater.inflate(R.layout.post_image, new LinearLayout(this), false);
-        final TextView tv = (TextView)personView.findViewById(R.id.tvSeedCount);
-        Typeface myTypeFace = Typeface.createFromAsset(getAssets(), "AllerDisplay.ttf");
-        tv.setTypeface(myTypeFace);
-        tv.setText("Seed Count : "+numberOfSeeds);
-        File imgFile = new File(Constants.ANALYZED_PHOTO_PATH, imageName + "_new.jpg");
-
-        if (imgFile.exists()) {
-            TouchImageView imgView = (TouchImageView) personView.findViewById(R.id.postImage);
-            Bitmap bmImg = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-
-            Matrix matrix = new Matrix();
-            matrix.postRotate(90);
-            Bitmap rbmImg = Bitmap.createBitmap(bmImg, 0, 0, bmImg.getWidth(), bmImg.getHeight(), matrix, true); //TODO change preview size to avoid out of memory errors
-
-            imgView.setImageBitmap(rbmImg);
+        if (mDevice == null
+                && mWeightEditText.getText().toString().equals("Not connected")) {
+            weight = "null";
+        } else {
+            weight = mWeightEditText.getText().toString();
         }
 
-        alert.setCancelable(true);
-        alert.setView(personView);
-        alert.setNegativeButton(getResources().getString(R.string.ok), new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-                dialog.dismiss();
-            }
-        });
-        alert.show();
+        inputText.setText("");
+        mWeightEditText.setText("0");
+        inputText.requestFocus();
+
+        Boolean showAnalysis = ep.getBoolean(SettingsFragment.DISPLAY_ANALYSIS, false);
+        Boolean backgroundProcessing = ep.getBoolean(SettingsFragment.ASK_BACKGROUND_PROCESSING,false);
+
+        WatershedLBActivity watershedLBActivity = new WatershedLBActivity(MainActivity.this,mSeedCounter,photoName,showAnalysis,sampleName,weight,r.nextInt(20000),backgroundProcessing);
+        watershedLBActivity.execute(inputBitmap);
+        data.getLastData();
     }
 
     private void releaseCamera() {

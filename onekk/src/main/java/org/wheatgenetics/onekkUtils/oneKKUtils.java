@@ -1,13 +1,26 @@
 package org.wheatgenetics.onekkUtils;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.graphics.Typeface;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.wheatgenetics.onekk.Constants;
+import org.wheatgenetics.onekk.R;
+import org.wheatgenetics.onekk.TouchImageView;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -39,7 +52,12 @@ public class oneKKUtils {
      */
     public static void makeFileDiscoverable(File file, Context context) {
         MediaScannerConnection.scanFile(context,
-                new String[]{file.getPath()}, null, null);
+                new String[]{file.getPath()}, null, new MediaScannerConnection.OnScanCompletedListener() {
+                    public void onScanCompleted(String path, Uri uri) {
+                        Log.i("ExternalStorage", "Scanned " + path + ":");
+                        Log.i("ExternalStorage", "-> uri=" + uri);
+                    }
+                });
         context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
                 Uri.fromFile(file)));
     }
@@ -67,6 +85,7 @@ public class oneKKUtils {
                 "yyyy-MM-dd-hh-mm-ss", Locale.getDefault());
         return date.format(cal.getTime());
     }
+
     /**
      * Returns a double formatted string
      * <p>
@@ -90,5 +109,37 @@ public class oneKKUtils {
         }
         else
             return(15.0f);
+    }
+
+    public static void postImageDialog(Context context, String imageName, int numberOfSeeds) {
+        final AlertDialog.Builder alert = new AlertDialog.Builder(context);
+
+        LayoutInflater inflater = LayoutInflater.from(context);
+        final View personView = inflater.inflate(R.layout.post_image, new LinearLayout(context), false);
+        final TextView tv = (TextView)personView.findViewById(R.id.tvSeedCount);
+        Typeface myTypeFace = Typeface.createFromAsset(context.getAssets(), "AllerDisplay.ttf");
+        tv.setTypeface(myTypeFace);
+        tv.setText("Seed Count : "+numberOfSeeds);
+        File imgFile = new File(Constants.ANALYZED_PHOTO_PATH, imageName + "_new.jpg");
+
+        if (imgFile.exists()) {
+            TouchImageView imgView = (TouchImageView) personView.findViewById(R.id.postImage);
+            Bitmap bmImg = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+
+            Matrix matrix = new Matrix();
+            matrix.postRotate(90);
+            Bitmap rbmImg = Bitmap.createBitmap(bmImg, 0, 0, bmImg.getWidth(), bmImg.getHeight(), matrix, true); //TODO change preview size to avoid out of memory errors
+
+            imgView.setImageBitmap(rbmImg);
+        }
+
+        alert.setCancelable(true);
+        alert.setView(personView);
+        alert.setNegativeButton(context.getResources().getString(R.string.ok), new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                dialog.dismiss();
+            }
+        });
+        alert.show();
     }
 }

@@ -25,8 +25,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity{
         getFragmentManager().beginTransaction()
                 .replace(android.R.id.content, new SettingsFragment())
                 .commit();
-
-
     }
 
     /** https://stackoverflow.com/questions/26509180/no-actionbar-in-preferenceactivity-after-upgrade-to-support-library-v21

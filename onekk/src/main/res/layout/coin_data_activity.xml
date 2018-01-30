@@ -6,80 +6,61 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
     android:orientation="vertical"
-    tools:context="org.wheatgenetics.onekk.ViewDataActivity"
+    tools:context="org.wheatgenetics.onekk.CoinDataActivity"
     android:theme="@style/AppTheme">
 
 
     <android.support.v7.widget.Toolbar
-        android:id="@+id/view_data_toolbar"
+        android:id="@+id/coin_data_toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?attr/colorPrimary"
         android:minHeight="?attr/actionBarSize"
         android:theme="@style/AppToolbar"
-        app:navigationContentDescription="View Data"
+        app:navigationContentDescription="Coin Data"
         app:navigationIcon="?attr/homeAsUpIndicator"
-        app:title="@string/view_data">
+        app:title="@string/coin_data">
 
     </android.support.v7.widget.Toolbar>
-    <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+    <TableLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content">
 
         <TableRow
-            android:id="@+id/tableRowTitles"
+            android:id="@+id/coinTableTitles"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:paddingTop="20dp"
             android:background="@color/light">
 
             <TextView
-                android:id="@+id/tvSampleName"
+                android:id="@+id/tvCountry"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".2"
-                android:gravity="center"
-                android:text="@string/sample"
+                android:gravity="start"
+                android:text="@string/country"
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/tvNumSeeds"
+                android:id="@+id/tvCoinName"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight=".12"
-                android:gravity="center"
-                android:text="@string/countAbr"
+                android:layout_weight=".2"
+                android:gravity="start"
+                android:text="@string/coin_name"
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/tvAvgLen"
+                android:id="@+id/tvDiameter"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight=".12"
+                android:layout_weight=".14"
                 android:gravity="center"
-                android:text="@string/lengthAbr"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvAvgWid"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight=".12"
-                android:gravity="center"
-                android:text="@string/widthAbr"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvWeight"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight=".12"
-                android:gravity="center"
-                android:text="@string/weightAbr"
+                android:text="@string/coin_diameter"
                 android:textSize="20sp"
                 android:textStyle="bold" />
         </TableRow>
@@ -87,6 +68,6 @@
 
     <include
         android:id="@+id/include"
-        layout="@layout/view_data_content"/>
+        layout="@layout/coin_data_content"/>
 
 </LinearLayout>

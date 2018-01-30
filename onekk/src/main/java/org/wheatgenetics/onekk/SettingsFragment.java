@@ -1,11 +1,19 @@
 package org.wheatgenetics.onekk;
 
 import android.os.Bundle;
+import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.widget.Toast;
+
+import org.wheatgenetics.database.CoinRecord;
+import org.wheatgenetics.database.MySQLiteHelper;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 /************************************************************************************
  * this class initiates all the settings fragments and adds any additional preferences
@@ -22,11 +30,11 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     public static String MAX_HUE_VALUE = "org.wheatgenetics.onekk.MAX_HUE_VALUE";
     public static String THRESHOLD = "org.wheatgenetics.onekk.THRESHOLD";
     public static String COIN_SIZE = "org.wheatgenetics.onekk.COIN_SIZE";
-    public static String COUNTRY = "org.wheatgenetics.onekk.COUNTRY";
-    public static String CURRENCY = "org.wheatgenetics.onekk.CURRENCY";
-    public static String VALUE = "org.wheatgenetics.onekk.VALUE";
+    public static String COIN_COUNTRY = "org.wheatgenetics.onekk.COIN_COUNTRY";
+    public static String COIN_NAME = "org.wheatgenetics.onekk.COIN_NAME";
     public static String ASK_PROCESSING_TECHNIQUE = "org.wheatgenetics.onekk.ASK_PROCESSING_TECHNIQUE";
     public static String PROCESSING_TECHNIQUE = "org.wheatgenetics.onekk.PROCESSING_TECHNIQUE";
+    public static String ASK_BACKGROUND_PROCESSING = "org.wheatgenetics.onekk.ASK_BACKGROUND_PROCESSING";
 
     public static String PARAM_AREA_LOW = "edu.ksu.wheatgenetics.seedcounter.AREA_LOW";
     public static String PARAM_AREA_HIGH = "edu.ksu.wheatgenetics.seedcounter.AREA_HIGH";
@@ -36,11 +44,27 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     public static String PARAM_NEW_SEED_DIST_RATIO =
             "edu.ksu.wheatgenetics.seedcounter.NEW_SEED_DIST_RATIO";
 
+    private MySQLiteHelper mySQLiteHelper = null;
+    private List<CoinRecord> coinRecordList;
+    private ArrayList<String> arrayList;
+    private ListPreference listPreference;
+    private String[] selectColumns;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        addPreferencesFromResource(R.xml.preferences);
+        try {
+            addPreferencesFromResource(R.xml.preferences);
+        }
+        catch (Exception ex) {
+
+        }
+
+        mySQLiteHelper= new MySQLiteHelper(getPreferenceScreen().getContext());
+
+        //additional setup for MIN/MAX checks in Range settings
+        additionalPreferenceSetup(findPreference(COIN_COUNTRY));
 
         //additional setup for MIN/MAX checks in Range settings
         additionalPreferenceSetup(findPreference(MIN_SEED_VALUE), "Minimum seed value");
@@ -48,6 +72,54 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         additionalPreferenceSetup(findPreference(MIN_HUE_VALUE), "Minimum hue value");
         additionalPreferenceSetup(findPreference(MAX_HUE_VALUE), "Maximum hue value");
         additionalPreferenceSetup(findPreference(THRESHOLD), "Threshold");
+    }
+
+    /** Adding additional preferences to REFERENCE COIN SIZE
+     * adds a listener for Country and based on the value populates the
+     * list values for coin name list
+     * */
+    private void additionalPreferenceSetup(Preference preference) {
+        listPreference = (ListPreference)preference;
+        arrayList = new ArrayList<>();
+        selectColumns = new String[]{"country"};
+        coinRecordList = mySQLiteHelper.getFromCoins(selectColumns,null,null,true);
+        int itemCount = coinRecordList.size();
+        if (itemCount != 0) {
+            for (int i = 0; i < itemCount; i++) {
+                String temp = coinRecordList.get(i).getCountry();
+                arrayList.add(temp);
+            }
+        }
+
+        listPreference.setEntries(arrayList.toArray(new String[arrayList.size()]));
+        listPreference.setEntryValues(arrayList.toArray(new String[arrayList.size()]));
+
+        listPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                listPreference = (ListPreference)findPreference(COIN_NAME);
+                arrayList = new ArrayList<>();
+                listPreference.setEnabled(true);
+                //String country = preference.getSharedPreferences().getString(COIN_COUNTRY,null);
+                String country = newValue.toString();
+                coinRecordList = mySQLiteHelper.getFromCoins(null,selectColumns,new String[]{country},false);
+                int itemCount = coinRecordList.size();
+                if (itemCount != 0) {
+                    for (int i = 0; i < itemCount; i++) {
+                        //String[] temp = coinRecordList.get(i).toString().split(",");
+                        String temp = coinRecordList.get(i).getName();
+                        arrayList.add(temp);
+                    }
+                }
+                listPreference.setEntries(arrayList.toArray(new String[arrayList.size()]));
+                listPreference.setEntryValues(arrayList.toArray(new String[arrayList.size()]));
+                return true;
+            }
+        });
+
+        //If the country preference value is already set then populate the list for coin names
+        if(preference.getSharedPreferences().contains(COIN_COUNTRY))
+           listPreference.getOnPreferenceChangeListener().onPreferenceChange(preference,((ListPreference) preference).getValue());
     }
 
     /** Adding additional preferences to MIN/MAX range sliders*/

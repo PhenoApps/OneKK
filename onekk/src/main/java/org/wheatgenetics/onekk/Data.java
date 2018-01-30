@@ -4,28 +4,37 @@ package org.wheatgenetics.onekk;
  * Created by sid on 1/23/18.
  */
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Switch;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import org.wheatgenetics.database.CoinRecord;
 import org.wheatgenetics.database.MySQLiteHelper;
 import org.wheatgenetics.database.SampleRecord;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.InputStream;
 import java.util.List;
 
 import static java.lang.Math.min;
@@ -34,20 +43,21 @@ import static org.wheatgenetics.onekkUtils.oneKKUtils.getDate;
 import static org.wheatgenetics.onekkUtils.oneKKUtils.makeFileDiscoverable;
 import static org.wheatgenetics.onekkUtils.oneKKUtils.stringDecimal;
 
-public class ViewTableContent {
+public class Data {
 
     private static Context context;
     private static MySQLiteHelper db;
     private static int currentItemNum = 1;
     private static TableLayout OneKKTable;
+    private static String path;
 
-    public ViewTableContent(Context context, TableLayout tableLayout) {
+    public Data(Context context, TableLayout tableLayout) {
         this.context = context;
         db = new MySQLiteHelper(context);
         OneKKTable = tableLayout;
     }
 
-    public ViewTableContent(Context context) {
+    public Data(Context context) {
         this.context = context;
         db = new MySQLiteHelper(context);
     }
@@ -62,7 +72,7 @@ public class ViewTableContent {
     /** Single method to get data from different tables in the Database
      *
      * <p>
-     *     {@link org.wheatgenetics.onekk.ViewTableContent#getAllData(String)}
+     *     {@link Data#getAllData(String)}
      *     {@value "sample, seed, coins"}
      * </p>
      *
@@ -81,7 +91,9 @@ public class ViewTableContent {
                 list = db.getAllSamples();
                 break;
             case "coins" :
-                list = db.getAllCoins();
+                /* null as parameters mean that all the columns are selected and no where clauses
+                are used */
+                list = db.getFromCoins(null,null,null,false);
                 break;
         }
         db.close();
@@ -96,8 +108,8 @@ public class ViewTableContent {
         if (itemCount != 0 && itemCount > 1) {
             for (int i = 0; i < itemCount; i++) {
                 String[] temp = list.get(i).toString().split(",");
-                if(temp.length == 4) {
-                    createNewTableEntry(temp[0], temp[1], stringDecimal(temp[2]), stringDecimal(temp[3]));
+                if(temp.length == 7) {
+                    createNewTableEntry(temp[0], temp[6], stringDecimal(temp[5]));
                 }
                 else
                     createNewTableEntry(temp[0], temp[5], stringDecimal(temp[7]), stringDecimal(temp[8]), stringDecimal(temp[6]));
@@ -109,7 +121,7 @@ public class ViewTableContent {
 
     }
 
-    public static void createNewTableEntry(String country, String currency, String value, String diameter) {
+    public static void createNewTableEntry(String country, final String coinName, String diameter) {
         //inputText.setText("");
 
 		/* Create a new row to be added. */
@@ -117,7 +129,8 @@ public class ViewTableContent {
         tr.setLayoutParams(new TableLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         tr.setPadding(0,30,0,30);
-        float fontSize = min(adjustFontSize(country),adjustFontSize(currency));
+        tr.setTag(country + "~" + coinName + "~" + diameter);
+        float fontSize = 20.0f; //min(adjustFontSize(country),adjustFontSize(currency));
         /* Create the country field */
         TextView tvCountry = new TextView(context);
         tvCountry.setGravity(Gravity.START | Gravity.BOTTOM);
@@ -126,25 +139,17 @@ public class ViewTableContent {
         tvCountry.setText(country);
         tvCountry.setTag(country);
         tvCountry.setLayoutParams(new TableRow.LayoutParams(0,
-                ViewGroup.LayoutParams.WRAP_CONTENT, 0.3f));
+                ViewGroup.LayoutParams.WRAP_CONTENT, 0.2f));
 
 		/* Create the currency field */
         TextView tvCurrency = new TextView(context);
         tvCurrency.setGravity(Gravity.START | Gravity.BOTTOM);
         tvCurrency.setTextColor(Color.BLACK);
         tvCurrency.setTextSize(fontSize);
-        tvCurrency.setText(currency);
+        tvCurrency.setText(coinName);
+        tvCountry.setTag(coinName);
         tvCurrency.setLayoutParams(new TableRow.LayoutParams(0,
-                ViewGroup.LayoutParams.WRAP_CONTENT, 0.3f));
-
-        /* Create the value field */
-        TextView tvValue = new TextView(context);
-        tvValue.setGravity(Gravity.CENTER | Gravity.BOTTOM);
-        tvValue.setTextColor(Color.BLACK);
-        tvValue.setTextSize(fontSize);
-        tvValue.setText(value);
-        tvValue.setLayoutParams(new TableRow.LayoutParams(0,
-                ViewGroup.LayoutParams.WRAP_CONTENT, 0.14f));
+                ViewGroup.LayoutParams.WRAP_CONTENT, 0.2f));
 
         /* Create the diameter field */
         TextView tvDiameter = new TextView(context);
@@ -157,10 +162,39 @@ public class ViewTableContent {
 
         tr.addView(tvCountry);
         tr.addView(tvCurrency);
-        tr.addView(tvValue);
         tr.addView(tvDiameter);
+        tr.setOnLongClickListener(new TableRow.OnLongClickListener(){
 
-        OneKKTable.addView(tr, 0, new ViewGroup.LayoutParams( // Adds row to top of table
+            @Override
+            public boolean onLongClick(View view){
+                final String tag = (String) view.getTag();
+                deleteCoinDialog(tag);
+                return true;
+            }
+        });
+
+        tr.setOnTouchListener(new View.OnTouchListener() {
+
+            private GestureDetector gestureDetector = new GestureDetector(context,new GestureDetector.SimpleOnGestureListener() {
+
+                @Override
+                public boolean onDoubleTap(MotionEvent motionEvent) {
+                    return true;
+                }
+            });
+
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if(gestureDetector.onTouchEvent(event)) {
+                    coinDialog(v.getTag().toString(),false);
+                    return true;
+                }
+                else
+                    return false;
+            }
+        });
+
+        OneKKTable.addView(tr, new ViewGroup.LayoutParams( // Adds row to top of table
                 TableLayout.LayoutParams.MATCH_PARENT,
                 TableLayout.LayoutParams.MATCH_PARENT));
     }
@@ -212,7 +246,8 @@ public class ViewTableContent {
         tr.setLayoutParams(new TableLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         tr.setPadding(0,30,0,30);
-        float fontSize = adjustFontSize(sample);
+        float fontSize = 20.0f;
+
         /* Create the sample name field */
         TextView sampleName = new TextView(context);
         sampleName.setGravity(Gravity.LEFT | Gravity.BOTTOM);
@@ -263,7 +298,7 @@ public class ViewTableContent {
         sampleName.setOnLongClickListener(new View.OnLongClickListener() {
             public boolean onLongClick(View v) {
                 final String tag = (String) v.getTag();
-                ViewTableContent.deleteDialog(tag);
+                Data.deleteDialog(tag);
                 return false;
             }
         });
@@ -342,6 +377,7 @@ public class ViewTableContent {
         String avgWidthStr = String.format("%.2f", 0.0);
 
         createNewTableEntry(inputText, seedCountString);
+        db.close();
         currentItemNum++;
     }
 
@@ -393,6 +429,123 @@ public class ViewTableContent {
     }
 
     // FIXME: 1/23/18
+    public static void deleteCoinDialog(String tag) {
+        final String[] id = tag.split("~");
+        final String countryId = id[0];
+        final String nameId = id[1];
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(context.getResources().getString(R.string.delete_entry));
+        builder.setMessage(context.getResources().getString(R.string.delete_msg_3) +" " + nameId + " of " + countryId+ ". " + context.getResources().getString(R.string.delete_msg_2))
+                .setCancelable(true)
+                .setPositiveButton(context.getResources().getString(R.string.yes),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                db.deleteCoin(countryId,nameId);
+                                getAllData("coins");
+                            }
+                        })
+                .setNegativeButton(context.getResources().getString(R.string.no), new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+        AlertDialog alert = builder.create();
+        alert.show();
+
+    }
+
+    // FIXME: 1/23/18
+    public static void coinDialog(String tag, final boolean newRecord) {
+        final String[] record;
+
+        final String[] updates = new String[3];
+
+
+        final AlertDialog.Builder alert = new AlertDialog.Builder(context);
+
+        LayoutInflater inflater = LayoutInflater.from(context);
+        final View coinView = inflater.inflate(R.layout.add_update_coin_record, new LinearLayout(context), false);
+        final EditText etCountry = (EditText) coinView.findViewById(R.id.newCountry);
+        final EditText etCoinName = (EditText) coinView.findViewById(R.id.newCoinName);
+        final EditText etDiameter = (EditText) coinView.findViewById(R.id.newDiameter);
+
+        if(newRecord) {
+            record = null;
+            alert.setTitle("Add Coin");
+        }
+        //existing record
+        else{
+            record = tag.split("~");
+            etCountry.setText(record[0]);  //country
+            etCoinName.setText(record[1]); //name
+            etDiameter.setText(record[2]); //diameter
+            alert.setTitle("Edit Coin");
+        }
+
+        alert.setCancelable(true);
+        alert.setView(coinView);
+
+        alert.setPositiveButton(context.getResources().getString(R.string.coin_edit_save),
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        updates[0] = etCountry.getText().toString();
+                        updates[1] = etCoinName.getText().toString();
+                        updates[2] = etDiameter.getText().toString();
+
+                        db.coinData(record,updates,newRecord);
+
+                        if(record != null)
+                            Toast.makeText(context,"Coin updated", Toast.LENGTH_LONG).show();
+                        else
+                            Toast.makeText(context,"Coin added", Toast.LENGTH_LONG).show();
+
+                        getAllData("coins");
+                    }
+                });
+
+        alert.setNegativeButton(context.getResources().getString(R.string.cancel),
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        dialog.dismiss();
+                    }
+                });
+
+        alert.show();
+    }
+
+    // FIXME: 1/23/18
+    public static void resetDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setMessage(context.getResources().getString(R.string.reset_coin_database))
+                .setCancelable(false)
+                .setTitle("Reset Coin Data")
+                .setPositiveButton("Yes",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                //makeToast(context.getResources().getString(R.string.data_deleted));
+                                MySQLiteHelper mySQLiteHelper = new MySQLiteHelper(context);
+                                InputStream inputStream = null;
+                                try {
+                                    inputStream   = context.getAssets().open("coin_database.csv");
+                                }
+                                catch(Exception ex) {
+                                    Log.e("Coin DB file error : ", ex.getMessage());
+                                }
+                                mySQLiteHelper.importCoinData(inputStream);
+                                getAllData("coins");
+                            }
+                        })
+                .setNegativeButton(context.getResources().getString(R.string.no), new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    // FIXME: 1/23/18
     public static void dropTables() {
         db.deleteAll();
         OneKKTable.removeAllViews();
@@ -400,7 +553,7 @@ public class ViewTableContent {
     }
 
     // FIXME: 1/23/18
-    public static void exportDialog() {
+    public static void exportSeedSamplesDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setMessage(context.getResources().getString(R.string.export_choice))
                 .setCancelable(false)
@@ -451,13 +604,65 @@ public class ViewTableContent {
     }
 
     // FIXME: 1/23/18
-    public static void exportDatabase(Cursor cursorForExport, String type) throws Exception {
+    public static void exportCoinsDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setMessage(context.getResources().getString(R.string.export_coins))
+                .setCancelable(false)
+                .setTitle(context.getResources().getString(R.string.export_data))
+                .setPositiveButton(context.getResources().getString(R.string.yes),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                @SuppressLint("HandlerLeak") final Handler handler = new Handler(){
+                                    @Override
+                                    public void handleMessage(Message msg){
+                                        //can be used to ask the user if he/she wants to process another sample
+                                        this.postDelayed(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                shareFile(path);
+                                            }
+                                        }, 3000);
+                                    }
+                                };
+                                Toast.makeText(context,"Exporting Coin Data",Toast.LENGTH_LONG).show();
+
+                                // creates a new thread and starts processing export
+                                final ProgressDialog progressDialog = ProgressDialog.show(context, "Exporting Coin Data", "Please wait .. ");
+                                new Thread(new Runnable() {
+
+                                    @Override
+                                    public void run() {
+                                        Cursor exportCursor = db.exportCoinsData();
+                                        try {
+                                            path = exportDatabase(exportCursor, "CoinsData");
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                        progressDialog.dismiss();
+                                        handler.sendEmptyMessage(0);
+                                    }
+                                }).start();
+                            }
+                        })
+                .setNegativeButton(context.getResources().getString(R.string.no),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.dismiss();
+                            }
+                        });
+
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    // FIXME: 1/23/18
+    public static String exportDatabase(Cursor cursorForExport, String type) throws Exception {
         File file = null;
 
         try {
             file = new File(Constants.EXPORT_PATH, "export_" + type + "_" + getDate() + ".csv");
         } catch (Exception e) {
-            Log.e("ViewTableActivity", e.getMessage());
+            Log.e("Data", e.getMessage());
         }
 
         try {
@@ -477,20 +682,38 @@ public class ViewTableContent {
             csvWrite.close();
             cursorForExport.close();
         } catch (Exception sqlEx) {
-            Log.e("ViewTableActivity", sqlEx.getMessage(), sqlEx);
+            Log.e("Data", sqlEx.getMessage(), sqlEx);
         }
 
         makeFileDiscoverable(file, context);
-        shareFile(file.toString());
+        return file.toString();
+        //shareFile(file.toString());
     }
 
     // FIXME: 1/23/18
-    public static void shareFile(String filePath) {
-        Intent intent = new Intent();
-        intent.setAction(android.content.Intent.ACTION_SEND);
-        intent.setType("text/plain");
-        intent.putExtra(Intent.EXTRA_STREAM, Uri.parse(filePath));
-        //startActivity(Intent.createChooser(intent, "Sending File..."));
-    }
+    public static void shareFile(final String filePath) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setMessage(context.getResources().getString(R.string.share_file))
+                .setCancelable(false)
+                .setTitle(context.getResources().getString(R.string.share))
+                .setPositiveButton(context.getResources().getString(R.string.yes),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                Intent intent = new Intent();
+                                intent.setAction(android.content.Intent.ACTION_SEND);
+                                intent.setType("text/plain");
+                                intent.putExtra(Intent.EXTRA_STREAM, Uri.parse(filePath));
+                                context.startActivity(Intent.createChooser(intent, "Sending File..."));
+                            }
+                        })
+                .setNegativeButton(context.getResources().getString(R.string.no),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.dismiss();
+                            }
+                        });
 
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
 }
