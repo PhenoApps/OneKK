@@ -11,11 +11,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
+import android.preference.ListPreference;
+import android.preference.Preference;
+import android.preference.PreferenceActivity;
+import android.preference.PreferenceCategory;
+import android.preference.PreferenceScreen;
 import android.widget.*;
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
+import org.wheatgenetics.database.MySQLiteHelper;
 import org.wheatgenetics.imageprocess.HueThreshold.HueThreshold;
 import org.wheatgenetics.imageprocess.ImgProcess1KK.ImgProcess1KK;
 import org.wheatgenetics.imageprocess.ImgProcess1KK.ImgProcess1KK.Seed;
@@ -63,6 +69,7 @@ import android.view.ViewGroup.LayoutParams;
 
 import org.wheatgenetics.onekkUtils.oneKKUtils;
 
+import static org.wheatgenetics.onekk.Data.getAllData;
 import static org.wheatgenetics.onekkUtils.oneKKUtils.*;
 
 public class MainActivity extends AppCompatActivity implements OnInitListener {
@@ -187,6 +194,19 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             changelog();
         }
 
+        if (ep.getInt(SettingsFragment.COIN_DB, -1) == -1) {
+            ed.putInt(SettingsFragment.COIN_DB, 1);
+            MySQLiteHelper mySQLiteHelper = new MySQLiteHelper(this);
+            InputStream inputStream = null;
+            try {
+                inputStream   = this.getAssets().open("coin_database.csv");
+            }
+            catch(Exception ex) {
+                Log.e("Coin DB file error : ", ex.getMessage());
+            }
+            mySQLiteHelper.importCoinData(inputStream);
+        }
+
         FrameLayout measuringStick = (FrameLayout) findViewById(R.id.measureStick);
         measuringStick.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
             int count = 0;
@@ -297,6 +317,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         // Create our Preview view and set it as the content of our activity.
         mPreview = new CameraPreview(this, mCamera);
         preview.addView(mPreview);
+
         guideBox gb = new guideBox(this,Integer.parseInt(ep.getString(SettingsFragment.COIN_SIZE,"4")));
         preview.addView(gb,new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
         //addContentView(gb,new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));

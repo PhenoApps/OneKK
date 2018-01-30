@@ -105,7 +105,7 @@ public class Data {
     public static void parseListToTable(List<?> list) {
 
         int itemCount = list.size();
-        if (itemCount != 0 && itemCount > 1) {
+        if (itemCount != 0 ) {
             for (int i = 0; i < itemCount; i++) {
                 String[] temp = list.get(i).toString().split(",");
                 if(temp.length == 7) {
@@ -114,7 +114,7 @@ public class Data {
                 else
                     createNewTableEntry(temp[0], temp[5], stringDecimal(temp[7]), stringDecimal(temp[8]), stringDecimal(temp[6]));
             }
-        } else {
+        } else if(itemCount == 1){
             String[] temp = list.get(0).toString().split(",");
             createNewTableEntry(temp[0], temp[5]);
         }
