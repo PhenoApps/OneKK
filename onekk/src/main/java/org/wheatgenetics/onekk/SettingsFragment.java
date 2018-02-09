@@ -76,7 +76,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     }
 
     /** Adding additional preferences to REFERENCE COIN SIZE
-     * adds a listener for Country and based on the value populates the
+     * adds a listener for Country and based on the value, populates the
      * list values for coin name list
      * */
     private void additionalPreferenceSetup(Preference preference) {

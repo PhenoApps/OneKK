@@ -318,6 +318,6 @@
     <string name="new_message_notification_placeholder_text_template">%1$s
     </string>
 
-    <string name="action_share">Share</string>
+    <string name="action_cancel">Cancel</string>
     <string name="action_reply">Reply</string>
 </resources>

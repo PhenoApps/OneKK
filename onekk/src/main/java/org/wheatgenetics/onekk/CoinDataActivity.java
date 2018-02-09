@@ -28,7 +28,7 @@ public class CoinDataActivity extends AppCompatActivity {
 
     private TableLayout OneKKTable;
     private Data data;
-    private int PICKFILE_RESULT_CODE;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

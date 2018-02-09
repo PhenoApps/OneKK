@@ -7,9 +7,6 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 
@@ -56,6 +53,9 @@ public class NotificationHelper {
                 R.string.new_message_notification_title_template,sampleName);
         final String text = res.getString(
                 R.string.new_message_notification_placeholder_text_template, processString);
+        Intent intent = new Intent("CANCEL");
+        intent.putExtra("CANCEL",true);
+        final PendingIntent pendingIntent = PendingIntent.getBroadcast(context,0,intent,0);
 
         final NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
 
@@ -111,22 +111,24 @@ public class NotificationHelper {
                 // should ensure that the activity in this notification's
                 // content intent provides access to the same actions in
                 // another way.
-//                .
-//                .addAction(
-//                        R.drawable.ic_action_stat_share,
-//                        res.getString(R.string.action_share),
-//                        PendingIntent.getActivity(
-//                                context,
-//                                0,
-//                                Intent.createChooser(new Intent(Intent.ACTION_SEND)
-//                                        .setType("text/plain")
-//                                        .putExtra(Intent.EXTRA_TEXT, "Dummy text"), "Dummy title"),
-//                                PendingIntent.FLAG_UPDATE_CURRENT))
-//                .addAction(
-//                        R.drawable.ic_action_stat_reply,
-//                        res.getString(R.string.action_reply),
-//                        null)
+                /*
+                .addAction(
+                       R.drawable.ic_cancel_black_24dp,
+                       res.getString(R.string.action_cancel),
+                       pendingIntent)
 
+                       PendingIntent.getActivity(
+                                context,
+                               0,
+                                Intent.createChooser(new Intent(Intent.ACTION_SEND)
+                                        .setType("text/plain")
+                                        .putExtra(Intent.EXTRA_TEXT, "Dummy text"), "Dummy title"),
+                                PendingIntent.FLAG_UPDATE_CURRENT))
+                .addAction(
+                        R.drawable.ic_action_stat_reply,
+                        res.getString(R.string.action_reply),
+                        null)
+*/
                 // Automatically dismiss the notification when it is touched.
                 .setAutoCancel(true);
 

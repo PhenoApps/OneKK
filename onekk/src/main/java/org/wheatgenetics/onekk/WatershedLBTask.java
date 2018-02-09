@@ -1,9 +1,12 @@
 package org.wheatgenetics.onekk;
 
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
@@ -12,8 +15,6 @@ import org.wheatgenetics.imageprocess.WatershedLB.WatershedLB;
 import org.wheatgenetics.onekkUtils.NotificationHelper;
 
 import java.io.File;
-import java.util.Date;
-import java.util.Random;
 
 import static org.wheatgenetics.onekkUtils.oneKKUtils.makeFileDiscoverable;
 import static org.wheatgenetics.onekkUtils.oneKKUtils.postImageDialog;
@@ -22,7 +23,7 @@ import static org.wheatgenetics.onekkUtils.oneKKUtils.postImageDialog;
  * Created by sid on 1/28/18.
  */
 
-public class WatershedLBActivity extends AsyncTask<Bitmap,AsyncTask.Status,Bitmap> {
+public class WatershedLBTask extends AsyncTask<Bitmap,AsyncTask.Status,Bitmap> {
 
     private Context context;
     private final WatershedLB watershedLB;
@@ -36,7 +37,7 @@ public class WatershedLBActivity extends AsyncTask<Bitmap,AsyncTask.Status,Bitma
     private Boolean backgroundProcessing;
     private int notificationCounter;
 
-    public WatershedLBActivity(Context context, WatershedLB watershedLB, String photoName, Boolean showAnalysis, String sampleName, String weight, int notificationCounter, boolean backgroundProcessing){
+    public WatershedLBTask(Context context, WatershedLB watershedLB, String photoName, Boolean showAnalysis, String sampleName, String weight, int notificationCounter, boolean backgroundProcessing){
         this.context = context;
         this.watershedLB = watershedLB;
         this.photoName = photoName;
@@ -51,7 +52,26 @@ public class WatershedLBActivity extends AsyncTask<Bitmap,AsyncTask.Status,Bitma
 
         this.notificationCounter = notificationCounter;
         this.backgroundProcessing = backgroundProcessing;
+
+        // TODO : add unique identification to implement cancel procesing feature
+
+        //context.registerReceiver(broadcastReceiver,new IntentFilter("CANCEL"));
     }
+
+    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d("WatershedLB Task","Cancel message received");
+
+            if(!isCancelled())
+                displayAlert("Cancelling...",true);
+
+            if(intent.getBooleanExtra("CANCEL",false))
+                cancel(true);
+
+            goAsync();
+        }
+    };
 
     @Override
     protected void onPreExecute() {
@@ -64,6 +84,7 @@ public class WatershedLBActivity extends AsyncTask<Bitmap,AsyncTask.Status,Bitma
         displayAlert("Processing...",true);
         Bitmap outputBitmap = this.watershedLB.process(bitmaps[0]);
         seedCount = (int) watershedLB.getNumSeeds();
+        System.gc();
         return outputBitmap;
     }
 
@@ -71,7 +92,8 @@ public class WatershedLBActivity extends AsyncTask<Bitmap,AsyncTask.Status,Bitma
         super.onPostExecute(bitmap);
 
         displayAlert("Saving processed image...",true);
-
+        if(isCancelled())
+            onCancelled(null);
         Utils.bitmapToMat(bitmap,finalMat);
 
         Imgcodecs.imwrite(Constants.ANALYZED_PHOTO_PATH.toString() + "/analyzed_new.jpg",finalMat);
@@ -96,6 +118,18 @@ public class WatershedLBActivity extends AsyncTask<Bitmap,AsyncTask.Status,Bitma
 
         if(showAnalysis)
             postImageDialog(context,photoName,seedCount);
+
+        //context.unregisterReceiver(broadcastReceiver);
+    }
+
+    @Override
+    protected void onCancelled(Bitmap bitmap){
+
+        Log.d("WatershedLB Activity", "Cancelled");
+
+        displayAlert("Processing Cancelled",false);
+
+        //context.unregisterReceiver(broadcastReceiver);
     }
 
     private void displayAlert(String text, boolean showAlert){

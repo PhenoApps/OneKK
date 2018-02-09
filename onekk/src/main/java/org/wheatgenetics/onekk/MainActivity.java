@@ -1,49 +1,14 @@
 package org.wheatgenetics.onekk;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Random;
-
-import android.preference.ListPreference;
-import android.preference.Preference;
-import android.preference.PreferenceActivity;
-import android.preference.PreferenceCategory;
-import android.preference.PreferenceScreen;
-import android.widget.*;
-import org.opencv.android.BaseLoaderCallback;
-import org.opencv.android.LoaderCallbackInterface;
-import org.opencv.android.OpenCVLoader;
-import org.opencv.core.Mat;
-import org.wheatgenetics.database.MySQLiteHelper;
-import org.wheatgenetics.imageprocess.HueThreshold.HueThreshold;
-import org.wheatgenetics.imageprocess.ImgProcess1KK.ImgProcess1KK;
-import org.wheatgenetics.imageprocess.ImgProcess1KK.ImgProcess1KK.Seed;
-import org.wheatgenetics.imageprocess.WatershedLB.*;
-
 import android.app.Activity;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.os.Environment;
-import android.preference.PreferenceManager;
-import android.support.design.widget.NavigationView;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -58,7 +23,15 @@ import android.hardware.usb.UsbManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech.OnInitListener;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -66,11 +39,44 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
+import android.widget.ScrollView;
+import android.widget.TableLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.LoaderCallbackInterface;
+import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Mat;
+import org.wheatgenetics.database.MySQLiteHelper;
+import org.wheatgenetics.imageprocess.HueThreshold.HueThreshold;
+import org.wheatgenetics.imageprocess.ImgProcess1KK.ImgProcess1KK;
+import org.wheatgenetics.imageprocess.ImgProcess1KK.ImgProcess1KK.Seed;
+import org.wheatgenetics.imageprocess.WatershedLB.WatershedLB;
 import org.wheatgenetics.onekkUtils.oneKKUtils;
 
-import static org.wheatgenetics.onekk.Data.getAllData;
-import static org.wheatgenetics.onekkUtils.oneKKUtils.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Random;
+
+import static org.wheatgenetics.onekkUtils.oneKKUtils.makeFileDiscoverable;
+import static org.wheatgenetics.onekkUtils.oneKKUtils.writeMat2File;
 
 public class MainActivity extends AppCompatActivity implements OnInitListener {
 
@@ -710,19 +716,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         photoPath = photo.getPath();
         photoName = photo.getLastPathSegment();
 
-        makeToast(photoName);
-
-        //seed counter utility
-        final WatershedLB mSeedCounter;
-        final int areaLow = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_LOW, "400"));
-        final int areaHigh = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_HIGH, "160000"));
-        final int defaultRate = Integer.valueOf(ep.getString(SettingsFragment.PARAM_DEFAULT_RATE, "34"));
-        final double sizeLowerBoundRatio = Double.valueOf(ep.getString(SettingsFragment.PARAM_SIZE_LOWER_BOUND_RATIO, "0.25"));
-        final double newSeedDistRatio = Double.valueOf(ep.getString(SettingsFragment.PARAM_NEW_SEED_DIST_RATIO, "4.0"));
-        final Bitmap inputBitmap = BitmapFactory.decodeFile(photoPath);
-        final WatershedLB.WatershedParams params = new WatershedLB.WatershedParams(areaLow, areaHigh, defaultRate, sizeLowerBoundRatio, newSeedDistRatio);
-        mSeedCounter = new WatershedLB(params);
-
         sampleName = inputText.getText().toString();
 
         if (mDevice == null
@@ -736,15 +729,26 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         mWeightEditText.setText("0");
         inputText.requestFocus();
 
+        //seed counter utility
+        final WatershedLB mSeedCounter;
+        final int areaLow = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_LOW, "400"));
+        final int areaHigh = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_HIGH, "160000"));
+        final int defaultRate = Integer.valueOf(ep.getString(SettingsFragment.PARAM_DEFAULT_RATE, "34"));
+        final double sizeLowerBoundRatio = Double.valueOf(ep.getString(SettingsFragment.PARAM_SIZE_LOWER_BOUND_RATIO, "0.25"));
+        final double newSeedDistRatio = Double.valueOf(ep.getString(SettingsFragment.PARAM_NEW_SEED_DIST_RATIO, "4.0"));
+        final Bitmap inputBitmap = BitmapFactory.decodeFile(photoPath);
+        final WatershedLB.WatershedParams params = new WatershedLB.WatershedParams(areaLow, areaHigh, defaultRate, sizeLowerBoundRatio, newSeedDistRatio);
+        mSeedCounter = new WatershedLB(params);
+
         Boolean showAnalysis = ep.getBoolean(SettingsFragment.DISPLAY_ANALYSIS, false);
         Boolean backgroundProcessing = ep.getBoolean(SettingsFragment.ASK_BACKGROUND_PROCESSING,false);
         Boolean multiProcessing = ep.getBoolean(SettingsFragment.ASK_MULTI_PROCESSING,false);
-        WatershedLBActivity watershedLBActivity = new WatershedLBActivity(MainActivity.this,mSeedCounter,photoName,showAnalysis,sampleName,weight,r.nextInt(20000),backgroundProcessing);
+        final WatershedLBTask watershedLBTask = new WatershedLBTask(MainActivity.this,mSeedCounter,photoName,showAnalysis,sampleName,weight,r.nextInt(20000),backgroundProcessing);
 
         if(multiProcessing)
-            watershedLBActivity.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,inputBitmap);
+            watershedLBTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,inputBitmap);
         else
-            watershedLBActivity.execute(inputBitmap);
+            watershedLBTask.execute(inputBitmap);
 
         data.getLastData();
     }
