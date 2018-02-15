@@ -172,11 +172,11 @@ public class WatershedLB {
         Mat unknown = new Mat();
         Core.subtract(sure_bg, sure_fg, unknown, new Mat(), CvType.CV_8UC1);
 
-        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/binMat.jpg",binMat);
+        /*Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/binMat.jpg",binMat);
         Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/dt.jpg",dt);
         Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/surefg.jpg",sure_fg);
         Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/surebg.jpg",sure_bg);
-        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/unknown.jpg",unknown);
+        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/unknown.jpg",unknown);*/
 
         /*Mat invertMat = Mat.ones(sure_fg.size(), sure_fg.type()).setTo(new Scalar(255));
 
@@ -208,13 +208,13 @@ public class WatershedLB {
             final double area = stats.get(k, CC_STAT_AREA)[0]; // ConnectedComponentsTyps CC_STAT_AREA = 4
             final double cx = centroids.get(k, CC_STAT_LEFT)[0];
             final double cy = centroids.get(k, CC_STAT_TOP)[0];
-            Log.d("DEBUG : ","MARKER : " + k + " Centroid : (" + cx +"," + cy + ") has size : " + area);
+            //Log.d("DEBUG : ","MARKER : " + k + " Centroid : (" + cx +"," + cy + ") has size : " + area);
             if (area < 20) {// && labels.get(n, m)[0] == k) {
                 //markers[unknown==255] = 0
                 //markers = markers[i] - 1
                 //unknown[markers == i] = 255 # by setting to unknown, it will get zeroed out below
                 //unknown[markers == i] = 0
-                Log.d("DEBUG","Removing Marker " + k);
+                //Log.d("DEBUG","Removing Marker " + k);
                 Mat mask = new Mat(labels.size(), labels.type());
                 Scalar labelId = new Scalar(k, k, k);
                 Core.inRange(labels, labelId, labelId, mask);
@@ -243,11 +243,11 @@ public class WatershedLB {
         maxAreaThreshold = meanArea + Math.pow(variance, 2);
         minAreaThreshold = meanArea - Math.pow(variance,2);
 
-        Log.d("Average seed area", String.valueOf(meanArea));
+        /*Log.d("Average seed area", String.valueOf(meanArea));
         Log.d("Area Max Threshold", String.valueOf(maxAreaThreshold));
-        Log.d("Area Min Threshold", String.valueOf(minAreaThreshold));
+        Log.d("Area Min Threshold", String.valueOf(minAreaThreshold));*/
 
-        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/contours.jpg",frame);
+        //Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/contours.jpg",frame);
         //markers = markers + 1
 
 
@@ -256,7 +256,7 @@ public class WatershedLB {
         Imgproc.cvtColor(gray, gray, Imgproc.COLOR_GRAY2BGR);
         labels.convertTo(labels, CvType.CV_32S);
         Imgproc.watershed(gray, labels);
-        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/labels.jpg",labels);
+        //Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/labels.jpg",labels);
         Mat borderMask = new Mat(labels.size(), labels.type());
         Scalar labelId = new Scalar(-1,-1,-1);
         Core.inRange(labels, labelId, labelId, borderMask);
@@ -292,7 +292,7 @@ public class WatershedLB {
         dt.release();
         unknown.release();
 
-        Log.d("Unique labels", String.valueOf(unique.size()));
+        //Log.d("Unique labels", String.valueOf(unique.size()));
         for (Double label : unique) {
             if (label < 2) continue;
             Mat mask = Mat.zeros(labels.size(), CvType.CV_8U);
@@ -334,7 +334,7 @@ public class WatershedLB {
             mask.release();
             hierarchy.release();
         }
-        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/uniqueFrame.jpg",frame);
+        //Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/uniqueFrame.jpg",frame);
         int count = i;
         int est_size = (int) (ssum / count);
         final List<Integer> bound = new ArrayList<>();
@@ -440,7 +440,7 @@ public class WatershedLB {
                         dotSum = dotSum - dotProds.get(j);
                     } else {
                         if (dotSum >= 300) {
-                            Log.d("DOTSUM","CONCAVE DETECTED");
+                            //Log.d("DOTSUM","CONCAVE DETECTED");
                             numBig = numBig + 1;
                             if (dotSum > maxDotSum) {
                                 maxDotSum = dotSum;

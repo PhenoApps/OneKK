@@ -66,7 +66,7 @@ public class Data {
         OneKKTable.removeAllViews();
         List<SampleRecord> list = db.getLastSample();
         db.close();
-        parseListToTable(list);
+        parseListToLastSampleTable(list);
     }
 
     /** Single method to get data from different tables in the Database
@@ -105,7 +105,7 @@ public class Data {
     public static void parseListToTable(List<?> list) {
 
         int itemCount = list.size();
-        if (itemCount > 1 ) {
+
             for (int i = 0; i < itemCount; i++) {
                 String[] temp = list.get(i).toString().split(",");
                 if(temp.length == 7) {
@@ -114,11 +114,14 @@ public class Data {
                 else
                     createNewTableEntry(temp[0], temp[5], stringDecimal(temp[7]), stringDecimal(temp[8]), stringDecimal(temp[6]));
             }
-        } else if(itemCount == 1){
-            String[] temp = list.get(0).toString().split(",");
-            createNewTableEntry(temp[0], temp[5]);
         }
 
+    public static void parseListToLastSampleTable(List<?> list){
+            int itemCount = list.size();
+            if(itemCount > 0){
+                String[] temp = list.get(0).toString().split(",");
+                createNewTableEntry(temp[0], temp[4]);
+            }
     }
 
     public static void createNewTableEntry(String country, final String coinName, String diameter) {

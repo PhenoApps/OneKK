@@ -92,8 +92,8 @@ public class WatershedLBTask extends AsyncTask<Bitmap,AsyncTask.Status,Bitmap> {
         super.onPostExecute(bitmap);
 
         displayAlert("Saving processed image...",true);
-        if(isCancelled())
-            onCancelled(null);
+        //if(isCancelled())
+        //    onCancelled(null);
         Utils.bitmapToMat(bitmap,finalMat);
 
         Imgcodecs.imwrite(Constants.ANALYZED_PHOTO_PATH.toString() + "/analyzed_new.jpg",finalMat);

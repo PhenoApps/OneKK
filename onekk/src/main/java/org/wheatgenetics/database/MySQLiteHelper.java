@@ -279,7 +279,8 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
 
         // 2. get reference to writable DB
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.rawQuery(query, null);
+        Cursor cursor = db.query(TABLE_SAMPLE,new String[]{SAMPLE_SID,SAMPLE_NUMSEEDS},"",null,"","","id desc","1");
+
 
         // 3. go over each row, build sample and add it to list
         SampleRecord sample;
@@ -288,14 +289,8 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
             do {
                 sample = new SampleRecord();
 
-                sample.setSampleId(cursor.getString(1));
-                sample.setPhoto(cursor.getString(2));
-                sample.setPersonId(cursor.getString(3));
-                sample.setDate(cursor.getString(4));
-                sample.setWeight(cursor.getString(5));
-                sample.setSeedCount(cursor.getString(6));
-                sample.setLengthAvg(Double.parseDouble(cursor.getString(7)));
-                sample.setWidthAvg(Double.parseDouble(cursor.getString(10)));
+                sample.setSampleId(cursor.getString(0));
+                sample.setSeedCount(cursor.getString(1));
                 samples.add(sample);
             } while (cursor.moveToNext());
         }

@@ -159,8 +159,12 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         ){
             @Override
             public void onClick(View view) {
-                picName = inputText.getText().toString();
-                takePic();
+                if(ep.getString(SettingsFragment.COIN_NAME,"-1").compareTo("-1") == 0)
+                    Toast.makeText(getApplicationContext(),"Please select the Coin Name in Settings Panel!",Toast.LENGTH_LONG).show();
+                else{
+                    picName = inputText.getText().toString();
+                    takePic();
+                }
             }
         });
 
@@ -551,10 +555,12 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             if(ep.getBoolean(SettingsFragment.ASK_PROCESSING_TECHNIQUE,true))
                 processingTechniqueDialog();
 
-            String input = "" ;
-            if(inputText.getText() != null)
-                input = inputText.getText().toString();
             r = new Random();
+
+            String input = "" ;
+            if(inputText.getText().length() != 0){
+                input = inputText.getText().toString();
+
             if(input.charAt(0) == '$'){
                 outputFileUri = Uri.fromFile(new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/"+input.substring(3)+".jpg"));
                 inputText.setText(input.substring(3) + r.nextInt(200));
@@ -571,7 +577,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                         imageAnalysisLB(outputFileUri);
                         mCamera.startPreview();
                 }
-            }
+            }}
             else{
                 //imageAnalysis(outputFileUri);
                 //hueThreshold(outputFileUri);
@@ -1126,5 +1132,10 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     public void onConfigurationChanged(final Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         mDrawerToggle.onConfigurationChanged(newConfig);
+    }
+
+    @Override
+    public void onBackPressed(){
+        /* THIS IS TO DISABLE back button to close MainActivity */
     }
 }

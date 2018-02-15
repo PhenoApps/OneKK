@@ -112,7 +112,7 @@
         android:summary="Set Reference Coin Size"
         android:title="@string/coin_size">
         <ListPreference
-            android:defaultValue="1"
+            android:defaultValue="-1"
             android:icon="@drawable/ic_public_black_24dp"
             android:key="org.wheatgenetics.onekk.COIN_COUNTRY"
             android:summary="%s"
