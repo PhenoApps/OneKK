@@ -3,24 +3,11 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <PreferenceScreen
+    <org.wheatgenetics.onekk.UserNameDialogPreference
         android:icon="@drawable/ic_people_black_24dp"
         android:persistent="false"
         android:summary="set User name"
-        android:title="@string/user_name">
-        <PreferenceCategory android:title="@string/user_name">
-            <EditTextPreference
-                android:icon="@drawable/ic_person_black_24dp"
-                android:key="org.wheatgenetics.onekk.FIRST_NAME"
-                android:summary="First Name"
-                android:title="@string/first_name" />
-            <EditTextPreference
-                android:icon="@drawable/ic_person_black_24dp"
-                android:key="org.wheatgenetics.onekk.LAST_NAME"
-                android:summary="Last Name"
-                android:title="@string/last_name" />
-        </PreferenceCategory>
-    </PreferenceScreen>
+        android:title="@string/user_name"/>
 
     <CheckBoxPreference
         android:defaultValue="true"
@@ -109,6 +96,14 @@
                 android:summary="Threshold"
                 android:title="@string/threshold" />
         </PreferenceCategory>
+        <PreferenceCategory android:title="Background Color">
+            <com.kizitonwose.colorpreference.ColorPreference
+                android:icon="@drawable/ic_palette_black_24dp"
+                android:defaultValue="@color/main_colorAccent"
+                android:key="org.wheatgenetics.onekk.COLOR_PREFERENCE"
+                android:summary="background color to use"
+                android:title="@string/background_color" />
+        </PreferenceCategory>
     </PreferenceScreen>
 
     <PreferenceCategory
@@ -143,15 +138,6 @@
                 android:targetClass="org.wheatgenetics.onekk.CoinDataActivity" />
 
         </Preference>
-    </PreferenceCategory>
-
-    <PreferenceCategory android:title="Background Color">
-        <com.kizitonwose.colorpreference.ColorPreference
-            android:icon="@drawable/ic_palette_black_24dp"
-            android:defaultValue="@color/main_colorAccent"
-            android:key="org.wheatgenetics.onekk.COLOR_PREFERENCE"
-            android:summary="background color to use"
-            android:title="@string/background_color" />
     </PreferenceCategory>
 
     <PreferenceCategory

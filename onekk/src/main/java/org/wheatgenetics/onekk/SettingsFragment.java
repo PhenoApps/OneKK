@@ -4,15 +4,12 @@ import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.widget.Toast;
 
 import org.wheatgenetics.database.CoinRecord;
 import org.wheatgenetics.database.MySQLiteHelper;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 /************************************************************************************
@@ -21,6 +18,7 @@ import java.util.List;
 
 public class SettingsFragment extends PreferenceFragment implements Preference.OnPreferenceChangeListener {
 
+    public static String USER_NAME = "org.wheatgenetics.onekk.USER_NAME";
     public static String FIRST_NAME = "org.wheatgenetics.onekk.FIRST_NAME";
     public static String LAST_NAME = "org.wheatgenetics.onekk.LAST_NAME";
     public static String DISPLAY_ANALYSIS = "org.wheatgenetics.onekk.DISPLAY_ANALYSIS";
@@ -59,7 +57,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             addPreferencesFromResource(R.xml.preferences);
         }
         catch (Exception ex) {
-
+            //Log.e("Settings Fragment","Preferences setup failed");
         }
 
         mySQLiteHelper= new MySQLiteHelper(getPreferenceScreen().getContext());

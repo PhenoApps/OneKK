@@ -13,6 +13,7 @@ import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.wheatgenetics.imageprocess.HueThreshold.HueThreshold;
+import org.wheatgenetics.imageprocess.ImgProcess1KK.ImgProcess1KK;
 import org.wheatgenetics.imageprocess.WatershedLB.*;
 
 import java.io.File;
@@ -24,35 +25,37 @@ import static junit.framework.Assert.assertTrue;
  */
 @RunWith(AndroidJUnit4.class)
 @SmallTest
-public class watershedLBAndroidUnitTest{
+public class OneKKAndroidUnitTest{
 
-    protected int areaLow = Integer.valueOf("400");
-    protected int areaHigh = Integer.valueOf("160000");
-    protected int defaultRate = Integer.valueOf("34");
-    protected double sizeLowerBoundRatio = Double.valueOf("0.25");
-    protected double newSeedDistRatio = Double.valueOf("4.0");
-    protected double threshold = Double.valueOf("1");
-    protected int min_hueValue = Integer.valueOf("30");
-    protected int max_hueValue = Integer.valueOf("255");
-    protected int seedCount = 0;
-    public boolean setupDoneFlag = false;
+    private int areaLow = Integer.valueOf("400");
+    private int areaHigh = Integer.valueOf("160000");
+    private int defaultRate = Integer.valueOf("34");
+    private double sizeLowerBoundRatio = Double.valueOf("0.25");
+    private double seedSize = 1;
+    private double newSeedDistRatio = Double.valueOf("4.0");
+    private double threshold = Double.valueOf("1");
+    private int min_hueValue = Integer.valueOf("30");
+    private int max_hueValue = Integer.valueOf("255");
+    private int seedCount = 0;
+    private boolean setupDoneFlag = false;
 
-    protected int SEEDCOUNT_SOYBEANS = 31;
-    protected int SEEDCOUNT_REDSEEDS = 114;
-    protected int SEEDCOUNT_WHEAT = 260; //267
-    protected int SEEDCOUNT_MAIZE = 30;
+    private int SEEDCOUNT_SOYBEANS = 31;
+    private int SEEDCOUNT_REDSEEDS = 114;
+    private int SEEDCOUNT_WHEAT = 269; //269
+    private int SEEDCOUNT_MAIZE = 30;
 
-    protected WatershedLB mSeedCounter;
-    protected String photoPath;
-    protected String photoName;
-    protected HueThreshold.HueThresholdParams htParams;
-    protected WatershedLB.WatershedParams params;
-    protected Bitmap inputBitmap;
-    protected Bitmap outputBitmap;
-    protected File htFile;
-    protected Mat outputMat;
+    private WatershedLB mSeedCounter;
+    private String photoPath;
+    private String photoName;
+    private String[] imageName;
+    private HueThreshold.HueThresholdParams htParams;
+    private WatershedLB.WatershedParams params;
+    private Bitmap inputBitmap;
+    private Bitmap outputBitmap;
+    private File htFile;
+    private Mat outputMat;
 
-    protected void setup(){
+    private void setup(){
         if (!OpenCVLoader.initDebug()) {
             Log.d("Test Case", "Open CV Setup: FAILED");
             System.exit(0);
@@ -67,18 +70,21 @@ public class watershedLBAndroidUnitTest{
     }
 
     @org.junit.Test
-    public void imgprocess1kk_soybeans_test(){
+    public void imgprocess1kk_wheat_test(){
+
         if(!setupDoneFlag)
             setup();
-        photoPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/soybeans.jpg";
-        photoName = "soybeans.jpg";
-        inputBitmap = BitmapFactory.decodeFile(photoPath);
-        outputBitmap = mSeedCounter.process(inputBitmap);
-        Utils.bitmapToMat(outputBitmap,outputMat);
-        //Imgproc.cvtColor(outputMat,outputMat,Imgproc.COLOR_BGR2RGB);
-        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/analyzed_test_new.jpg",outputMat);
-        seedCount = (int) mSeedCounter.getNumSeeds();
-        assertTrue(seedCount == SEEDCOUNT_SOYBEANS);
+
+        double refDiam = seedSize; // Wheat default
+        photoPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/wheat.jpg";
+        photoName = "wheat.jpg";
+        ImgProcess1KK imgP = new ImgProcess1KK(photoPath, refDiam, true, 0.0, 2.0); //TODO the min/max sizes are bad
+
+        //Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/analyzed_test_new.jpg",imgP.getProcessedMat());
+
+        seedCount = imgP.getSeedCount();
+
+        assertTrue(seedCount == SEEDCOUNT_WHEAT);
     }
 
     @org.junit.Test
@@ -121,13 +127,13 @@ public class watershedLBAndroidUnitTest{
             setup();
         photoPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/soybeans.jpg";
         photoName = "soybeans.jpg";
-        inputBitmap = BitmapFactory.decodeFile(photoPath);
-        outputBitmap = mSeedCounter.process(inputBitmap);
-        Utils.bitmapToMat(outputBitmap,outputMat);
-        //Imgproc.cvtColor(outputMat,outputMat,Imgproc.COLOR_BGR2RGB);
-        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/analyzed_test_new.jpg",outputMat);
-        seedCount = (int) mSeedCounter.getNumSeeds();
-        assertTrue(seedCount == SEEDCOUNT_SOYBEANS);
+            inputBitmap = BitmapFactory.decodeFile(photoPath);
+            outputBitmap = mSeedCounter.process(inputBitmap);
+            Utils.bitmapToMat(outputBitmap,outputMat);
+            //Imgproc.cvtColor(outputMat,outputMat,Imgproc.COLOR_BGR2RGB);
+            Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/analyzed_test_new.jpg",outputMat);
+            seedCount = (int) mSeedCounter.getNumSeeds();
+            assertTrue(seedCount == SEEDCOUNT_SOYBEANS);
     }
 
     @org.junit.Test
@@ -143,6 +149,36 @@ public class watershedLBAndroidUnitTest{
         Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/analyzed_test_new.jpg",outputMat);
         seedCount = (int) mSeedCounter.getNumSeeds();
         assertTrue(seedCount == SEEDCOUNT_REDSEEDS);
+    }
+
+    @org.junit.Test
+    public void watershedLB_poppy_test(){
+        if(!setupDoneFlag)
+            setup();
+        photoPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/NOT_MASK.jpg";
+        photoName = "NOT_MASK.jpg";
+        inputBitmap = BitmapFactory.decodeFile(photoPath);
+        outputBitmap = mSeedCounter.process(inputBitmap);
+        Utils.bitmapToMat(outputBitmap,outputMat);
+        //Imgproc.cvtColor(outputMat,outputMat,Imgproc.COLOR_BGR2RGB);
+        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/analyzed_test_new.jpg",outputMat);
+        seedCount = (int) mSeedCounter.getNumSeeds();
+        assertTrue(seedCount == SEEDCOUNT_MAIZE);
+    }
+
+    @org.junit.Test
+    public void watershedLB_silphium_test(){
+        if(!setupDoneFlag)
+            setup();
+        photoPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/soybeans.jpg";
+        photoName = "soybeans.jpg";
+        inputBitmap = BitmapFactory.decodeFile(photoPath);
+        outputBitmap = mSeedCounter.process(inputBitmap);
+        Utils.bitmapToMat(outputBitmap,outputMat);
+        //Imgproc.cvtColor(outputMat,outputMat,Imgproc.COLOR_BGR2RGB);
+        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/analyzed_test_new.jpg",outputMat);
+        seedCount = (int) mSeedCounter.getNumSeeds();
+        assertTrue(seedCount == SEEDCOUNT_SOYBEANS);
     }
 
     @org.junit.Test

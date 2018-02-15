@@ -551,7 +551,9 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             if(ep.getBoolean(SettingsFragment.ASK_PROCESSING_TECHNIQUE,true))
                 processingTechniqueDialog();
 
-            String input = inputText.getText().toString();
+            String input = "" ;
+            if(inputText.getText() != null)
+                input = inputText.getText().toString();
             r = new Random();
             if(input.charAt(0) == '$'){
                 outputFileUri = Uri.fromFile(new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/"+input.substring(3)+".jpg"));
@@ -890,9 +892,9 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
-    private void setPersonDialog() {
+    public void setPersonDialog() {
         final AlertDialog.Builder alert = new AlertDialog.Builder(this);
-        LayoutInflater inflater = this.getLayoutInflater();
+        LayoutInflater inflater = getLayoutInflater();
         final View personView = inflater.inflate(R.layout.person, new LinearLayout(this), false);
 
         final EditText fName = (EditText) personView
