@@ -13,7 +13,7 @@ import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.wheatgenetics.imageprocess.HueThreshold.HueThreshold;
-import org.wheatgenetics.imageprocess.ImgProcess1KK.ImgProcess1KK;
+import org.wheatgenetics.imageprocess.ImgProcess1KK.MeasureSeeds;
 import org.wheatgenetics.imageprocess.WatershedLB.*;
 
 import java.io.File;
@@ -78,7 +78,7 @@ public class OneKKAndroidUnitTest{
         double refDiam = seedSize; // Wheat default
         photoPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/wheat.jpg";
         photoName = "wheat.jpg";
-        ImgProcess1KK imgP = new ImgProcess1KK(photoPath, refDiam, true, 0.0, 2.0); //TODO the min/max sizes are bad
+        ImageProcess imgP = new ImageProcess(photoPath, refDiam, true, 0.0, 2.0); //TODO the min/max sizes are bad
 
         //Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/analyzed_test_new.jpg",imgP.getProcessedMat());
 

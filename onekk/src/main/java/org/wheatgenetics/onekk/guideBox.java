@@ -14,17 +14,18 @@ public class guideBox extends View {
 
     int COIN_SIZE;
     int COIN_BOX_SIZE;
+    Paint paint;
 
     public guideBox(Context context, int coinSize) {
         // TODO Auto-generated constructor stub
         super(context);
         this.COIN_SIZE = 10-coinSize;
+        paint = new Paint();
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         // TODO Auto-generated method stub
-        Paint paint = new Paint();
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(3);
         paint.setColor(Color.GREEN);
@@ -33,11 +34,13 @@ public class guideBox extends View {
         int x0 = canvas.getWidth() / 2;
         int y0 = canvas.getHeight() / 2;
         int dx = canvas.getHeight() / 3;
-        int dy= canvas.getHeight() *10 / 20;
+        //int dy= canvas.getHeight() *10 / 20;
+        int dy= (9 * canvas.getHeight()) / 20;
 
         //draw guide box
         canvas.drawRect(x0 - dx, y0 - dy, x0 + dx, y0 + dy, paint);
-        try {
+
+        /*try {
             COIN_BOX_SIZE = canvas.getWidth()/this.COIN_SIZE;
         }
         catch (Exception e){
@@ -47,6 +50,7 @@ public class guideBox extends View {
         //draw guide boxes for coins
         canvas.drawRect(x0 - dx+COIN_BOX_SIZE, y0 - dy, x0+dx-COIN_BOX_SIZE,y0+dy, paint);
         canvas.drawRect(x0 - dx, y0 - dy+COIN_BOX_SIZE, x0 + dx, y0+dy-COIN_BOX_SIZE, paint);
+        */
 
         super.onDraw(canvas);
     }

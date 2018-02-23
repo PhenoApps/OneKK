@@ -59,8 +59,9 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 import org.wheatgenetics.database.MySQLiteHelper;
 import org.wheatgenetics.imageprocess.HueThreshold.HueThreshold;
-import org.wheatgenetics.imageprocess.ImgProcess1KK.ImgProcess1KK;
-import org.wheatgenetics.imageprocess.ImgProcess1KK.ImgProcess1KK.Seed;
+import org.wheatgenetics.imageprocess.ImageProcess;
+import org.wheatgenetics.imageprocess.ImgProcess1KK.MeasureSeeds;
+import org.wheatgenetics.imageprocess.Seed.Seed;
 import org.wheatgenetics.imageprocess.WatershedLB.WatershedLB;
 import org.wheatgenetics.onekkUtils.oneKKUtils;
 
@@ -628,7 +629,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     }
 
     /************************************************************************************
-     * image analysis method call to perform the default processing ImgProcess1KK
+     * image analysis method call to perform the default processing MeasureSeeds
      ************************************************************************************/
     private void imageAnalysis(Uri photo) {
         photoName = photo.getLastPathSegment();
@@ -636,15 +637,15 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         double refDiam = Double.valueOf(ep.getString(SettingsFragment.COIN_SIZE, "1")); // Wheat default
 
-        ImgProcess1KK imgP = new ImgProcess1KK(Constants.PHOTO_PATH.toString() + "/" + photoName, refDiam, true, Double.valueOf(ep.getInt(SettingsFragment.MIN_SEED_VALUE, 0)), Double.valueOf(ep.getInt(SettingsFragment.MAX_SEED_VALUE, 0))); //TODO the min/max sizes are bad
+        ImageProcess imgP = new ImageProcess(Constants.PHOTO_PATH.toString() + "/" + photoName, refDiam, true, Double.valueOf(ep.getInt(SettingsFragment.MIN_SEED_VALUE, 0)), Double.valueOf(ep.getInt(SettingsFragment.MAX_SEED_VALUE, 0))); //TODO the min/max sizes are bad
 
 
-        writeMat2File(imgP.getProcessedMat(),Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg");
+        //writeMat2File(imgP.getProcessedMat(),Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg");
         makeFileDiscoverable(new File(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg"), this);
 
         seedCount = imgP.getSeedCount();
 
-        seeds = imgP.getList();
+        //seeds = imgP.getList();
         //addRecord(); // Add the current record to the table
 
         //if (ep.getBoolean(SettingsFragment.DISPLAY_ANALYSIS, false)) {
