@@ -60,7 +60,6 @@ import org.opencv.core.Mat;
 import org.wheatgenetics.database.MySQLiteHelper;
 import org.wheatgenetics.imageprocess.HueThreshold.HueThreshold;
 import org.wheatgenetics.imageprocess.ImageProcess;
-import org.wheatgenetics.imageprocess.ImgProcess1KK.MeasureSeeds;
 import org.wheatgenetics.imageprocess.Seed.Seed;
 import org.wheatgenetics.imageprocess.WatershedLB.WatershedLB;
 import org.wheatgenetics.onekkUtils.oneKKUtils;
@@ -77,7 +76,6 @@ import java.util.HashMap;
 import java.util.Random;
 
 import static org.wheatgenetics.onekkUtils.oneKKUtils.makeFileDiscoverable;
-import static org.wheatgenetics.onekkUtils.oneKKUtils.writeMat2File;
 
 public class MainActivity extends AppCompatActivity implements OnInitListener {
 
@@ -936,8 +934,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         alert.show();
     }
 
-
-
     @Override
     protected void onPause() {
         super.onPause();
@@ -949,8 +945,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         super.onPostCreate(savedInstanceState);
         mDrawerToggle.syncState();
     }
-
-
 
     public void findScale() {
         if (mDevice == null) {
