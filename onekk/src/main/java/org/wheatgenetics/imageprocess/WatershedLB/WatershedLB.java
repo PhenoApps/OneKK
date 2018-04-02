@@ -13,11 +13,13 @@ import org.opencv.core.MatOfInt;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
+import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.imgproc.Moments;
+import org.wheatgenetics.onekk.Constants;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -63,7 +65,7 @@ public class WatershedLB {
          */
 
         public WatershedParams(int areaLow, int areaHigh, int defaultRate,
-                        double sizeLowerBoundRatio, double newSeedDistRatio) {
+                               double sizeLowerBoundRatio, double newSeedDistRatio) {
             this.areaLow = areaLow;
             this.areaHigh = areaHigh;
             this.defaultRate = defaultRate;

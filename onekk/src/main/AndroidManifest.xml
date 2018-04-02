@@ -58,8 +58,7 @@
         <activity
             android:name=".SettingsActivity"
             android:label="Settings"
-            android:parentActivityName=".MainActivity">
-        </activity>
+            android:parentActivityName=".MainActivity"></activity>
         <activity
             android:name=".ViewDataActivity"
             android:label="@string/view_data_activity"
@@ -79,4 +78,5 @@
                 android:value="org.wheatgenetics.onekk.MainActivity" />
         </activity>
     </application>
+
 </manifest>

@@ -1028,7 +1028,7 @@ public class TouchImageView extends ImageView {
         }
 
         /**
-         * Interpolate between where the image should start and end in order to translate
+         * Interpolate between where the image should process and end in order to translate
          * the image so that the point that is touched is what ends up centered at the end
          * of the zoom.
          *

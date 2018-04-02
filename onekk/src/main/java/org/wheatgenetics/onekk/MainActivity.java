@@ -12,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Point;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.usb.UsbConstants;
@@ -56,6 +57,7 @@ import android.widget.Toast;
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.wheatgenetics.database.MySQLiteHelper;
 import org.wheatgenetics.imageprocess.HueThreshold.HueThreshold;
@@ -90,15 +92,18 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     private EditText mWeightEditText;
     private EditText inputText;
 
+    int previousSize = 0;
     int seedCount = 0;
     int notificationCounter = 1;
     private String firstName = "";
     private String lastName = "";
 
-
+    guideBox gb;
+    CoinRecognitionTask coinRecognitionTask;
     FrameLayout preview;
 
     @SuppressWarnings("deprecation")
+    private PictureCallback mPicture;
     private Camera mCamera;
     private CameraPreview mPreview;
     private String picName = "";
@@ -174,7 +179,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
 
         /**
-         * uncomment to show the settings preferences at the start of the app
+         * uncomment to show the settings preferences at the process of the app
          */
         //final Intent settingsIntent = new Intent(this,SettingsActivity.class);
         //startActivity(settingsIntent);
@@ -312,26 +317,68 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         mCamera = getCameraInstance();
 
         PackageManager pm = getPackageManager();
-        if(pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_AUTOFOCUS)){
+        if (pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_AUTOFOCUS)) {
             Camera.Parameters params = mCamera.getParameters();
-
-            if(params.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
+            //params.setRotation(90);
+            if (params.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
                 params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
-            } else if(params.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
+            } else if (params.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
                 params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
             }
 
             mCamera.setParameters(params);
+
         }
 
         // Create our Preview view and set it as the content of our activity.
         mPreview = new CameraPreview(this, mCamera);
         preview.addView(mPreview);
+        //coinRecognition = new CoinRecognition();
+        gb = new guideBox(this, Integer.parseInt(ep.getString(SettingsFragment.COIN_SIZE, "4")));
+        preview.addView(gb, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
-        guideBox gb = new guideBox(this,Integer.parseInt(ep.getString(SettingsFragment.COIN_SIZE,"4")));
-        preview.addView(gb,new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-        //addContentView(gb,new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+        /* Uncomment the below line to enable real time coin recognition */
+        //previewThread.start();
+        pictureThread.start();
     }
+
+    //TODO see if there are other optimized possibilities to handle this operation
+        /* A new thread to handle the camera preview callback.
+        *
+        *  This thread creates a new camera preview callback and processes the current frame every
+        *  2 seconds and tries to determine the contours of the four coins and display the
+        *  discovered coordinates on the preview
+        *
+        *  WARNING : If this feature is enabled make sure the processing is also done using
+        *            THREAD POOL EXECUTOR
+        */
+    Thread previewThread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            mCamera.setPreviewCallback(new Camera.PreviewCallback() {
+                @Override
+                public void onPreviewFrame(byte[] data, Camera camera) {
+
+                    Camera.Parameters parameters = camera.getParameters();
+
+                    int h = parameters.getPreviewSize().height;
+                    int w = parameters.getPreviewSize().width;
+
+                    coinRecognitionTask = new CoinRecognitionTask(w, h, gb);
+
+                    coinRecognitionTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,data);
+
+                    try{
+                        Log.d("Camera Preview thread","Sleeping for 1 sec");
+                        Thread.sleep(5000);
+                    }
+                    catch (Exception ex){
+                        Log.e("Camera Preview thread",ex.toString());
+                    }
+                }
+            });
+        }
+    });
 
     @SuppressWarnings("deprecation")
     public static Camera getCameraInstance() {
@@ -526,66 +573,104 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         mCamera.takePicture(null, null, mPicture);
     }
 
-    @SuppressWarnings("deprecation")
-    private PictureCallback mPicture = new PictureCallback() {
+    Thread pictureThread = new Thread(new Runnable() {
         @Override
-        public void onPictureTaken(byte[] data, Camera camera) {
-            String fileName;
-            if (picName.length() > 0) {
-                fileName = picName + "_";
-            } else {
-                fileName = "temp_";
-            }
-            File pictureFile = oneKKUtils.getOutputMediaFile(MEDIA_TYPE_IMAGE,fileName);
+        public void run() {
+            mPicture = new PictureCallback() {
+                @Override
+                public void onPictureTaken(byte[] data, Camera camera) {
+                    String fileName;
+                    ArrayList<Point> cornerArrayList = null;
 
-            try {
-                FileOutputStream fos = new FileOutputStream(pictureFile);
-                fos.write(data);
-                fos.close();
-            } catch (FileNotFoundException e) {
-                Log.d(TAG, "File not found: " + e.getMessage());
-            } catch (IOException e) {
-                Log.d(TAG, "Error accessing file: " + e.getMessage());
-            }
+                    Camera.Parameters parameters = camera.getParameters();
 
-            Uri outputFileUri = Uri.fromFile(pictureFile);
-            makeFileDiscoverable(pictureFile, MainActivity.this);
+                    int h = parameters.getPreviewSize().height;
+                    int w = parameters.getPreviewSize().width;
 
-            if(ep.getBoolean(SettingsFragment.ASK_PROCESSING_TECHNIQUE,true))
-                processingTechniqueDialog();
+                    if (picName.length() > 0) {
+                        fileName = picName + "_";
+                    } else {
+                        fileName = "temp_";
+                    }
+                    File pictureFile = oneKKUtils.getOutputMediaFile(MEDIA_TYPE_IMAGE,fileName);
 
-            r = new Random();
+                    //TODO : fix this to check for coins immediately after capture using an Asynctask
+                    /*
+                    coinRecognitionTask = new CoinRecognitionTask(w,h);
+                    coinRecognitionTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,data);
 
-            String input = "" ;
-            if(inputText.getText().length() != 0){
-                input = inputText.getText().toString();
+                    try {
+                        cornerArrayList = coinRecognitionTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,data).get();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        Log.e("AsyncTask",e.getMessage());
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                        Log.e("AsyncTask",e.getMessage());
+                    }*/
 
-            if(input.charAt(0) == '$'){
-                outputFileUri = Uri.fromFile(new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/"+input.substring(3)+".jpg"));
-                inputText.setText(input.substring(3) + r.nextInt(200));
-                switch (input.substring(1,3)) {
-                    case "kk":
-                        imageAnalysis(outputFileUri);
+                   /* Log.d("Corner Array list",cornerArrayList.toString());
+                    if(cornerArrayList.size() != 4){
+                        Toast.makeText(MainActivity.this,"Couldn't detect all the coins, adjust and try again",Toast.LENGTH_LONG).show();
                         mCamera.startPreview();
-                        break;
-                    case "ht":
-                        hueThreshold(outputFileUri);
-                        mCamera.startPreview();
-                        break;
-                    default:
-                        imageAnalysisLB(outputFileUri);
-                        mCamera.startPreview();
+                    }
+                    else {*/
+                        try {
+                            FileOutputStream fos = new FileOutputStream(pictureFile);
+                            fos.write(data);
+                            fos.close();
+                        } catch (FileNotFoundException e) {
+                            Log.d(TAG, "File not found: " + e.getMessage());
+                        } catch (IOException e) {
+                            Log.d(TAG, "Error accessing file: " + e.getMessage());
+                        }
+
+                        Uri outputFileUri = Uri.fromFile(pictureFile);
+                        makeFileDiscoverable(pictureFile, MainActivity.this);
+
+                        if (ep.getBoolean(SettingsFragment.ASK_PROCESSING_TECHNIQUE, true))
+                            processingTechniqueDialog();
+
+                        r = new Random();
+
+                        String input = "";
+                        if (inputText.getText().length() != 0) {
+                            input = inputText.getText().toString();
+
+                            if (input.charAt(0) == '$') {
+                                outputFileUri = Uri.fromFile(new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Download/" + input.substring(3) + ".jpg"));
+                                inputText.setText(input.substring(3) + r.nextInt(200));
+                                switch (input.substring(1, 3)) {
+                                    case "kk":
+                                        imageAnalysis(outputFileUri);
+                                        mCamera.startPreview();
+                                        break;
+                                    case "ht":
+                                        hueThreshold(outputFileUri);
+                                        mCamera.startPreview();
+                                        break;
+                                    default:
+                                        imageAnalysisLB(outputFileUri);
+                                        mCamera.startPreview();
+                                }
+                            }
+                         else {
+                            //imageAnalysis(outputFileUri);
+                            //hueThreshold(outputFileUri);
+                            imageAnalysisLB(outputFileUri);
+                            mCamera.startPreview();
+                        }
+                    }
+                        else {
+                            //imageAnalysis(outputFileUri);
+                            //hueThreshold(outputFileUri);
+                            imageAnalysisLB(outputFileUri);
+                            mCamera.startPreview();
+                        }
                 }
-            }}
-            else{
-                //imageAnalysis(outputFileUri);
-                //hueThreshold(outputFileUri);
-                imageAnalysisLB(outputFileUri);
-                mCamera.startPreview();
-            }
+            };
         }
-    };
-
+    });
 
     /************************************************************************************
      * displays a dialogue after capturing the image, prompting the user to select a
@@ -716,10 +801,11 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                 /*progressDialog.dismiss();
                 handler.sendEmptyMessage(0);
             }
-        }).start();*/
+        }).process();*/
     }
 
     private void imageAnalysisLB(final Uri photo) {
+        Mat tempMat = new Mat();
         photoPath = photo.getPath();
         photoName = photo.getLastPathSegment();
 
@@ -744,20 +830,34 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         final double sizeLowerBoundRatio = Double.valueOf(ep.getString(SettingsFragment.PARAM_SIZE_LOWER_BOUND_RATIO, "0.25"));
         final double newSeedDistRatio = Double.valueOf(ep.getString(SettingsFragment.PARAM_NEW_SEED_DIST_RATIO, "4.0"));
         final Bitmap inputBitmap = BitmapFactory.decodeFile(photoPath);
-        final WatershedLB.WatershedParams params = new WatershedLB.WatershedParams(areaLow, areaHigh, defaultRate, sizeLowerBoundRatio, newSeedDistRatio);
-        mSeedCounter = new WatershedLB(params);
 
         Boolean showAnalysis = ep.getBoolean(SettingsFragment.DISPLAY_ANALYSIS, false);
         Boolean backgroundProcessing = ep.getBoolean(SettingsFragment.ASK_BACKGROUND_PROCESSING,false);
         Boolean multiProcessing = ep.getBoolean(SettingsFragment.ASK_MULTI_PROCESSING,false);
-        final WatershedLBTask watershedLBTask = new WatershedLBTask(MainActivity.this,mSeedCounter,photoName,showAnalysis,sampleName,weight,r.nextInt(20000),backgroundProcessing);
 
-        if(multiProcessing)
-            watershedLBTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,inputBitmap);
-        else
-            watershedLBTask.execute(inputBitmap);
+        Utils.bitmapToMat(inputBitmap,tempMat);
+        coinRecognitionTask = new CoinRecognitionTask();
+        tempMat = coinRecognitionTask.process(tempMat);
 
-        data.getLastData();
+        if(tempMat.empty())
+            Toast.makeText(MainActivity.this,"Couldn't detect all the coins, adjust and try again",Toast.LENGTH_LONG).show();
+        else{
+            final WatershedLB.WatershedParams params = new WatershedLB.WatershedParams(areaLow, areaHigh, defaultRate, sizeLowerBoundRatio, newSeedDistRatio);
+            mSeedCounter = new WatershedLB(params);
+
+            Bitmap croppedBitmap = Bitmap.createBitmap(tempMat.cols(),tempMat.rows(),inputBitmap.getConfig());
+
+            Utils.matToBitmap(tempMat,croppedBitmap);
+
+            final CoreProcessingTask coreProcessingTask = new CoreProcessingTask(MainActivity.this, mSeedCounter, photoName, showAnalysis, sampleName, weight, r.nextInt(20000), backgroundProcessing);
+
+            if (multiProcessing)
+                coreProcessingTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, croppedBitmap);
+            else
+                coreProcessingTask.execute(croppedBitmap);
+
+            data.getLastData();
+        }
     }
 
     private void releaseCamera() {
@@ -1005,7 +1105,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             byte[] data = new byte[128];
             int TIMEOUT = 2000;
 
-            Log.v(TAG, "start transfer");
+            Log.v(TAG, "process transfer");
 
             UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
 

@@ -23,7 +23,7 @@ import static org.wheatgenetics.onekkUtils.oneKKUtils.postImageDialog;
  * Created by sid on 1/28/18.
  */
 
-public class WatershedLBTask extends AsyncTask<Bitmap,AsyncTask.Status,Bitmap> {
+public class CoreProcessingTask extends AsyncTask<Bitmap,AsyncTask.Status,Bitmap> {
 
     private Context context;
     private final WatershedLB watershedLB;
@@ -37,7 +37,7 @@ public class WatershedLBTask extends AsyncTask<Bitmap,AsyncTask.Status,Bitmap> {
     private Boolean backgroundProcessing;
     private int notificationCounter;
 
-    public WatershedLBTask(Context context, WatershedLB watershedLB, String photoName, Boolean showAnalysis, String sampleName, String weight, int notificationCounter, boolean backgroundProcessing){
+    public CoreProcessingTask(Context context, WatershedLB watershedLB, String photoName, Boolean showAnalysis, String sampleName, String weight, int notificationCounter, boolean backgroundProcessing){
         this.context = context;
         this.watershedLB = watershedLB;
         this.photoName = photoName;
@@ -53,7 +53,7 @@ public class WatershedLBTask extends AsyncTask<Bitmap,AsyncTask.Status,Bitmap> {
         this.notificationCounter = notificationCounter;
         this.backgroundProcessing = backgroundProcessing;
 
-        // TODO : add unique identification to implement cancel procesing feature
+        // TODO : add unique identification to implement "cancel processing" feature
 
         //context.registerReceiver(broadcastReceiver,new IntentFilter("CANCEL"));
     }
