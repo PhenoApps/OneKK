@@ -62,7 +62,7 @@ import org.opencv.core.Mat;
 import org.wheatgenetics.database.MySQLiteHelper;
 import org.wheatgenetics.imageprocess.HueThreshold.HueThreshold;
 import org.wheatgenetics.imageprocess.ImageProcess;
-import org.wheatgenetics.imageprocess.Seed.Seed;
+import org.wheatgenetics.imageprocess.Seed.RawSeed;
 import org.wheatgenetics.imageprocess.WatershedLB.WatershedLB;
 import org.wheatgenetics.onekkUtils.oneKKUtils;
 
@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     public final static String TAG = "OneKK";
     private SharedPreferences ep;
 
-    private ArrayList<Seed> seeds;
+    private ArrayList<RawSeed> rawSeeds;
     private TableLayout lastSampleTable;
     private Data data;
     private static UsbDevice mDevice;
@@ -171,7 +171,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                 }
             }
         });
-
+        Log.d(TAG, ep.getString(SettingsFragment.COIN_NAME,"-1"));
         startCamera();
         createDirs();
         data = new Data(MainActivity.this,lastSampleTable);
@@ -728,7 +728,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         seedCount = imgP.getSeedCount();
 
-        //seeds = imgP.getList();
+        //rawSeeds = imgP.getList();
         //addRecord(); // Add the current record to the table
 
         //if (ep.getBoolean(SettingsFragment.DISPLAY_ANALYSIS, false)) {
@@ -824,11 +824,14 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         //seed counter utility
         final WatershedLB mSeedCounter;
+        final String firstName = ep.getString(SettingsFragment.FIRST_NAME,"first_name");
+        final String lastName = ep.getString(SettingsFragment.LAST_NAME,"last_name");
         final int areaLow = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_LOW, "400"));
         final int areaHigh = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_HIGH, "160000"));
         final int defaultRate = Integer.valueOf(ep.getString(SettingsFragment.PARAM_DEFAULT_RATE, "34"));
         final double sizeLowerBoundRatio = Double.valueOf(ep.getString(SettingsFragment.PARAM_SIZE_LOWER_BOUND_RATIO, "0.25"));
         final double newSeedDistRatio = Double.valueOf(ep.getString(SettingsFragment.PARAM_NEW_SEED_DIST_RATIO, "4.0"));
+        final double coinSize = Double.valueOf(ep.getString(SettingsFragment.COIN_NAME,"-1"));
         final Bitmap inputBitmap = BitmapFactory.decodeFile(photoPath);
 
         Boolean showAnalysis = ep.getBoolean(SettingsFragment.DISPLAY_ANALYSIS, false);
@@ -836,20 +839,22 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         Boolean multiProcessing = ep.getBoolean(SettingsFragment.ASK_MULTI_PROCESSING,false);
 
         Utils.bitmapToMat(inputBitmap,tempMat);
-        coinRecognitionTask = new CoinRecognitionTask();
+        coinRecognitionTask = new CoinRecognitionTask(coinSize);
+
+        //TODO : instead of the Mat return a boolean value if coin detection is successful or not
         tempMat = coinRecognitionTask.process(tempMat);
 
         if(tempMat.empty())
             Toast.makeText(MainActivity.this,"Couldn't detect all the coins, adjust and try again",Toast.LENGTH_LONG).show();
         else{
-            final WatershedLB.WatershedParams params = new WatershedLB.WatershedParams(areaLow, areaHigh, defaultRate, sizeLowerBoundRatio, newSeedDistRatio);
+            final WatershedLB.WatershedParams params = new WatershedLB.WatershedParams(areaLow, areaHigh, defaultRate, sizeLowerBoundRatio, newSeedDistRatio, coinRecognitionTask.getPixelMetric());
             mSeedCounter = new WatershedLB(params);
 
             Bitmap croppedBitmap = Bitmap.createBitmap(tempMat.cols(),tempMat.rows(),inputBitmap.getConfig());
 
             Utils.matToBitmap(tempMat,croppedBitmap);
 
-            final CoreProcessingTask coreProcessingTask = new CoreProcessingTask(MainActivity.this, mSeedCounter, photoName, showAnalysis, sampleName, weight, r.nextInt(20000), backgroundProcessing);
+            final CoreProcessingTask coreProcessingTask = new CoreProcessingTask(MainActivity.this, mSeedCounter, photoName, showAnalysis, sampleName, firstName, lastName, weight, r.nextInt(20000), backgroundProcessing);
 
             if (multiProcessing)
                 coreProcessingTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, croppedBitmap);

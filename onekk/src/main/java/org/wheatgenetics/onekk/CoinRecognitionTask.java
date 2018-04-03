@@ -53,10 +53,13 @@ public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,Array
     private int cameraWidth = 0;
     private int cameraHeight = 0;
     private int previousSize = 0;
+    private double coinSize = 0;
     private guideBox gb = null;
 
     /* default constructor */
-    public CoinRecognitionTask(){}
+    public CoinRecognitionTask(double coinSize){
+        this.coinSize = coinSize;
+    }
 
     /* used in static processing */
     public CoinRecognitionTask(int cameraWidth, int cameraHeight){
@@ -324,6 +327,10 @@ public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,Array
 
     public Mat getProcessedMat() {
         return processedMat;
+    }
+
+    public double getPixelMetric(){
+        return coinSize / coinArrayList.get(0).getRadius();
     }
 }
 

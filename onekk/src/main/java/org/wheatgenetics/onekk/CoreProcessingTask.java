@@ -27,20 +27,28 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,AsyncTask.Status,Bitmap
 
     private Context context;
     private final WatershedLB watershedLB;
+    private Data data = null;
     private final Mat finalMat = new Mat();
     private ProgressDialog progressDialog;
     private int seedCount = 0;
     private String sampleName;
+    private String firstName;
+    private String lastName;
     private String weight;
     private String photoName;
     private Boolean showAnalysis;
     private Boolean backgroundProcessing;
     private int notificationCounter;
 
-    public CoreProcessingTask(Context context, WatershedLB watershedLB, String photoName, Boolean showAnalysis, String sampleName, String weight, int notificationCounter, boolean backgroundProcessing){
+    public CoreProcessingTask(Context context, WatershedLB watershedLB, String photoName,
+                              Boolean showAnalysis, String sampleName, String firstName,
+                              String lastName, String weight, int notificationCounter,
+                              boolean backgroundProcessing){
         this.context = context;
         this.watershedLB = watershedLB;
         this.photoName = photoName;
+        this.firstName = firstName;
+        this.lastName = lastName;
         this.showAnalysis = showAnalysis;
         this.sampleName = sampleName;
         this.weight = weight;
@@ -84,6 +92,11 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,AsyncTask.Status,Bitmap
         displayAlert("Processing...",true);
         Bitmap outputBitmap = this.watershedLB.process(bitmaps[0]);
         seedCount = (int) watershedLB.getNumSeeds();
+        if (!(sampleName.equals(""))) {
+            displayAlert("Adding sample to database...", true);
+            data = new Data(context);
+            data.addRecords(sampleName, photoName, firstName, lastName, seedCount, weight,watershedLB.getSeedArrayList());
+        }
         System.gc();
         return outputBitmap;
     }
@@ -101,23 +114,14 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,AsyncTask.Status,Bitmap
 
         makeFileDiscoverable(new File(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg"), context);
 
-        if (sampleName.equals("")) {
-            displayAlert("Processing finished. \nSeed Count : " + seedCount,false);
+        if(!(sampleName.equals(""))){
+            data.createNewTableEntry(sampleName,String.valueOf(seedCount));
+        }
+        displayAlert("Processing finished. \nSeed Count : " + seedCount,false);
 
-            if (showAnalysis) {
+        if (showAnalysis) {
                 postImageDialog(context,photoName,seedCount);
-            }
-            return;
         }
-        else{
-            displayAlert("Adding sample to database...",true);
-            Data data = new Data(context);
-            data.addSimpleRecord(sampleName,seedCount,weight);
-            displayAlert("Processing finished. \nSeed Count : " + seedCount,false);
-        }
-
-        if(showAnalysis)
-            postImageDialog(context,photoName,seedCount);
 
         //context.unregisterReceiver(broadcastReceiver);
     }

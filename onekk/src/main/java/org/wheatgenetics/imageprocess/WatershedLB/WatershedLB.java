@@ -19,6 +19,7 @@ import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.imgproc.Moments;
+import org.wheatgenetics.imageprocess.Seed.Seed;
 import org.wheatgenetics.onekk.Constants;
 
 import java.util.ArrayList;
@@ -40,6 +41,7 @@ public class WatershedLB {
 
     private WatershedParams mParams;
     private Mat processedMat;
+    private ArrayList<Seed> seedArrayList = null;
     double ssum = 0;
 
     /**
@@ -48,13 +50,13 @@ public class WatershedLB {
      */
     public static class WatershedParams {
         protected int areaLow, areaHigh, defaultRate;
-        protected double sizeLowerBoundRatio, newSeedDistRatio;
+        protected double sizeLowerBoundRatio, newSeedDistRatio, pixelMetric;
 
         /**
          * Constructor to initialize the Watershed parameters before processing
          * <p>
          *  This is a convenience for calling
-         * {@link org.wheatgenetics.imageprocess.WatershedLB.WatershedLB.WatershedParams#WatershedParams(int, int, int, double, double)}.
+         * {@link org.wheatgenetics.imageprocess.WatershedLB.WatershedLB.WatershedParams#WatershedParams(int, int, int, double, double, double)}.
          * </p>
          *
          *  @param areaLow minimum area value of the seed
@@ -65,12 +67,13 @@ public class WatershedLB {
          */
 
         public WatershedParams(int areaLow, int areaHigh, int defaultRate,
-                               double sizeLowerBoundRatio, double newSeedDistRatio) {
+                               double sizeLowerBoundRatio, double newSeedDistRatio, double pixelMetric) {
             this.areaLow = areaLow;
             this.areaHigh = areaHigh;
             this.defaultRate = defaultRate;
             this.sizeLowerBoundRatio = sizeLowerBoundRatio;
             this.newSeedDistRatio = newSeedDistRatio;
+            this.pixelMetric = pixelMetric;
         }
 
         public int getAreaLow() { return areaLow; }
@@ -97,7 +100,7 @@ public class WatershedLB {
     }
 
     public Bitmap process(Bitmap inputBitmap) {
-
+        seedArrayList = new ArrayList<>();
         Mat frame = new Mat();
         Utils.bitmapToMat(inputBitmap, frame);
         Mat ret = subProcess(frame);
@@ -304,6 +307,7 @@ public class WatershedLB {
             List<MatOfPoint> contours = new ArrayList<>();
             Mat hierarchy = new Mat();
             Imgproc.findContours(mask, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE, new Point(0, 0));
+
             i = i + 1;
             final int countContour = contours.size();
 
@@ -326,9 +330,19 @@ public class WatershedLB {
                         cxCoord.add(cx);
                         final double cy = (int) (M.get_m01() / M.get_m00());
                         cyCoord.add(cy);
+
+                        Rect boundingRect = Imgproc.boundingRect(matOfPoint);
+                        String strWidth = String.format("%.2f",boundingRect.width * mParams.pixelMetric);
+                        String strHeight = String.format("%.2f",boundingRect.height * mParams.pixelMetric);
+                        Imgproc.rectangle(frame,boundingRect.tl(),boundingRect.br(),new Scalar(0,0,0),3);
+                        Imgproc.drawContours(frame,contours,-1, new Scalar(0,255,0),3);
                         Imgproc.circle(frame, new Point(cx, cy), 15, new Scalar(0,255,255), -1);
                         Imgproc.getTextSize(String.valueOf(i), Core.FONT_HERSHEY_COMPLEX,0.5,1,textSize);
                         Imgproc.putText(frame,String.valueOf(i),new Point(cx-(textSize[0]*3),cy-(textSize[0]*3)),Core.FONT_HERSHEY_COMPLEX,1.0,new Scalar(0,255,255),2);
+                        Imgproc.putText(frame,strWidth,new Point(boundingRect.tl().x + ((boundingRect.width)/2)-(textSize[0]*5),boundingRect.tl().y -(textSize[0]*5)),Core.FONT_HERSHEY_COMPLEX,1.0,new Scalar(0,255,255),2);
+                        Imgproc.putText(frame,strHeight,new Point(boundingRect.br().x +(textSize[0]*5),boundingRect.br().y - ((boundingRect.height)/2)  + (textSize[0]*5)),Core.FONT_HERSHEY_COMPLEX,1.0,new Scalar(0,255,255),2);
+
+                        seedArrayList.add(new Seed(cx,cy, area, perimeter, seedColor(frame,boundingRect), mParams.pixelMetric, boundingRect, matOfPoint));
                     }
                 }
 
@@ -485,11 +499,36 @@ public class WatershedLB {
         return frame;
     }
 
+    private Scalar seedColor(Mat initialMat, Rect boundingRect){
+        org.opencv.core.Rect seedRect = boundingRect;
+        Scalar mBlobColorHsv;
+
+        Mat touchedRegionRgba = initialMat.submat(seedRect);
+
+        Mat touchedRegionHsv = new Mat();
+        Imgproc.cvtColor(touchedRegionRgba, touchedRegionHsv, Imgproc.COLOR_RGB2HSV);
+
+        mBlobColorHsv = Core.sumElems(touchedRegionHsv);
+        int pointCount = seedRect.width * seedRect.height;
+        for (int i = 0; i < mBlobColorHsv.val.length; i++)
+            mBlobColorHsv.val[i] /= pointCount;
+
+        Mat pointMatRgba = new Mat();
+        Mat pointMatHsv = new Mat(1, 1, CvType.CV_8UC3, mBlobColorHsv);
+        Imgproc.cvtColor(pointMatHsv, pointMatRgba, Imgproc.COLOR_HSV2RGB, 4);
+
+        return new Scalar(pointMatRgba.get(0, 0));
+    }
+
     public Mat getProcessedMat(){
         return processedMat;
     }
 
     public double getNumSeeds() {
         return this.ssum;
+    }
+
+    public ArrayList<Seed> getSeedArrayList() {
+        return seedArrayList;
     }
 }

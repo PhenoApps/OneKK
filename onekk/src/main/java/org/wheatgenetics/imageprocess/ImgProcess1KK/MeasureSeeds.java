@@ -5,10 +5,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.opencv.core.*;
-import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
-import org.wheatgenetics.imageprocess.ImageProcess;
-import org.wheatgenetics.imageprocess.Seed.Seed;
+import org.wheatgenetics.imageprocess.Seed.RawSeed;
 
 public class MeasureSeeds {
 
@@ -25,7 +23,7 @@ public class MeasureSeeds {
     private double minimumSize = 0.0;
     private double maximumSize = 0.0;
 
-    private ArrayList<Seed> seedArray = new ArrayList<>();
+    private ArrayList<RawSeed> rawSeedArray = new ArrayList<>();
 
     ArrayList<Double> seedMatL = new ArrayList<>(); // major axis
     ArrayList<Double> seedMatW = new ArrayList<>(); // minor axis
@@ -305,22 +303,22 @@ public class MeasureSeeds {
                 //Imgproc.drawContours(labels, goodContours, i,new Scalar(255, 255, 255), -1); // TODO add switch for analyzing color
                 //roi = Imgproc.boundingRect(goodContours.get(i)); // TODO add switch for analyzing color
 
-                Seed s = new Seed(tmp, tmp2);
+                RawSeed s = new RawSeed(tmp, tmp2);
 
                 //TODO check this
                 //Size filtering - add seed if minimum or maximum are set and seed length falls within bounds
                 if((minimumSize!=0.0 && s.getLength()>=minimumSize*pixelSize)||(maximumSize!=0.0 && s.getLength()<=maximumSize*pixelSize)) {
-                    seedArray.add(s);
+                    rawSeedArray.add(s);
                 }
 
                 // Add if size parameters not set
                 if((minimumSize==0.0)||(maximumSize==0.0)){
-                    seedArray.add(s);
+                    rawSeedArray.add(s);
                 }
             }
         }
 
-        System.out.println("NUMBER OF SEEDS MEASURED: " + seedArray.size());
+        System.out.println("NUMBER OF SEEDS MEASURED: " + rawSeedArray.size());
     }
 
     /**
@@ -370,19 +368,19 @@ public class MeasureSeeds {
         Scalar orange = new Scalar(0, 50, 255);
 
         List<MatOfPoint> seeds = new ArrayList<>();
-        for (int i = 0; i < seedArray.size(); i++) {
-            seeds.add(seedArray.get(i).getPerm());
+        for (int i = 0; i < rawSeedArray.size(); i++) {
+            seeds.add(rawSeedArray.get(i).getPerm());
         }
 
         Imgproc.drawContours(pImg, refContours, -1, white, 3);
         Imgproc.drawContours(pImg, hullMop, -1, white, 2); //From convex hull
         Imgproc.drawContours(pImg, seeds, -1, red, 2); //From contours
 
-        for (int i = 0; i < seedArray.size(); i++) {
-            Imgproc.line(pImg, seedArray.get(i).getPtsW()[0], seedArray.get(i).getPtsW()[1], blue, 2); // width
-            Imgproc.line(pImg, seedArray.get(i).getPtsL()[0], seedArray.get(i).getPtsL()[1], green, 2); // length
-            Imgproc.circle(pImg, seedArray.get(i).getCentgrav(), 2, white, 2); // center gravity
-            Imgproc.putText(pImg,String.valueOf(i+1),seedArray.get(i).getCentgrav(),Core.FONT_HERSHEY_PLAIN,2,black,2);
+        for (int i = 0; i < rawSeedArray.size(); i++) {
+            Imgproc.line(pImg, rawSeedArray.get(i).getPtsW()[0], rawSeedArray.get(i).getPtsW()[1], blue, 2); // width
+            Imgproc.line(pImg, rawSeedArray.get(i).getPtsL()[0], rawSeedArray.get(i).getPtsL()[1], green, 2); // length
+            Imgproc.circle(pImg, rawSeedArray.get(i).getCentgrav(), 2, white, 2); // center gravity
+            Imgproc.putText(pImg,String.valueOf(i+1), rawSeedArray.get(i).getCentgrav(),Core.FONT_HERSHEY_PLAIN,2,black,2);
         }
 
         return pImg;
@@ -392,7 +390,7 @@ public class MeasureSeeds {
         return seedCount;
     }
 
-    public ArrayList<Seed> getList() {
-        return seedArray;
+    public ArrayList<RawSeed> getList() {
+        return rawSeedArray;
     }
 }

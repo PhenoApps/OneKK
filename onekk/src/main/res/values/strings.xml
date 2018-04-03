@@ -15,7 +15,7 @@
     <string name="clear_data">Clear data</string>
     <string name="reset_data">Reset data</string>
 
-    <!-- Seed Data strings -->
+    <!--Seed Data strings -->
     <string name="sample">Sample</string>
     <string name="countAbr">Count</string>
     <string name="lengthAbr">Length</string>
