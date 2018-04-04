@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activityRoot"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
@@ -67,7 +68,8 @@
                         android:id="@+id/tvInput"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="10dp"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginLeft="100dp"
                         android:text="@string/input"
                         android:textSize="20sp" />
 
@@ -117,6 +119,18 @@
                     android:layout_height="wrap_content"/>
 
             </LinearLayout>
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Large"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignEnd="@+id/camera_button"
+                android:layout_alignRight="@+id/camera_button"
+                android:layout_centerVertical="true"
+                android:indeterminate="true"
+                android:visibility="invisible"
+                tools:visibility="invisible" />
         </RelativeLayout>
 
         <android.support.design.widget.NavigationView
@@ -130,6 +144,5 @@
             app:theme="@style/NavigationDrawerTheme" />
 
     </android.support.v4.widget.DrawerLayout>
-
 
 </LinearLayout>

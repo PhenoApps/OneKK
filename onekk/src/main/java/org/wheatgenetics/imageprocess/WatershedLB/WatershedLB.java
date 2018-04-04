@@ -334,14 +334,25 @@ public class WatershedLB {
                         Rect boundingRect = Imgproc.boundingRect(matOfPoint);
                         String strWidth = String.format("%.2f",boundingRect.width * mParams.pixelMetric);
                         String strHeight = String.format("%.2f",boundingRect.height * mParams.pixelMetric);
+
+                        /* draw the bounding box on the mat */
                         Imgproc.rectangle(frame,boundingRect.tl(),boundingRect.br(),new Scalar(0,0,0),3);
+
+                        /* draw the contours on the mat */
                         Imgproc.drawContours(frame,contours,-1, new Scalar(0,255,0),3);
+
+                        /* draw a circle to mark the center of the seed */
                         Imgproc.circle(frame, new Point(cx, cy), 15, new Scalar(0,255,255), -1);
+
+                        /* get the text size to write values on the mat */
                         Imgproc.getTextSize(String.valueOf(i), Core.FONT_HERSHEY_COMPLEX,0.5,1,textSize);
+
+                        /* put a number on each seed, along with the width and height */
                         Imgproc.putText(frame,String.valueOf(i),new Point(cx-(textSize[0]*3),cy-(textSize[0]*3)),Core.FONT_HERSHEY_COMPLEX,1.0,new Scalar(0,255,255),2);
                         Imgproc.putText(frame,strWidth,new Point(boundingRect.tl().x + ((boundingRect.width)/2)-(textSize[0]*5),boundingRect.tl().y -(textSize[0]*5)),Core.FONT_HERSHEY_COMPLEX,1.0,new Scalar(0,255,255),2);
                         Imgproc.putText(frame,strHeight,new Point(boundingRect.br().x +(textSize[0]*5),boundingRect.br().y - ((boundingRect.height)/2)  + (textSize[0]*5)),Core.FONT_HERSHEY_COMPLEX,1.0,new Scalar(0,255,255),2);
 
+                        /* create a seed object for each seed and store them in an ArrayList */
                         seedArrayList.add(new Seed(cx,cy, area, perimeter, seedColor(frame,boundingRect), mParams.pixelMetric, boundingRect, matOfPoint));
                     }
                 }

@@ -1,7 +1,9 @@
 package org.wheatgenetics.onekk;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -25,6 +27,8 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech.OnInitListener;
 import android.support.design.widget.NavigationView;
@@ -40,6 +44,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -48,6 +53,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TableLayout;
@@ -103,7 +109,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     FrameLayout preview;
 
     @SuppressWarnings("deprecation")
-    private PictureCallback mPicture;
     private Camera mCamera;
     private CameraPreview mPreview;
     private String picName = "";
@@ -112,6 +117,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     public static final int MEDIA_TYPE_IMAGE = 1;
     private Bitmap outputBitmap;
     private Mat finalMat;
+    private Mat tempMat;
     private LinearLayout parent;
     private ScrollView changeContainer;
     private String sampleName;
@@ -120,7 +126,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     private DrawerLayout mDrawerLayout;
     private Random r;
     private ImageButton cameraButton;
-
+    private ProgressBar progressBar;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -157,7 +163,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         Intent intent = getIntent();
         mDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-
+        progressBar = (ProgressBar)findViewById(R.id.progressBar);
         cameraButton = (ImageButton) findViewById(R.id.camera_button);
         cameraButton.setOnClickListener(new ImageButton.OnClickListener(
         ){
@@ -167,6 +173,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                     Toast.makeText(getApplicationContext(),"Please select the Coin Name in Settings Panel!",Toast.LENGTH_LONG).show();
                 else{
                     picName = inputText.getText().toString();
+                    progressBar.setVisibility(ProgressBar.VISIBLE);
                     takePic();
                 }
             }
@@ -339,7 +346,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         /* Uncomment the below line to enable real time coin recognition */
         //previewThread.start();
-        pictureThread.start();
     }
 
     //TODO see if there are other optimized possibilities to handle this operation
@@ -573,10 +579,8 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         mCamera.takePicture(null, null, mPicture);
     }
 
-    Thread pictureThread = new Thread(new Runnable() {
-        @Override
-        public void run() {
-            mPicture = new PictureCallback() {
+
+    PictureCallback mPicture = new PictureCallback() {
                 @Override
                 public void onPictureTaken(byte[] data, Camera camera) {
                     String fileName;
@@ -668,9 +672,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                             mCamera.startPreview();
                         }
                 }
-            };
-        }
-    });
+    };
 
     /************************************************************************************
      * displays a dialogue after capturing the image, prompting the user to select a
@@ -805,7 +807,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     }
 
     private void imageAnalysisLB(final Uri photo) {
-        Mat tempMat = new Mat();
+        tempMat = new Mat();
         photoPath = photo.getPath();
         photoName = photo.getLastPathSegment();
 
@@ -839,17 +841,19 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         Boolean multiProcessing = ep.getBoolean(SettingsFragment.ASK_MULTI_PROCESSING,false);
 
         Utils.bitmapToMat(inputBitmap,tempMat);
+
+        //TODO : push this process to a background thread
         coinRecognitionTask = new CoinRecognitionTask(coinSize);
+        boolean coinsRecognized = coinRecognitionTask.process(tempMat);
+        progressBar.setVisibility(ProgressBar.INVISIBLE);
 
-        //TODO : instead of the Mat return a boolean value if coin detection is successful or not
-        tempMat = coinRecognitionTask.process(tempMat);
-
-        if(tempMat.empty())
-            Toast.makeText(MainActivity.this,"Couldn't detect all the coins, adjust and try again",Toast.LENGTH_LONG).show();
-        else{
+        if(coinsRecognized)
+        {
+            Toast.makeText(MainActivity.this,"Coins detected, started processing",Toast.LENGTH_LONG).show();
             final WatershedLB.WatershedParams params = new WatershedLB.WatershedParams(areaLow, areaHigh, defaultRate, sizeLowerBoundRatio, newSeedDistRatio, coinRecognitionTask.getPixelMetric());
             mSeedCounter = new WatershedLB(params);
 
+            tempMat = coinRecognitionTask.getProcessedMat();
             Bitmap croppedBitmap = Bitmap.createBitmap(tempMat.cols(),tempMat.rows(),inputBitmap.getConfig());
 
             Utils.matToBitmap(tempMat,croppedBitmap);
@@ -862,6 +866,10 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                 coreProcessingTask.execute(croppedBitmap);
 
             data.getLastData();
+        }
+        else {
+            String errorMessage = coinRecognitionTask.getSTATUS();
+            Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_LONG).show();
         }
     }
 

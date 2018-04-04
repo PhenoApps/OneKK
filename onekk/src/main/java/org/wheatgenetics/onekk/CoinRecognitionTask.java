@@ -36,6 +36,8 @@ import java.util.List;
 
 public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,ArrayList<Point>> {
 
+    private double COIN_CIRCULARITY = 0.95;
+    private double COIN_SIZE_THRESHOLD = 2.5;
     /* declared the ArrayList as android Point for ease of use to display them on the preview
     *
     *  centroidArrayList is the array list consisting of the centroids of the coins
@@ -45,7 +47,8 @@ public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,Array
     private ArrayList<Coin> coinArrayList;
     private ArrayList<Point> centroidArrayList;
     private ArrayList<Point> cornerArrayList;
-    private ArrayList<Point> boundingBoxArrayList;
+    private ArrayList<Double> radiusArrayList;
+    private String STATUS = "";
     private ArrayList<Point> coinCoordsList;
     private int[] textSize = new int[1];
     private org.opencv.core.Rect boundingBox = null;
@@ -124,9 +127,11 @@ public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,Array
      * @return an ArrayList containing the centroids of the coins
      *
      */
-    public Mat process(Mat initialMat){
+    public boolean process(Mat initialMat){
+        radiusArrayList = new ArrayList<>();
         centroidArrayList = new ArrayList<>();
-
+        STATUS = "";
+        processedMat = initialMat;
         // Check if image is loaded fine
         if( initialMat.empty() ) {
             Log.e("Coin recognition","Empty image");
@@ -139,8 +144,8 @@ public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,Array
         int radius = 0;
 
         Imgproc.HoughCircles(gray, circles, Imgproc.HOUGH_GRADIENT, 1.0,
-                (double)gray.rows()/8, //16 change this value to detect circles with different distances to each other
-                100.0, 30.0, 100, 300); // change the last two parameters
+                (double)gray.rows()/8, //8 change this value to detect circles with different distances to each other
+                100.0, 30.0, 150, 300); // change the last two parameters
         // (min_radius & max_radius) to detect larger circles
 
         for (int x = 0; x < circles.cols(); x++) {
@@ -153,7 +158,13 @@ public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,Array
             // circular mask 157,178,195
             radius = (int) Math.round(c[2]);
             Imgproc.circle(initialMat, center, radius + 20, maskColor(initialMat), -1, 8, 0 );
+            Imgproc.circle(initialMat, center, radius , new Scalar(255,0,0), 3, 8, 0 );
+            Imgproc.getTextSize(String.valueOf(radius ), Core.FONT_HERSHEY_COMPLEX,0.5,1,textSize);
 
+            /* put the area on each coin */
+            Imgproc.putText(initialMat,String.valueOf(radius),new Point(c[0]-(textSize[0]*3),c[1]-(textSize[0]*3)),Core.FONT_HERSHEY_COMPLEX,1.0,new Scalar(0,0,0),2);
+
+            radiusArrayList.add(c[2]);
             centroidArrayList.add(new Point((int)center.x,(int)center.y));
         }
 
@@ -165,15 +176,70 @@ public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,Array
         Imgproc.cvtColor(initialMat,initialMat,Imgproc.COLOR_RGB2BGR);
 
         if(centroidArrayList.size() == 4) {
-        /* determining the corners of the coins */
-            cornerArrayList = findCorners(centroidArrayList, radius);
 
-        /* cropping the image to limit the search space by bounding it with the farthest
-        *  corners of each coin
-        */
-            initialMat = cropImage(initialMat, cornerArrayList);
+            if(checkCirucularity()) {
+
+                if (checkPixelSize()) {
+                    /* determining the corners of the coins */
+                    cornerArrayList = findCorners(centroidArrayList, radius);
+
+                    /* cropping the image to limit the search space by bounding it with the farthest
+                    *  corners of each coin
+                    */
+                    processedMat = cropImage(initialMat, cornerArrayList);
+
+                    return true;
+                }
+                STATUS = "Coin size check failed";
+                return false;
+            }
+            STATUS = "Coin circularity failed";
+            return false;
         }
-        return initialMat;
+        else {
+            STATUS = "All the coins not detected";
+            return false;
+        }
+    }
+
+    private boolean checkCirucularity(){
+        boolean circular = false;
+        for(double r : radiusArrayList)
+        {
+            double circ = 4 * Math.PI * Math.PI * r * r / Math.pow(2 * Math.PI * r, 2); // calculate circularity
+
+            /* check circularity > 0.95 */
+            circular = circ > COIN_CIRCULARITY;
+        }
+        return circular;
+    }
+
+    private boolean checkPixelSize(){
+        boolean pixelSize = false;
+        ArrayList<Double> areaArrayList = new ArrayList<>();
+
+        Log.d("checkPixelSize: Radius",radiusArrayList.toString());
+
+        for(double r : radiusArrayList){
+            areaArrayList.add(Math.PI * r * r);
+        }
+
+        Log.d("checkPixelSize: Areas",areaArrayList.toString());
+
+        for(double a : areaArrayList) {
+             /* check that all four are within 2.5% of each other in pixel size */
+            double threshold = (a * COIN_SIZE_THRESHOLD)/100;
+            double min = a - threshold;
+            double max = a + threshold;
+
+            Log.d("checkPixelSize: Min-Max",String.valueOf(min) + " - " + String.valueOf(max));
+
+            for (double ar : areaArrayList) {
+                pixelSize = min >= ar && a <= max;
+            }
+        }
+
+        return true;
     }
 
     private Mat cropImage(Mat initialMat, ArrayList<Point> cornerArrayList) {
@@ -240,8 +306,6 @@ public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,Array
 
         Point tempPt;
 
-        Log.d("Corners - pre sort", pointArrayList.toString());
-
         /* sort the ArrayList of centroids starting from top-left to bottom-right of the screen
         *  using just the x-coordinate
         */
@@ -284,8 +348,6 @@ public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,Array
             pointArrayList.set(2,pt4);
             pointArrayList.set(3,tempPt);
         }
-
-        Log.d("Corners - post sort", pointArrayList.toString());
 
         coinArrayList = new ArrayList<>();
 
@@ -330,7 +392,18 @@ public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,Array
     }
 
     public double getPixelMetric(){
-        return coinSize / coinArrayList.get(0).getRadius();
+        double sumRadius = 0;
+
+        for(double r : radiusArrayList)
+            sumRadius = sumRadius + r;
+
+        double avgRadius = sumRadius / radiusArrayList.size();
+
+        return coinSize / avgRadius;
+    }
+
+    public String getSTATUS() {
+        return STATUS;
     }
 }
 
