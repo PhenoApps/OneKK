@@ -7,12 +7,15 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.util.TimingLogger;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.wheatgenetics.imageprocess.Seed.MSeeds;
 import org.wheatgenetics.imageprocess.WatershedLB.WatershedLB;
 import org.wheatgenetics.onekkUtils.NotificationHelper;
+import org.wheatgenetics.onekkUtils.oneKKUtils;
 
 import java.io.File;
 
@@ -39,11 +42,14 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,AsyncTask.Status,Bitmap
     private Boolean showAnalysis;
     private Boolean backgroundProcessing;
     private int notificationCounter;
+    private double coinSize;
+    private TimingLogger timingLogger;
+    private CoinRecognitionTask coinRecognitionTask;
 
     public CoreProcessingTask(Context context, WatershedLB watershedLB, String photoName,
                               Boolean showAnalysis, String sampleName, String firstName,
                               String lastName, String weight, int notificationCounter,
-                              boolean backgroundProcessing){
+                              boolean backgroundProcessing,double coinSize){
         this.context = context;
         this.watershedLB = watershedLB;
         this.photoName = photoName;
@@ -60,7 +66,7 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,AsyncTask.Status,Bitmap
 
         this.notificationCounter = notificationCounter;
         this.backgroundProcessing = backgroundProcessing;
-
+        this.coinSize = coinSize;
         // TODO : add unique identification to implement "cancel processing" feature
 
         //context.registerReceiver(broadcastReceiver,new IntentFilter("CANCEL"));
@@ -89,15 +95,47 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,AsyncTask.Status,Bitmap
 
     @Override
     protected Bitmap doInBackground(Bitmap... bitmaps){
-        displayAlert("Processing...",true);
-        Bitmap outputBitmap = this.watershedLB.process(bitmaps[0]);
-        seedCount = (int) watershedLB.getNumSeeds();
-        if (!(sampleName.equals(""))) {
-            displayAlert("Adding sample to database...", true);
-            data = new Data(context);
-            data.addRecords(sampleName, photoName, firstName, lastName, seedCount, weight,watershedLB.getSeedArrayList());
+        Bitmap outputBitmap = bitmaps[0];
+
+        this.timingLogger = new TimingLogger("CoreProcessing",sampleName);
+        Mat tempMat = new Mat();
+
+        displayAlert("Coin Recognition...",true);
+        Utils.bitmapToMat(bitmaps[0],tempMat);
+        coinRecognitionTask = new CoinRecognitionTask(coinSize);
+        boolean coinsRecognized = coinRecognitionTask.process(tempMat);
+        timingLogger.addSplit("Coin Recognition");
+
+        if(coinsRecognized) {
+            tempMat = coinRecognitionTask.getProcessedMat();
+            Bitmap croppedBitmap = Bitmap.createBitmap(tempMat.cols(),tempMat.rows(),bitmaps[0].getConfig());
+            Utils.matToBitmap(tempMat,croppedBitmap);
+            displayAlert("Processing...", true);
+            outputBitmap = this.watershedLB.process(croppedBitmap);
+
+            timingLogger.addSplit("Image Analysis");
+            seedCount = (int) watershedLB.getNumSeeds();
+
+            MSeeds mSeeds = new MSeeds(coinRecognitionTask.getPixelMetric(), watershedLB.getProcessedMat());
+            mSeeds.process(watershedLB.getSeedArrayList());
+            Utils.matToBitmap(mSeeds.getmSeedsProcessedMat(),outputBitmap);
+
+            timingLogger.addSplit("Measure Seeds");
+
+            if (!(sampleName.equals(""))) {
+                displayAlert("Adding sample to database...", true);
+                data = new Data(context);
+                data.addRecords(sampleName, photoName, firstName, lastName, seedCount, weight, mSeeds.getmSeedsArrayList());
+            }
+            timingLogger.addSplit("Store data");
+
+            System.gc();
         }
-        System.gc();
+        else{
+            cancel(true);
+        }
+        timingLogger.dumpToLog();
+        Log.d("CoreProcessing : End", oneKKUtils.getDate());
         return outputBitmap;
     }
 
@@ -122,7 +160,7 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,AsyncTask.Status,Bitmap
         if (showAnalysis) {
                 postImageDialog(context,photoName,seedCount);
         }
-
+        data.getLastData();
         //context.unregisterReceiver(broadcastReceiver);
     }
 
@@ -131,7 +169,7 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,AsyncTask.Status,Bitmap
 
         Log.d("WatershedLB Activity", "Cancelled");
 
-        displayAlert("Processing Cancelled",false);
+        displayAlert("Processing Cancelled : " + coinRecognitionTask.getSTATUS(),false);
 
         //context.unregisterReceiver(broadcastReceiver);
     }

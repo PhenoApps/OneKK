@@ -117,6 +117,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         // for logging
         Log.d("Add Seed: ", seed.toString());
 
+
         // 1. get reference to writable DB
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -134,7 +135,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         db.insert(TABLE_SEED, null, values);
 
         // 4. close
-        db.close();
+        //db.close();
     }
 
     // average seeds in a sample

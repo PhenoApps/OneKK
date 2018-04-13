@@ -1,7 +1,6 @@
 package org.wheatgenetics.imageprocess.WatershedLB;
 
 import android.graphics.Bitmap;
-import android.os.Environment;
 import android.util.Log;
 
 import org.opencv.android.Utils;
@@ -13,14 +12,11 @@ import org.opencv.core.MatOfInt;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
-import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
-import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.imgproc.Moments;
 import org.wheatgenetics.imageprocess.Seed.Seed;
-import org.wheatgenetics.onekk.Constants;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -31,7 +27,6 @@ import static org.opencv.imgproc.Imgproc.CC_STAT_AREA;
 import static org.opencv.imgproc.Imgproc.CC_STAT_LEFT;
 import static org.opencv.imgproc.Imgproc.CC_STAT_TOP;
 import static org.opencv.imgproc.Imgproc.COLOR_BGR2RGB;
-import static org.opencv.imgproc.Imgproc.cvtColor;
 
 /**
  * Created by chaneylc on 8/22/2017.
@@ -50,13 +45,13 @@ public class WatershedLB {
      */
     public static class WatershedParams {
         protected int areaLow, areaHigh, defaultRate;
-        protected double sizeLowerBoundRatio, newSeedDistRatio, pixelMetric;
+        protected double sizeLowerBoundRatio, newSeedDistRatio;
 
         /**
          * Constructor to initialize the Watershed parameters before processing
          * <p>
          *  This is a convenience for calling
-         * {@link org.wheatgenetics.imageprocess.WatershedLB.WatershedLB.WatershedParams#WatershedParams(int, int, int, double, double, double)}.
+         * {@link org.wheatgenetics.imageprocess.WatershedLB.WatershedLB.WatershedParams#WatershedParams(int, int, int, double, double)}.
          * </p>
          *
          *  @param areaLow minimum area value of the seed
@@ -67,13 +62,12 @@ public class WatershedLB {
          */
 
         public WatershedParams(int areaLow, int areaHigh, int defaultRate,
-                               double sizeLowerBoundRatio, double newSeedDistRatio, double pixelMetric) {
+                               double sizeLowerBoundRatio, double newSeedDistRatio) {
             this.areaLow = areaLow;
             this.areaHigh = areaHigh;
             this.defaultRate = defaultRate;
             this.sizeLowerBoundRatio = sizeLowerBoundRatio;
             this.newSeedDistRatio = newSeedDistRatio;
-            this.pixelMetric = pixelMetric;
         }
 
         public int getAreaLow() { return areaLow; }
@@ -85,6 +79,7 @@ public class WatershedLB {
         public double getSizeLowerBoundRatio() { return sizeLowerBoundRatio; }
 
         public double getNewSeedDistRatio() { return newSeedDistRatio; }
+
     }
 
     /**
@@ -102,11 +97,14 @@ public class WatershedLB {
     public Bitmap process(Bitmap inputBitmap) {
         seedArrayList = new ArrayList<>();
         Mat frame = new Mat();
+
         Utils.bitmapToMat(inputBitmap, frame);
         Mat ret = subProcess(frame);
         Utils.matToBitmap(ret, inputBitmap);
+
         processedMat = new Mat();
         processedMat = ret;
+
         return inputBitmap;
     }
 
@@ -119,6 +117,14 @@ public class WatershedLB {
 
         final List<Mat> images = new ArrayList<>();
         images.add(gray);
+
+        /*
+         * Automatic thresholding as in ImageJ's Binary + Make Binary
+         * Threshold value (thresh) is computed iteratively so that the
+         * threshold is less than the average of the low average (pixels below the threshold)
+         * and the high average (pixels at or above the threshold).
+         * Generally converges in just a few iterations.
+         */
 
         Mat hist = new Mat();
         Imgproc.calcHist(images, new MatOfInt(0), new Mat(), hist, new MatOfInt(256), new MatOfFloat(0f, 256f));
@@ -155,39 +161,41 @@ public class WatershedLB {
             }
             int aveHigh = (int) (hsum / pixels);
             ave = (int) ((aveLow + aveHigh) * 0.5 + 1);
-
         }
 
+        /* Convert to grayscale */
         Mat binMat = new Mat();
         Imgproc.threshold(gray, binMat, thresh, 255, Imgproc.THRESH_BINARY_INV);
-        //cvtColor(binMat, binMat, COLOR_BGR2GRAY);
 
         Mat opening = new Mat();
         Imgproc.morphologyEx(binMat, opening, Imgproc.MORPH_OPEN, Mat.ones(new Size(3,3), CvType.CV_8UC1));
-
         Mat sure_bg = new Mat();
         Imgproc.dilate(opening, sure_bg, Mat.ones(new Size(3,3), CvType.CV_8UC1));
 
+        /* Perform distance transform to compute EDM = Euclidean Distance Map */
         Mat dt = new Mat();
         Imgproc.distanceTransform(opening, dt, 2, 3);
 
+        /* Test with lower bound on distance threshold set to 12 to compute sure_fg
+         * Should be computed based on dt.max() without considering the corner circles
+         * Use the sure foreground (sure_fg) components as markers
+         */
         Mat sure_fg = new Mat();
         Imgproc.threshold(dt, sure_fg, 8, 255, 0);
 
         Mat unknown = new Mat();
         Core.subtract(sure_bg, sure_fg, unknown, new Mat(), CvType.CV_8UC1);
 
-        /*Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/binMat.jpg",binMat);
-        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/dt.jpg",dt);
-        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/surefg.jpg",sure_fg);
-        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/surebg.jpg",sure_bg);
-        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/unknown.jpg",unknown);*/
+        /* Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/binMat.jpg",binMat);
+         * Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/dt.jpg",dt);
+         * Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/surefg.jpg",sure_fg);
+         * Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/surebg.jpg",sure_bg);
+         * Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/unknown.jpg",unknown);
+         */
 
-        /*Mat invertMat = Mat.ones(sure_fg.size(), sure_fg.type()).setTo(new Scalar(255));
-
-        Core.subtract(invertMat, sure_fg, unknown);
-        unknown = 255 - sure_fg*/
-
+        /* Select 4 or 8 for connectivity type
+         * generally the same for 4 or 8
+         */
         int connectivity = 8;
         Mat labels = new Mat();
         Mat stats = new Mat();
@@ -209,27 +217,19 @@ public class WatershedLB {
         int numObjects = Imgproc.connectedComponentsWithStats(sure_fg, labels, stats, centroids, connectivity, CvType.CV_32S);
         int[] textSize = new int[1];
 
+        /* Consider all except for background which is marker 0 */
         for (int k = 1; k < numObjects; k++) {
             final double area = stats.get(k, CC_STAT_AREA)[0]; // ConnectedComponentsTyps CC_STAT_AREA = 4
             final double cx = centroids.get(k, CC_STAT_LEFT)[0];
             final double cy = centroids.get(k, CC_STAT_TOP)[0];
-            //Log.d("DEBUG : ","MARKER : " + k + " Centroid : (" + cx +"," + cy + ") has size : " + area);
-            if (area < 20) {// && labels.get(n, m)[0] == k) {
-                //markers[unknown==255] = 0
-                //markers = markers[i] - 1
-                //unknown[markers == i] = 255 # by setting to unknown, it will get zeroed out below
-                //unknown[markers == i] = 0
-                //Log.d("DEBUG","Removing Marker " + k);
+
+            /* Remove markers with small size */
+            if (area < 20) {
                 Mat mask = new Mat(labels.size(), labels.type());
                 Scalar labelId = new Scalar(k, k, k);
                 Core.inRange(labels, labelId, labelId, mask);
                 unknown.copyTo(unknown, mask);
                 mask.release();
-
-               // Mat invMask = new Mat();
-               // Core.invert(mask, invMask);
-               // unknown.put(n, m, 255);
-                //labels.put(n, m, 0);
             } else {
                 areaList.add(area);
                 sumArea = sumArea + area;
@@ -244,32 +244,22 @@ public class WatershedLB {
             variance = variance + Math.pow((are - meanArea), 2);
         }
 
-
         maxAreaThreshold = meanArea + Math.pow(variance, 2);
         minAreaThreshold = meanArea - Math.pow(variance,2);
-
-        /*Log.d("Average seed area", String.valueOf(meanArea));
-        Log.d("Area Max Threshold", String.valueOf(maxAreaThreshold));
-        Log.d("Area Min Threshold", String.valueOf(minAreaThreshold));*/
-
-        //Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/contours.jpg",frame);
-        //markers = markers + 1
-
 
         Core.add(labels, Mat.ones(labels.size(), labels.type()), labels);
 
         Imgproc.cvtColor(gray, gray, Imgproc.COLOR_GRAY2BGR);
         labels.convertTo(labels, CvType.CV_32S);
         Imgproc.watershed(gray, labels);
-        //Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/labels.jpg",labels);
+
+        /* Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/labels.jpg",labels); */
+
         Mat borderMask = new Mat(labels.size(), labels.type());
         Scalar labelId = new Scalar(-1,-1,-1);
         Core.inRange(labels, labelId, labelId, borderMask);
         frame.copyTo(frame, borderMask);
-        //Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/frame-borderMask.jpg",frame);
-        //Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/borderMask.jpg",borderMask);
         borderMask.release();
-
 
         int i = 0;
 
@@ -280,7 +270,7 @@ public class WatershedLB {
         final ArrayList<Double> cyCoord = new ArrayList<>();
         final ArrayList<Point[]> cpoints = new ArrayList<>();
 
-        //create unique set
+        /* Create unique labels set */
         final Set<Double> unique = new HashSet<>();
         final int r = labels.rows();
         final int c = labels.cols();
@@ -298,14 +288,24 @@ public class WatershedLB {
         unknown.release();
 
         //Log.d("Unique labels", String.valueOf(unique.size()));
+
+        /* loop over the unique labels returned by the watershed algorithm */
         for (Double label : unique) {
-            if (label < 2) continue;
+            /* if the label is zero, it is the 'background', so ignore it */
+            if (label < 1){
+                continue;
+            }
+
+            /* otherwise, allocate memory for the label region and draw it on the mask */
             Mat mask = Mat.zeros(labels.size(), CvType.CV_8U);
             int l = (int) label.doubleValue() + 1;
             Scalar colorLabel = new Scalar(l,l,l);
             Core.inRange(labels, colorLabel, colorLabel, mask);
+
             List<MatOfPoint> contours = new ArrayList<>();
             Mat hierarchy = new Mat();
+
+            /* detect contours in the mask and grab the largest one */
             Imgproc.findContours(mask, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE, new Point(0, 0));
 
             i = i + 1;
@@ -319,24 +319,20 @@ public class WatershedLB {
                         final Point[] contourPoints = matOfPoint.toArray();
                         final MatOfPoint2f contour = new MatOfPoint2f(contourPoints);
                         double perimeter = Imgproc.arcLength(contour, true);
+
+                        /* if we treat it as a seed, then draw center of contour in black */
                         areas.add(area);
                         perimeters.add(perimeter);
                         seedCount.add(1);
                         cpoints.add(contourPoints);
                         ssum = ssum + area;
 
+                        /* get the moments to compute centroid */
                         final Moments M = Imgproc.moments(contour);
                         final double cx = (int) (M.get_m10() / M.get_m00());
                         cxCoord.add(cx);
                         final double cy = (int) (M.get_m01() / M.get_m00());
                         cyCoord.add(cy);
-
-                        Rect boundingRect = Imgproc.boundingRect(matOfPoint);
-                        String strWidth = String.format("%.2f",boundingRect.width * mParams.pixelMetric);
-                        String strHeight = String.format("%.2f",boundingRect.height * mParams.pixelMetric);
-
-                        /* draw the bounding box on the mat */
-                        Imgproc.rectangle(frame,boundingRect.tl(),boundingRect.br(),new Scalar(0,0,0),3);
 
                         /* draw the contours on the mat */
                         Imgproc.drawContours(frame,contours,-1, new Scalar(0,255,0),3);
@@ -347,13 +343,11 @@ public class WatershedLB {
                         /* get the text size to write values on the mat */
                         Imgproc.getTextSize(String.valueOf(i), Core.FONT_HERSHEY_COMPLEX,0.5,1,textSize);
 
-                        /* put a number on each seed, along with the width and height */
+                        /* put a number on each seed, along with the length and width */
                         Imgproc.putText(frame,String.valueOf(i),new Point(cx-(textSize[0]*3),cy-(textSize[0]*3)),Core.FONT_HERSHEY_COMPLEX,1.0,new Scalar(0,255,255),2);
-                        Imgproc.putText(frame,strWidth,new Point(boundingRect.tl().x + ((boundingRect.width)/2)-(textSize[0]*5),boundingRect.tl().y -(textSize[0]*5)),Core.FONT_HERSHEY_COMPLEX,1.0,new Scalar(0,255,255),2);
-                        Imgproc.putText(frame,strHeight,new Point(boundingRect.br().x +(textSize[0]*5),boundingRect.br().y - ((boundingRect.height)/2)  + (textSize[0]*5)),Core.FONT_HERSHEY_COMPLEX,1.0,new Scalar(0,255,255),2);
 
                         /* create a seed object for each seed and store them in an ArrayList */
-                        seedArrayList.add(new Seed(cx,cy, area, perimeter, seedColor(frame,boundingRect), mParams.pixelMetric, boundingRect, matOfPoint));
+                        seedArrayList.add(new Seed(cx,cy, area, perimeter, null,0,null, matOfPoint));
                     }
                 }
 
@@ -361,7 +355,13 @@ public class WatershedLB {
             mask.release();
             hierarchy.release();
         }
+
         //Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/uniqueFrame.jpg",frame);
+
+        /* Estimate number of seeds based only on size of contours - iterate to get better estimate
+         * for average size of one seed
+         */
+
         int count = i;
         int est_size = (int) (ssum / count);
         final List<Integer> bound = new ArrayList<>();
@@ -420,7 +420,13 @@ public class WatershedLB {
             if (seeds > 1 && perimeter > est_perimeter * 1.5) {
                 double cx = cxCoord.get(i);
                 double cy = cyCoord.get(i);
-                //puttext
+
+                Imgproc.getTextSize(" +" + String.valueOf(seeds-1), Core.FONT_HERSHEY_COMPLEX,
+                        0.5,1,textSize);
+
+                Imgproc.putText(frame, " +" + String.valueOf(seeds-1), new Point(cx-(textSize[0]*3),
+                        cy-(textSize[0]*3)),Core.FONT_HERSHEY_COMPLEX,1.0,
+                        new Scalar(0,255,255),2);
             } else {
                 seeds = 1;
                 seedCount.set(i, 1);
@@ -429,6 +435,7 @@ public class WatershedLB {
             ssum = ssum = area;
             psum = psum + perimeter;
         }
+
         est_size = (int) (ssum / count);
         est_perimeter = (int) (psum / count);
 
@@ -439,16 +446,31 @@ public class WatershedLB {
         bound.set(4, (int) (3.5 * est_size));
         bound.add(20000);
 
+        Log.d("WatershedLB","Adjusted estimated area for one seed: " + String.valueOf(est_size));
+        Log.d("WatershedLB","Seed count with adjustment: " + String.valueOf(count));
+
+        //Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/adjustedFrame.jpg",frame);
+
+        /* Apply our algorithm for extending watershed segmentation, but just compute the result
+         * without re-running watershed segmentation. Check if we need to segment seeds with size
+         * greater than estimated average size and perimeter at least 1.5 * estimated perimeter
+         */
+
         int delta = 4;
         for (i = 1; i < n; i++) {
             int numBig = 0;
             double dotSum = 0;
             double area = areas.get(i);
             double perimeter = perimeters.get(i);
+            double startPt = -1;
+            double endPt   = -1;
             List<Double> xCoords = new ArrayList<>();
             List<Double> yCoords = new ArrayList<>();
             List<Double> dotProds = new ArrayList<>();
+
             if (area > est_size && perimeter > est_perimeter * 1.5) {
+                Log.d("WatershedLB","Segmenting Seed: " + String.valueOf(i) + " with area "
+                + String.valueOf(area) + " and perimeter " + String.valueOf(perimeter));
                 Point[] points = cpoints.get(i);
                 int nPoints = points.length;
                 numBig = 0;
@@ -459,76 +481,88 @@ public class WatershedLB {
                     yCoords.add(points[j].y);
                     dotProds.add(0.0);
                 }
-                nPoints = (int) (nPoints / 2);
+                nPoints = (nPoints / 2);
                 for (int j = 0; j < nPoints; j++) {
                     dotProds.set(j, ((xCoords.get(j) - xCoords.get((j+nPoints-delta) % nPoints)) * (yCoords.get((j+delta) % nPoints)
                             - ((yCoords.get(j) - yCoords.get((j+nPoints-delta) % nPoints)) * (xCoords.get((j+delta) % nPoints) - xCoords.get(j))))));
-                    if (dotProds.get(j) < 0) {
-                        dotSum = dotSum - dotProds.get(j);
+
+                    /* Compute absolute value of negative dot products and sum */
+                    if (dotProds.get(j) > 0) {
+                        dotSum = dotSum + dotProds.get(j);
+                        if(startPt < 0)
+                            startPt = j;
                     } else {
-                        if (dotSum >= 300) {
-                            //Log.d("DOTSUM","CONCAVE DETECTED");
+                        if (dotSum >= 200) {
+                            endPt = j - 1;
                             numBig = numBig + 1;
                             if (dotSum > maxDotSum) {
                                 maxDotSum = dotSum;
                             }
+                            if (endPt > startPt) {
+                                Log.d("WatershedLB","StartPt: " + String.valueOf(startPt) + ", EndPt: " + String.valueOf(endPt));
+
+                                int midPt = (int)(startPt + endPt) / 2;
+                                endPt = -1;   //MLN NEW
+                                Log.d("WatershedLB","Big dot sum: " + String.valueOf(dotSum) +
+                                        " numBig: " + String.valueOf(numBig) + " at " +
+                                        String.valueOf(xCoords.get(midPt)) + ", " + String.valueOf(yCoords.get(midPt)));
+                            }
                         }
-                        if (dotSum >= 140 && dotSum < 300) {
+                        if (dotSum >= 140 && dotSum < 200) {
                             if (dotSum > nextLargest)
                                 nextLargest = dotSum;
                         }
+                        startPt = -1; //MLN NEW
                         dotSum = 0;
                     }
                 }
-                int numSeeds = (int) (1 + numBig / 2);
+                int numSeeds = (1 + numBig / 2);
+
+                /* Double check small seeds with relatively large dot products */
                 if (numSeeds == 1 && ((maxDotSum + nextLargest) >= 550)) {
                     numSeeds = 2;
                 }
+
                 if (numSeeds == seedCount.get(i)) {
-                    //print
+                    Log.d("WatershedLB","Segmentation count agrees with area count: " + String.valueOf(seedCount.get(i)));
                 } else {
+                    Log.d("WatershedLB","Segmentation count does not agree with area count: " + String.valueOf(seedCount.get(i)));
                     if (seedCount.get(i) < numSeeds) {
                         seeds = seedCount.get(i);
                         seedCount.set(i, numSeeds);
                         double cx = cxCoord.get(i);
                         double cy = cyCoord.get(i);
+
+                        /* Erase the old count by setting to black */
                         if (seeds > 1) {
-                            //put text
+                            Imgproc.getTextSize(" +" + String.valueOf(seeds-1), Core.FONT_HERSHEY_COMPLEX,
+                                    0.5,1,textSize);
+
+                            Imgproc.putText(frame, "+" + String.valueOf(seeds-1), new Point(cx-(textSize[0]*3),
+                                            cy-(textSize[0]*3)),Core.FONT_HERSHEY_COMPLEX,1.0,
+                                    new Scalar(0,0,0),2);
                         }
+
                         seeds = numSeeds;
-                        //put text
+
+                        /* Display the new count in white */
+                        Imgproc.getTextSize(" +" + String.valueOf(seeds-1), Core.FONT_HERSHEY_COMPLEX,
+                                0.5,1,textSize);
+
+                        Imgproc.putText(frame, " +" + String.valueOf(seeds-1), new Point(cx-(textSize[0]*3),
+                                        cy-(textSize[0]*3)),Core.FONT_HERSHEY_COMPLEX,1.0,
+                                new Scalar(255,255,255),2);
                     }
                 }
             }
         }
         ssum = 0;
-        for (int k = 1; k < n; k++) {
+        for (int k = 0; k < n; k++) {
             ssum = ssum + seedCount.get(k);
         }
         Log.d("SEED OUTPUT COUNT", String.valueOf(ssum));
-        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/finalFrame.jpg",frame);
+        //Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/finalFrame.jpg",frame);
         return frame;
-    }
-
-    private Scalar seedColor(Mat initialMat, Rect boundingRect){
-        org.opencv.core.Rect seedRect = boundingRect;
-        Scalar mBlobColorHsv;
-
-        Mat touchedRegionRgba = initialMat.submat(seedRect);
-
-        Mat touchedRegionHsv = new Mat();
-        Imgproc.cvtColor(touchedRegionRgba, touchedRegionHsv, Imgproc.COLOR_RGB2HSV);
-
-        mBlobColorHsv = Core.sumElems(touchedRegionHsv);
-        int pointCount = seedRect.width * seedRect.height;
-        for (int i = 0; i < mBlobColorHsv.val.length; i++)
-            mBlobColorHsv.val[i] /= pointCount;
-
-        Mat pointMatRgba = new Mat();
-        Mat pointMatHsv = new Mat(1, 1, CvType.CV_8UC3, mBlobColorHsv);
-        Imgproc.cvtColor(pointMatHsv, pointMatRgba, Imgproc.COLOR_HSV2RGB, 4);
-
-        return new Scalar(pointMatRgba.get(0, 0));
     }
 
     public Mat getProcessedMat(){

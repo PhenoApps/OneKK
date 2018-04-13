@@ -71,4 +71,16 @@ public class Seed {
     public MatOfPoint getMatOfPoint() {
         return matOfPoint;
     }
+
+    public void setSeedColor(Scalar seedColor) {
+        this.seedColor = seedColor;
+    }
+
+    public void setPixelMetric(double pixelMetric) {
+        this.pixelMetric = pixelMetric;
+    }
+
+    public void setBoundingRect(Rect boundingRect) {
+        this.boundingRect = boundingRect;
+    }
 }

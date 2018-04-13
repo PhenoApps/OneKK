@@ -39,10 +39,12 @@ public class OneKKAndroidUnitTest{
     private int seedCount = 0;
     private boolean setupDoneFlag = false;
 
-    private int SEEDCOUNT_SOYBEANS = 31;
+    private int SEEDCOUNT_SOYBEANS = 50;
+    private int SEEDCOUNT_SOYBEANS_OVERLAPPING = 50;
     private int SEEDCOUNT_REDSEEDS = 114;
-    private int SEEDCOUNT_WHEAT = 269; //269
-    private int SEEDCOUNT_MAIZE = 30;
+    private int SEEDCOUNT_WHEAT = 172; //269
+    private int SEEDCOUNT_MAIZE = 62;
+    private int SEEDCOUNT_SILPHIUM = 45;
 
     private WatershedLB mSeedCounter;
     private String photoPath;
@@ -65,7 +67,7 @@ public class OneKKAndroidUnitTest{
             outputMat = new Mat();
         }
 
-        params = new WatershedLB.WatershedParams(areaLow, areaHigh, defaultRate, sizeLowerBoundRatio, newSeedDistRatio);
+        params = new WatershedLB.WatershedParams(areaLow, areaHigh, defaultRate, sizeLowerBoundRatio, newSeedDistRatio,0);
         mSeedCounter = new WatershedLB(params);
     }
 
@@ -125,15 +127,30 @@ public class OneKKAndroidUnitTest{
     public void watershedLB_soybeans_test(){
         if(!setupDoneFlag)
             setup();
-        photoPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/soybeans.jpg";
-        photoName = "soybeans.jpg";
-            inputBitmap = BitmapFactory.decodeFile(photoPath);
-            outputBitmap = mSeedCounter.process(inputBitmap);
-            Utils.bitmapToMat(outputBitmap,outputMat);
-            //Imgproc.cvtColor(outputMat,outputMat,Imgproc.COLOR_BGR2RGB);
-            Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/analyzed_test_new.jpg",outputMat);
-            seedCount = (int) mSeedCounter.getNumSeeds();
-            assertTrue(seedCount == SEEDCOUNT_SOYBEANS);
+        photoPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/soybeans-cropped.jpg";
+        photoName = "soybeans-cropped.jpg";
+        inputBitmap = BitmapFactory.decodeFile(photoPath);
+        outputBitmap = mSeedCounter.process(inputBitmap);
+        Utils.bitmapToMat(outputBitmap,outputMat);
+        //Imgproc.cvtColor(outputMat,outputMat,Imgproc.COLOR_BGR2RGB);
+        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/test_soybeans_analyzed.jpg",outputMat);
+        seedCount = (int) mSeedCounter.getNumSeeds();
+        assertTrue(seedCount == SEEDCOUNT_SOYBEANS);
+    }
+
+    @org.junit.Test
+    public void watershedLB_soybeans_overlapping_test(){
+        if(!setupDoneFlag)
+            setup();
+        photoPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/soy_50~2.jpg";
+        photoName = "soy_50~2.jpg";
+        inputBitmap = BitmapFactory.decodeFile(photoPath);
+        outputBitmap = mSeedCounter.process(inputBitmap);
+        Utils.bitmapToMat(outputBitmap,outputMat);
+        //Imgproc.cvtColor(outputMat,outputMat,Imgproc.COLOR_BGR2RGB);
+        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/test_soybeans_overlapping_analyzed.jpg",outputMat);
+        seedCount = (int) mSeedCounter.getNumSeeds();
+        assertTrue(seedCount == SEEDCOUNT_SOYBEANS_OVERLAPPING);
     }
 
     @org.junit.Test
@@ -152,47 +169,47 @@ public class OneKKAndroidUnitTest{
     }
 
     @org.junit.Test
-    public void watershedLB_poppy_test(){
-        if(!setupDoneFlag)
-            setup();
-        photoPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/NOT_MASK.jpg";
-        photoName = "NOT_MASK.jpg";
-        inputBitmap = BitmapFactory.decodeFile(photoPath);
-        outputBitmap = mSeedCounter.process(inputBitmap);
-        Utils.bitmapToMat(outputBitmap,outputMat);
-        //Imgproc.cvtColor(outputMat,outputMat,Imgproc.COLOR_BGR2RGB);
-        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/analyzed_test_new.jpg",outputMat);
-        seedCount = (int) mSeedCounter.getNumSeeds();
-        assertTrue(seedCount == SEEDCOUNT_MAIZE);
-    }
-
-    @org.junit.Test
     public void watershedLB_silphium_test(){
         if(!setupDoneFlag)
             setup();
-        photoPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/soybeans.jpg";
-        photoName = "soybeans.jpg";
+        photoPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/silphium-cropped.jpg";
+        photoName = "silphium-cropped.jpg";
         inputBitmap = BitmapFactory.decodeFile(photoPath);
         outputBitmap = mSeedCounter.process(inputBitmap);
         Utils.bitmapToMat(outputBitmap,outputMat);
         //Imgproc.cvtColor(outputMat,outputMat,Imgproc.COLOR_BGR2RGB);
-        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/analyzed_test_new.jpg",outputMat);
+        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/test_silphium_analyzed.jpg",outputMat);
         seedCount = (int) mSeedCounter.getNumSeeds();
-        assertTrue(seedCount == SEEDCOUNT_SOYBEANS);
+        assertTrue(seedCount == SEEDCOUNT_SILPHIUM);
     }
 
     @org.junit.Test
     public void watershedLB_maize_test(){
         if(!setupDoneFlag)
             setup();
-        photoPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/NOT_MASK.jpg";
-        photoName = "NOT_MASK.jpg";
+        photoPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/maize-cropped.jpg";
+        photoName = "maize-cropped.jpg";
         inputBitmap = BitmapFactory.decodeFile(photoPath);
         outputBitmap = mSeedCounter.process(inputBitmap);
         Utils.bitmapToMat(outputBitmap,outputMat);
         //Imgproc.cvtColor(outputMat,outputMat,Imgproc.COLOR_BGR2RGB);
-        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/analyzed_test_new.jpg",outputMat);
+        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/test_maize_analyzed.jpg",outputMat);
         seedCount = (int) mSeedCounter.getNumSeeds();
         assertTrue(seedCount == SEEDCOUNT_MAIZE);
+    }
+
+    @org.junit.Test
+    public void watershedLB_wheat_test(){
+        if(!setupDoneFlag)
+            setup();
+        photoPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/wheat-cropped.jpg";
+        photoName = "wheat-cropped.jpg";
+        inputBitmap = BitmapFactory.decodeFile(photoPath);
+        outputBitmap = mSeedCounter.process(inputBitmap);
+        Utils.bitmapToMat(outputBitmap,outputMat);
+        //Imgproc.cvtColor(outputMat,outputMat,Imgproc.COLOR_BGR2RGB);
+        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/test_wheat_analyzed.jpg",outputMat);
+        seedCount = (int) mSeedCounter.getNumSeeds();
+        assertTrue(seedCount == SEEDCOUNT_WHEAT);
     }
 }

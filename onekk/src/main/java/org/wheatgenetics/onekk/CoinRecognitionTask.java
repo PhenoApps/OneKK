@@ -1,34 +1,27 @@
 package org.wheatgenetics.onekk;
 
-import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
-import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.os.AsyncTask;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfPoint;
-import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
-import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
-import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
-import org.opencv.imgproc.Moments;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
 
 /**
  * Created by sid on 3/6/18.
@@ -171,7 +164,7 @@ public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,Array
         Imgproc.cvtColor(initialMat,initialMat,Imgproc.COLOR_BGR2RGB);
 
         /* Saving the mat consisting of the circles with mask */
-        Imgcodecs.imwrite(Constants.PHOTO_PATH + "/houghCoinRecog.jpg",initialMat);
+        //Imgcodecs.imwrite(Constants.PHOTO_PATH + "/houghCoinRecog.jpg",initialMat);
 
         Imgproc.cvtColor(initialMat,initialMat,Imgproc.COLOR_RGB2BGR);
 
@@ -253,21 +246,22 @@ public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,Array
         /* create a rectangle based on the top-left and bottom-right points to crop the image */
         org.opencv.core.Rect cropBox = new org.opencv.core.Rect(tl, br);
 
-        Log.d("Crop Box dimensions", cropBox.height + " " + cropBox.width);
+        //Log.d("Crop Box dimensions", cropBox.height + " " + cropBox.width);
 
         /* crop the original image based on the crop box by creating a submat*/
         Mat croppedMat = initialMat.submat(cropBox);
-
+        Imgproc.cvtColor(croppedMat,croppedMat,Imgproc.COLOR_BGR2RGB);
         Imgcodecs.imwrite(Constants.PHOTO_PATH + "/croppedCoinRecog.jpg",croppedMat);
-
+        Imgproc.cvtColor(croppedMat,croppedMat,Imgproc.COLOR_RGB2BGR);
         return croppedMat;
     }
 
+    @NonNull
     private Scalar maskColor(Mat initialMat){
         org.opencv.core.Rect touchedRect = new org.opencv.core.Rect();
         Scalar mBlobColorHsv;
 
-        touchedRect.x = initialMat.rows()/2;
+        touchedRect.x = 200;
         touchedRect.y = initialMat.cols()/2;
 
         touchedRect.width = 5;

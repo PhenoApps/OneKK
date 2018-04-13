@@ -1,9 +1,7 @@
 package org.wheatgenetics.onekk;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -27,8 +25,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.Message;
 import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech.OnInitListener;
 import android.support.design.widget.NavigationView;
@@ -44,7 +40,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
-import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -63,7 +58,6 @@ import android.widget.Toast;
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.wheatgenetics.database.MySQLiteHelper;
 import org.wheatgenetics.imageprocess.HueThreshold.HueThreshold;
@@ -117,7 +111,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     public static final int MEDIA_TYPE_IMAGE = 1;
     private Bitmap outputBitmap;
     private Mat finalMat;
-    private Mat tempMat;
     private LinearLayout parent;
     private ScrollView changeContainer;
     private String sampleName;
@@ -173,7 +166,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                     Toast.makeText(getApplicationContext(),"Please select the Coin Name in Settings Panel!",Toast.LENGTH_LONG).show();
                 else{
                     picName = inputText.getText().toString();
-                    progressBar.setVisibility(ProgressBar.VISIBLE);
                     takePic();
                 }
             }
@@ -581,98 +573,110 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
 
     PictureCallback mPicture = new PictureCallback() {
-                @Override
-                public void onPictureTaken(byte[] data, Camera camera) {
-                    String fileName;
-                    ArrayList<Point> cornerArrayList = null;
+        @Override
+        public void onPictureTaken(byte[] data, Camera camera) {
+            ArrayList<Point> cornerArrayList = null;
 
-                    Camera.Parameters parameters = camera.getParameters();
+            Camera.Parameters parameters = camera.getParameters();
 
-                    int h = parameters.getPreviewSize().height;
-                    int w = parameters.getPreviewSize().width;
+            int h = parameters.getPreviewSize().height;
+            int w = parameters.getPreviewSize().width;
 
-                    if (picName.length() > 0) {
-                        fileName = picName + "_";
-                    } else {
-                        fileName = "temp_";
-                    }
-                    File pictureFile = oneKKUtils.getOutputMediaFile(MEDIA_TYPE_IMAGE,fileName);
+            //TODO : fix this to check for coins immediately after capture using an Asynctask
+/*
+            coinRecognitionTask = new CoinRecognitionTask(w,h);
+            coinRecognitionTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,data);
 
-                    //TODO : fix this to check for coins immediately after capture using an Asynctask
-                    /*
-                    coinRecognitionTask = new CoinRecognitionTask(w,h);
-                    coinRecognitionTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,data);
+            try {
+                cornerArrayList = coinRecognitionTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,data).get();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                Log.e("AsyncTask",e.getMessage());
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+                Log.e("AsyncTask",e.getMessage());
+            }
 
-                    try {
-                        cornerArrayList = coinRecognitionTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,data).get();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                        Log.e("AsyncTask",e.getMessage());
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
-                        Log.e("AsyncTask",e.getMessage());
-                    }*/
+            Log.d("Corner Array list",cornerArrayList.toString());
+            if(cornerArrayList.size() != 4){
+                Toast.makeText(MainActivity.this,"Couldn't detect all the coins, adjust and try again",Toast.LENGTH_LONG).show();
+                mCamera.startPreview();
+            }
+            else {
+*/
 
-                   /* Log.d("Corner Array list",cornerArrayList.toString());
-                    if(cornerArrayList.size() != 4){
-                        Toast.makeText(MainActivity.this,"Couldn't detect all the coins, adjust and try again",Toast.LENGTH_LONG).show();
-                        mCamera.startPreview();
-                    }
-                    else {*/
-                        try {
-                            FileOutputStream fos = new FileOutputStream(pictureFile);
-                            fos.write(data);
-                            fos.close();
-                        } catch (FileNotFoundException e) {
-                            Log.d(TAG, "File not found: " + e.getMessage());
-                        } catch (IOException e) {
-                            Log.d(TAG, "Error accessing file: " + e.getMessage());
-                        }
+            if (ep.getBoolean(SettingsFragment.ASK_PROCESSING_TECHNIQUE, true))
+                processingTechniqueDialog();
 
-                        Uri outputFileUri = Uri.fromFile(pictureFile);
-                        makeFileDiscoverable(pictureFile, MainActivity.this);
+            r = new Random();
+            Uri outputFileUri;
+            String input = "";
 
-                        if (ep.getBoolean(SettingsFragment.ASK_PROCESSING_TECHNIQUE, true))
-                            processingTechniqueDialog();
+            if (inputText.getText().length() != 0) {
+                input = inputText.getText().toString();
 
-                        r = new Random();
+                /* This section of code is just a hack to run already stored sample images for UI testing
+                *
+                *  In the sample name input box the developer can enter $ followed by,
+                *  either kk or ht or lb to run different algorithms, followed by
+                *  the name of the image that is already present on the device in the Downloads directory
+                *
+                *  Example : $lbsoybeans, will run a watershed light box algorithm on a soybeans
+                *            sample image that is present in the Download directory
+                */
 
-                        String input = "";
-                        if (inputText.getText().length() != 0) {
-                            input = inputText.getText().toString();
-
-                            if (input.charAt(0) == '$') {
-                                outputFileUri = Uri.fromFile(new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Download/" + input.substring(3) + ".jpg"));
-                                inputText.setText(input.substring(3) + r.nextInt(200));
-                                switch (input.substring(1, 3)) {
-                                    case "kk":
-                                        imageAnalysis(outputFileUri);
-                                        mCamera.startPreview();
-                                        break;
-                                    case "ht":
-                                        hueThreshold(outputFileUri);
-                                        mCamera.startPreview();
-                                        break;
-                                    default:
-                                        imageAnalysisLB(outputFileUri);
-                                        mCamera.startPreview();
-                                }
-                            }
-                         else {
-                            //imageAnalysis(outputFileUri);
-                            //hueThreshold(outputFileUri);
+                if (input.charAt(0) == '$') {
+                    outputFileUri = Uri.fromFile(new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Download/" + input.substring(3) + ".jpg"));
+                    inputText.setText(input.substring(3) + r.nextInt(200));
+                    switch (input.substring(1, 3)) {
+                        case "kk":
+                            imageAnalysis(outputFileUri);
+                            mCamera.startPreview();
+                            break;
+                        case "ht":
+                            hueThreshold(outputFileUri);
+                            mCamera.startPreview();
+                            break;
+                        default:
                             imageAnalysisLB(outputFileUri);
                             mCamera.startPreview();
-                        }
                     }
-                        else {
-                            //imageAnalysis(outputFileUri);
-                            //hueThreshold(outputFileUri);
-                            imageAnalysisLB(outputFileUri);
-                            mCamera.startPreview();
-                        }
                 }
+                else {
+                    outputFileUri = storeRawPicture(data);
+                    imageAnalysisLB(outputFileUri);
+                    mCamera.startPreview();
+                }
+            }
+            else {
+                outputFileUri = storeRawPicture(data);
+                imageAnalysisLB(outputFileUri);
+                mCamera.startPreview();
+            }
+        }
     };
+
+    private Uri storeRawPicture(byte[] data){
+        String fileName;
+        if (picName.length() > 0) {
+            fileName = picName + "_";
+        } else {
+            fileName = "temp_";
+        }
+        File pictureFile = oneKKUtils.getOutputMediaFile(MEDIA_TYPE_IMAGE,fileName);
+        try {
+            FileOutputStream fos = new FileOutputStream(pictureFile);
+            fos.write(data);
+            fos.close();
+        } catch (FileNotFoundException e) {
+            Log.d(TAG, "File not found: " + e.getMessage());
+        } catch (IOException e) {
+            Log.d(TAG, "Error accessing file: " + e.getMessage());
+        }
+        makeFileDiscoverable(pictureFile, MainActivity.this);
+
+        return Uri.fromFile(pictureFile);
+    }
 
     /************************************************************************************
      * displays a dialogue after capturing the image, prompting the user to select a
@@ -807,7 +811,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     }
 
     private void imageAnalysisLB(final Uri photo) {
-        tempMat = new Mat();
         photoPath = photo.getPath();
         photoName = photo.getLastPathSegment();
 
@@ -824,7 +827,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         mWeightEditText.setText("0");
         inputText.requestFocus();
 
-        //seed counter utility
+        /* get user settings from shared preferences */
         final WatershedLB mSeedCounter;
         final String firstName = ep.getString(SettingsFragment.FIRST_NAME,"first_name");
         final String lastName = ep.getString(SettingsFragment.LAST_NAME,"last_name");
@@ -835,42 +838,23 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         final double newSeedDistRatio = Double.valueOf(ep.getString(SettingsFragment.PARAM_NEW_SEED_DIST_RATIO, "4.0"));
         final double coinSize = Double.valueOf(ep.getString(SettingsFragment.COIN_NAME,"-1"));
         final Bitmap inputBitmap = BitmapFactory.decodeFile(photoPath);
+        final Boolean showAnalysis = ep.getBoolean(SettingsFragment.DISPLAY_ANALYSIS, false);
+        final Boolean backgroundProcessing = ep.getBoolean(SettingsFragment.ASK_BACKGROUND_PROCESSING,false);
+        final Boolean multiProcessing = ep.getBoolean(SettingsFragment.ASK_MULTI_PROCESSING,false);
 
-        Boolean showAnalysis = ep.getBoolean(SettingsFragment.DISPLAY_ANALYSIS, false);
-        Boolean backgroundProcessing = ep.getBoolean(SettingsFragment.ASK_BACKGROUND_PROCESSING,false);
-        Boolean multiProcessing = ep.getBoolean(SettingsFragment.ASK_MULTI_PROCESSING,false);
+        Log.d("CoreProcessing : Begin", oneKKUtils.getDate());
 
-        Utils.bitmapToMat(inputBitmap,tempMat);
+        /* set Watershed parameters to be passed to the actual algorithm */
+        final WatershedLB.WatershedParams params = new WatershedLB.WatershedParams(areaLow, areaHigh, defaultRate, sizeLowerBoundRatio, newSeedDistRatio);
+        mSeedCounter = new WatershedLB(params);
 
-        //TODO : push this process to a background thread
-        coinRecognitionTask = new CoinRecognitionTask(coinSize);
-        boolean coinsRecognized = coinRecognitionTask.process(tempMat);
-        progressBar.setVisibility(ProgressBar.INVISIBLE);
+        final CoreProcessingTask coreProcessingTask = new CoreProcessingTask(MainActivity.this, mSeedCounter, photoName, showAnalysis, sampleName, firstName, lastName, weight, r.nextInt(20000), backgroundProcessing, coinSize);
 
-        if(coinsRecognized)
-        {
-            Toast.makeText(MainActivity.this,"Coins detected, started processing",Toast.LENGTH_LONG).show();
-            final WatershedLB.WatershedParams params = new WatershedLB.WatershedParams(areaLow, areaHigh, defaultRate, sizeLowerBoundRatio, newSeedDistRatio, coinRecognitionTask.getPixelMetric());
-            mSeedCounter = new WatershedLB(params);
-
-            tempMat = coinRecognitionTask.getProcessedMat();
-            Bitmap croppedBitmap = Bitmap.createBitmap(tempMat.cols(),tempMat.rows(),inputBitmap.getConfig());
-
-            Utils.matToBitmap(tempMat,croppedBitmap);
-
-            final CoreProcessingTask coreProcessingTask = new CoreProcessingTask(MainActivity.this, mSeedCounter, photoName, showAnalysis, sampleName, firstName, lastName, weight, r.nextInt(20000), backgroundProcessing);
-
-            if (multiProcessing)
-                coreProcessingTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, croppedBitmap);
-            else
-                coreProcessingTask.execute(croppedBitmap);
-
-            data.getLastData();
-        }
-        else {
-            String errorMessage = coinRecognitionTask.getSTATUS();
-            Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_LONG).show();
-        }
+        if (multiProcessing)
+            coreProcessingTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, inputBitmap);
+        else
+            coreProcessingTask.execute(inputBitmap);
+        data.getLastData();
     }
 
     private void releaseCamera() {
