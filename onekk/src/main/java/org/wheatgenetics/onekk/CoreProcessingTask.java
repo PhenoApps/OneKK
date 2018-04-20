@@ -12,6 +12,8 @@ import android.util.TimingLogger;
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.wheatgenetics.imageprocess.ColorThreshold.ColorThresholding;
+import org.wheatgenetics.imageprocess.ImgProcess1KK.MeasureSeeds;
 import org.wheatgenetics.imageprocess.Seed.MSeeds;
 import org.wheatgenetics.imageprocess.WatershedLB.WatershedLB;
 import org.wheatgenetics.onekkUtils.NotificationHelper;
@@ -29,7 +31,6 @@ import static org.wheatgenetics.onekkUtils.oneKKUtils.postImageDialog;
 public class CoreProcessingTask extends AsyncTask<Bitmap,AsyncTask.Status,Bitmap> {
 
     private Context context;
-    private final WatershedLB watershedLB;
     private Data data = null;
     private final Mat finalMat = new Mat();
     private ProgressDialog progressDialog;
@@ -45,13 +46,15 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,AsyncTask.Status,Bitmap
     private double coinSize;
     private TimingLogger timingLogger;
     private CoinRecognitionTask coinRecognitionTask;
+    private ColorThresholding.ColorThresholdParams ctParams;
+    private WatershedLB watershedLB;
 
-    public CoreProcessingTask(Context context, WatershedLB watershedLB, String photoName,
+    public CoreProcessingTask(Context context, ColorThresholding.ColorThresholdParams ctParams, String photoName,
                               Boolean showAnalysis, String sampleName, String firstName,
                               String lastName, String weight, int notificationCounter,
-                              boolean backgroundProcessing,double coinSize){
+                              boolean backgroundProcessing, double coinSize){
         this.context = context;
-        this.watershedLB = watershedLB;
+        this.ctParams = ctParams;
         this.photoName = photoName;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -67,11 +70,13 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,AsyncTask.Status,Bitmap
         this.notificationCounter = notificationCounter;
         this.backgroundProcessing = backgroundProcessing;
         this.coinSize = coinSize;
+
         // TODO : add unique identification to implement "cancel processing" feature
 
         //context.registerReceiver(broadcastReceiver,new IntentFilter("CANCEL"));
     }
 
+    /* written for cancel feature */
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -95,47 +100,87 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,AsyncTask.Status,Bitmap
 
     @Override
     protected Bitmap doInBackground(Bitmap... bitmaps){
+        /* the first bitmap consists of the image */
         Bitmap outputBitmap = bitmaps[0];
 
         this.timingLogger = new TimingLogger("CoreProcessing",sampleName);
         Mat tempMat = new Mat();
 
         displayAlert("Coin Recognition...",true);
+
+        /* convert the bitmap to a mat and start coin recognition */
         Utils.bitmapToMat(bitmaps[0],tempMat);
         coinRecognitionTask = new CoinRecognitionTask(coinSize);
-        boolean coinsRecognized = coinRecognitionTask.process(tempMat);
+        coinRecognitionTask.process(tempMat);
+
+        /* once the hueProcess is complete check for coin constraints */
+        boolean coinsRecognized = coinRecognitionTask.checkConstraints();
+
         timingLogger.addSplit("Coin Recognition");
 
+        /* if all the 4 coins are recognized and satisfy the constraints then start image processing */
         if(coinsRecognized) {
+
+            /* get the coins masked mat from coin recognition */
             tempMat = coinRecognitionTask.getProcessedMat();
+
+            /* as the new mat is cropped bounding the image to the coins, we create a new bitmap */
             Bitmap croppedBitmap = Bitmap.createBitmap(tempMat.cols(),tempMat.rows(),bitmaps[0].getConfig());
             Utils.matToBitmap(tempMat,croppedBitmap);
+
+            /* if the color threshold parameters object is null, indicates that color thresholding
+            * is not required, else uses the parameters to perform the thresholding */
+            if(ctParams != null) {
+                final ColorThresholding colorThresholding = new ColorThresholding(ctParams);
+
+                colorThresholding.labProcess(croppedBitmap);
+
+                croppedBitmap = colorThresholding.getProcessedBitmap();
+
+                timingLogger.addSplit("Thresholding");
+            }
+
+            /* start the watershed light box processing */
+            watershedLB = new WatershedLB();
             displayAlert("Processing...", true);
             outputBitmap = this.watershedLB.process(croppedBitmap);
 
             timingLogger.addSplit("Image Analysis");
             seedCount = (int) watershedLB.getNumSeeds();
 
-            MSeeds mSeeds = new MSeeds(coinRecognitionTask.getPixelMetric(), watershedLB.getProcessedMat());
+            /* once the processing is complete we characterize the seeds */
+            /*MSeeds mSeeds = new MSeeds(coinRecognitionTask.getPixelMetric(), watershedLB.getProcessedMat());
             mSeeds.process(watershedLB.getSeedArrayList());
-            Utils.matToBitmap(mSeeds.getmSeedsProcessedMat(),outputBitmap);
+            Utils.matToBitmap(mSeeds.getmSeedsProcessedMat(),outputBitmap);*/
 
+            MeasureSeeds measureSeeds = new MeasureSeeds();
+            measureSeeds.measureSeeds(watershedLB.getSeedContours(),coinRecognitionTask.getPixelMetric());
+
+            Log.d("Seed Measurements", measureSeeds.getList().toString());
             timingLogger.addSplit("Measure Seeds");
 
+            /* if the sample name is provided the data is added to the database */
             if (!(sampleName.equals(""))) {
                 displayAlert("Adding sample to database...", true);
+
                 data = new Data(context);
-                data.addRecords(sampleName, photoName, firstName, lastName, seedCount, weight, mSeeds.getmSeedsArrayList());
+                //data.addRecords(sampleName, photoName, firstName, lastName, seedCount, weight, mSeeds.getmSeedsArrayList());
+
+                data.addRecords(sampleName,photoName,firstName,lastName,seedCount,weight,measureSeeds.getList());
             }
             timingLogger.addSplit("Store data");
 
             System.gc();
         }
+        /* if all the coins are not detected or fail any of the constraint checks then that particular
+        * processing is cancelled
+        */
         else{
             cancel(true);
         }
         timingLogger.dumpToLog();
         Log.d("CoreProcessing : End", oneKKUtils.getDate());
+
         return outputBitmap;
     }
 

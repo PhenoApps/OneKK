@@ -30,7 +30,9 @@ public class MeasureSeeds {
     ArrayList<Double> seedMatP = new ArrayList<>(); // perimeter
     ArrayList<Double> seedMatA = new ArrayList<>(); // area
 
-    List<MatOfInt> hull = new ArrayList<>();
+    List<MatOfInt> hull = null;
+
+    public MeasureSeeds(){}
 
     public MeasureSeeds(Mat image, double minSize, double maxSize, List<MatOfPoint> ref) {
         this.image = image;
@@ -201,7 +203,7 @@ public class MeasureSeeds {
         System.out.println("NUMBER OF SEEDS COUNTED: " + medCount);
         seedCount = medCount;
 
-        measureSeeds();
+        measureSeeds(goodContours,0);
     }
 
     private double findMax(double[] values) {
@@ -266,7 +268,7 @@ public class MeasureSeeds {
      * Find seeds based on color filter and expected shape
      * Image must be initialized and converted to HSV
      */
-    private void measureSeeds() {
+    public void measureSeeds(List<MatOfPoint> goodContours, double pixelSize) {
         System.out.println("\n" + "Measuring seeds...");
 
         if (goodContours.size() >= 1500) {
@@ -292,7 +294,7 @@ public class MeasureSeeds {
             }
         }
 
-        convexHull();
+        convexHull(goodContours);
 
         for (int i = 0; i < goodContours.size(); i++) {
             MatOfPoint2f tmp = new MatOfPoint2f(goodContours.get(i).toArray());
@@ -304,7 +306,7 @@ public class MeasureSeeds {
                 //roi = Imgproc.boundingRect(goodContours.get(i)); // TODO add switch for analyzing color
 
                 RawSeed s = new RawSeed(tmp, tmp2);
-
+                s.setSeedPixelSize(pixelSize);
                 //TODO check this
                 //Size filtering - add seed if minimum or maximum are set and seed length falls within bounds
                 if((minimumSize!=0.0 && s.getLength()>=minimumSize*pixelSize)||(maximumSize!=0.0 && s.getLength()<=maximumSize*pixelSize)) {
@@ -324,7 +326,8 @@ public class MeasureSeeds {
     /**
      * Convex hull testing
      */
-    public void convexHull() {
+    private void convexHull(List<MatOfPoint> goodContours) {
+        hull = new ArrayList<>();
         for (int i = 0; i < goodContours.size(); i++) {
             hull.add(new MatOfInt());
             Imgproc.convexHull(goodContours.get(i), hull.get(i));

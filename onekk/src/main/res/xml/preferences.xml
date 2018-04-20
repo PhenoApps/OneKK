@@ -45,16 +45,16 @@
         </PreferenceCategory>
 
 
-        <PreferenceCategory android:title="Pre Processing"></PreferenceCategory>
+        <PreferenceCategory android:title="Pre Processing"/>
         <CheckBoxPreference
             android:defaultValue="false"
             android:icon="@drawable/ic_tune_black_24dp"
-            android:key="org.wheatgenetics.onekk.HUE_THRESHOLD"
+            android:key="org.wheatgenetics.onekk.COLOR_THRESHOLD"
             android:summary="perform hue thresholding before Watershed"
             android:title="@string/hue_threshold" />
 
         <PreferenceCategory
-            android:dependency="org.wheatgenetics.onekk.HUE_THRESHOLD"
+            android:dependency="org.wheatgenetics.onekk.COLOR_THRESHOLD"
             android:title="@string/seed_size_range">
             <SeekBarPreference
                 android:defaultValue="50"
@@ -71,28 +71,28 @@
         </PreferenceCategory>
 
         <PreferenceCategory
-            android:dependency="org.wheatgenetics.onekk.HUE_THRESHOLD"
+            android:dependency="org.wheatgenetics.onekk.COLOR_THRESHOLD"
             android:title="@string/hue_range">
             <SeekBarPreference
-                android:defaultValue="50"
+                android:defaultValue="116"
                 android:key="org.wheatgenetics.onekk.MIN_HUE_VALUE"
                 android:max="255"
                 android:summary="Minimum hue range (Optional)"
                 android:title="@string/min_hue_value" />
             <SeekBarPreference
-                android:defaultValue="50"
+                android:defaultValue="255"
                 android:key="org.wheatgenetics.onekk.MAX_HUE_VALUE"
                 android:max="255"
                 android:summary="Maximum hue range (Optional)"
                 android:title="@string/max_hue_value" />
         </PreferenceCategory>
         <PreferenceCategory
-            android:dependency="org.wheatgenetics.onekk.HUE_THRESHOLD"
+            android:dependency="org.wheatgenetics.onekk.COLOR_THRESHOLD"
             android:title="@string/threshold">
             <SeekBarPreference
-                android:defaultValue="1"
+                android:defaultValue="20"
                 android:key="org.wheatgenetics.onekk.THRESHOLD"
-                android:max="5"
+                android:max="255"
                 android:summary="Threshold"
                 android:title="@string/threshold" />
         </PreferenceCategory>

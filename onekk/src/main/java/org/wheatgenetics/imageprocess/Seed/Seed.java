@@ -9,6 +9,8 @@ import org.opencv.core.Scalar;
  * Created by sid on 4/2/18.
  */
 
+/** can be removed if the MeasureSeeds class is used along with RawSeed class */
+@Deprecated
 public class Seed {
 
     private double x = 0;
@@ -64,7 +66,7 @@ public class Seed {
         return boundingRect.width * pixelMetric;
     }
 
-    public double getHeight(){
+    public double getLength(){
         return boundingRect.height * pixelMetric;
     }
 

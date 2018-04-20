@@ -17,6 +17,8 @@ import java.util.ArrayList;
  * Created by sid on 4/12/18.
  */
 
+/** can be removed if the MeasureSeeds class is used along with RawSeed class */
+@Deprecated
 public class MSeeds {
 
     private ArrayList<Seed> mSeedsArrayList;

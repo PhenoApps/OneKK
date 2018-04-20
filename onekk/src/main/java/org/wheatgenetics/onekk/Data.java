@@ -32,6 +32,7 @@ import android.widget.Toast;
 import org.wheatgenetics.database.MySQLiteHelper;
 import org.wheatgenetics.database.SampleRecord;
 import org.wheatgenetics.database.SeedRecord;
+import org.wheatgenetics.imageprocess.Seed.RawSeed;
 import org.wheatgenetics.imageprocess.Seed.Seed;
 import org.wheatgenetics.onekkUtils.oneKKUtils;
 
@@ -46,6 +47,8 @@ import static org.wheatgenetics.onekkUtils.oneKKUtils.adjustFontSize;
 import static org.wheatgenetics.onekkUtils.oneKKUtils.getDate;
 import static org.wheatgenetics.onekkUtils.oneKKUtils.makeFileDiscoverable;
 import static org.wheatgenetics.onekkUtils.oneKKUtils.stringDecimal;
+
+//TODO : REDO this class
 
 public class Data {
 
@@ -328,10 +331,10 @@ public class Data {
     // FIXME: 1/23/18
 
 
-      public void addRecords(String sampleName, String photoName, String firstName, String lastName, int seedCount, String weight, ArrayList<Seed> seedArrayList) {
+      public void addRecords(String sampleName, String photoName, String firstName, String lastName, int seedCount, String weight, ArrayList<RawSeed> seedArrayList) {
       // Add all measured seeds to database
-          for(Seed s : seedArrayList){
-              db.addSeedRecord(new SeedRecord(sampleName, s.getHeight(), s.getWidth(), s.getPerimeter(), s.getArea(), "",s.getSeedColor().toString()));
+          for(RawSeed s : seedArrayList){
+              db.addSeedRecord(new SeedRecord(sampleName, s.getLength(), s.getWidth(), s.getPerimeter(), s.getArea(), "",null));
           }
 
       // Calculate averages

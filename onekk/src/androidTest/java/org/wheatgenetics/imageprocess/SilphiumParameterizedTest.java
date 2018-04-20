@@ -13,7 +13,7 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
-import org.wheatgenetics.imageprocess.HueThreshold.HueThreshold;
+import org.wheatgenetics.imageprocess.ColorThreshold.ColorThresholding;
 import org.wheatgenetics.imageprocess.WatershedLB.WatershedLB;
 
 import java.util.Arrays;
@@ -51,7 +51,7 @@ public class SilphiumParameterizedTest {
     private WatershedLB mSeedCounter;
     private String photoPath;
     private String imageName;
-    private HueThreshold.HueThresholdParams htParams;
+    private ColorThresholding.ColorThresholdParams htParams;
     private WatershedLB.WatershedParams params;
     private Bitmap inputBitmap;
     private Bitmap outputBitmap;
@@ -72,7 +72,7 @@ public class SilphiumParameterizedTest {
             outputMat = new Mat();
         }
 
-        params = new WatershedLB.WatershedParams(areaLow, areaHigh, defaultRate, sizeLowerBoundRatio, newSeedDistRatio,0);
+        params = new WatershedLB.WatershedParams(areaLow, areaHigh, defaultRate, sizeLowerBoundRatio, newSeedDistRatio);
         mSeedCounter = new WatershedLB(params);
         photoPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Download/";
     }

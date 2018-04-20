@@ -6,7 +6,6 @@ import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.os.AsyncTask;
-import android.support.annotation.NonNull;
 import android.util.Log;
 
 import org.opencv.android.Utils;
@@ -31,6 +30,7 @@ public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,Array
 
     private double COIN_CIRCULARITY = 0.95;
     private double COIN_SIZE_THRESHOLD = 2.5;
+
     /* declared the ArrayList as android Point for ease of use to display them on the preview
     *
     *  centroidArrayList is the array list consisting of the centroids of the coins
@@ -52,10 +52,11 @@ public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,Array
     private double coinSize = 0;
     private guideBox gb = null;
 
-    /* default constructor */
-    public CoinRecognitionTask(double coinSize){
-        this.coinSize = coinSize;
-    }
+    /** The following four methods are only used in case of real time coin recognition
+     *  else these four methods can be removed and the coin recognition class need not
+     *  extend the AsyncTask
+     * */
+    /* ================== REAL TIME COIN RECOGNITION - START =========================*/
 
     /* used in static processing */
     public CoinRecognitionTask(int cameraWidth, int cameraHeight){
@@ -91,8 +92,8 @@ public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,Array
         Utils.bitmapToMat(bmp,m);
         //Core.flip(m.t(),m,1);
 
-        Log.d("Background processing","Starting process");
-        //coinCoordsList = process(m);
+        Log.d("Background processing","Starting hueProcess");
+        //coinCoordsList = hueProcess(m);
         //Log.d("Centroid Coordinates",coinCoordsList.toString());
 
         cornerArrayList = coinCoordsList;
@@ -112,74 +113,80 @@ public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,Array
 
     }
 
-    /** The function starts the coin recognition process triggered from
-     * MainActivity{@link org.wheatgenetics.onekk.MainActivity}
+    /* ===================== REAL TIME COIN RECOGNITION - END =========================*/
+
+    /* default constructor */
+    public CoinRecognitionTask(double coinSize){
+        this.coinSize = coinSize;
+    }
+
+    /** The function starts the coin recognition hueProcess.
      *
-     * @param initialMat takes the mat of the frame captured from the camera preview at that moment
-     *
-     * @return an ArrayList containing the centroids of the coins
+     * @param initialMat mat of the image captured or frame mat from the camera preview
      *
      */
-    public boolean process(Mat initialMat){
+    public void process(Mat initialMat) {
         radiusArrayList = new ArrayList<>();
         centroidArrayList = new ArrayList<>();
         STATUS = "";
         processedMat = initialMat;
         // Check if image is loaded fine
-        if( initialMat.empty() ) {
-            Log.e("Coin recognition","Empty image");
+        if (initialMat.empty()) {
+            Log.e("Coin recognition", "Empty image");
         }
 
         Mat gray = new Mat();
+        Mat hierarchy = new Mat();
         Imgproc.cvtColor(initialMat, gray, Imgproc.COLOR_BGR2GRAY);
         Imgproc.medianBlur(gray, gray, 5);
         Mat circles = new Mat();
         int radius = 0;
 
+        /* minDist = (double) gray.rows() / 8
+         * '8' - change this value to detect circles with different distances to each other
+         * change min_radius & max_radius to detect larger circles
+         */
+
         Imgproc.HoughCircles(gray, circles, Imgproc.HOUGH_GRADIENT, 1.0,
-                (double)gray.rows()/8, //8 change this value to detect circles with different distances to each other
-                100.0, 30.0, 150, 300); // change the last two parameters
-        // (min_radius & max_radius) to detect larger circles
+                (double) gray.rows() / 8,
+                100.0, 30.0, 150, 300);
 
         for (int x = 0; x < circles.cols(); x++) {
             double[] c = circles.get(0, x);
             Point center = new Point(Math.round(c[0]), Math.round(c[1]));
-
-            // circle center
-            Imgproc.circle(initialMat, center, 1, new Scalar(0,100,100), 3, 8, 0 );
-
-            // circular mask 157,178,195
             radius = (int) Math.round(c[2]);
-            Imgproc.circle(initialMat, center, radius + 20, maskColor(initialMat), -1, 8, 0 );
-            Imgproc.circle(initialMat, center, radius , new Scalar(255,0,0), 3, 8, 0 );
-            Imgproc.getTextSize(String.valueOf(radius ), Core.FONT_HERSHEY_COMPLEX,0.5,1,textSize);
 
-            /* put the area on each coin */
-            Imgproc.putText(initialMat,String.valueOf(radius),new Point(c[0]-(textSize[0]*3),c[1]-(textSize[0]*3)),Core.FONT_HERSHEY_COMPLEX,1.0,new Scalar(0,0,0),2);
+            /* get the background color using maskColor method and mask the coins */
+            Imgproc.circle(processedMat, center, radius + 20, maskColor(initialMat), -1, 8, 0);
 
             radiusArrayList.add(c[2]);
-            centroidArrayList.add(new Point((int)center.x,(int)center.y));
+            centroidArrayList.add(center);
         }
 
-        Imgproc.cvtColor(initialMat,initialMat,Imgproc.COLOR_BGR2RGB);
+        //Imgcodecs.imwrite(Constants.PHOTO_PATH + "/houghCoinRecog.jpg",processedMat);
+    }
 
-        /* Saving the mat consisting of the circles with mask */
-        //Imgcodecs.imwrite(Constants.PHOTO_PATH + "/houghCoinRecog.jpg",initialMat);
-
-        Imgproc.cvtColor(initialMat,initialMat,Imgproc.COLOR_RGB2BGR);
-
+    /** used to perform various checks on the detected coins
+     *  1. checks if only 4 coins are detected
+     *  2. triggers the circularity check
+     *  3. triggers the pixel size check
+     *
+     *  @return true if all the checks are true else false
+     *
+     * */
+    protected boolean checkConstraints(){
         if(centroidArrayList.size() == 4) {
 
             if(checkCirucularity()) {
 
                 if (checkPixelSize()) {
                     /* determining the corners of the coins */
-                    cornerArrayList = findCorners(centroidArrayList, radius);
+                    cornerArrayList = findCorners(centroidArrayList, radiusArrayList.get(0));
 
                     /* cropping the image to limit the search space by bounding it with the farthest
                     *  corners of each coin
                     */
-                    processedMat = cropImage(initialMat, cornerArrayList);
+                    processedMat = cropImage(processedMat, cornerArrayList);
 
                     return true;
                 }
@@ -195,6 +202,11 @@ public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,Array
         }
     }
 
+    /** Used to check the circularity of the coins.
+     *  The threshold value is defined as a class level variable to easily change it
+     *
+     *  @return true if the circularity is within the threshold else returns false
+     * */
     private boolean checkCirucularity(){
         boolean circular = false;
         for(double r : radiusArrayList)
@@ -207,17 +219,22 @@ public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,Array
         return circular;
     }
 
+    /** Used to check the pixel size of the coins, whether all the coins are same or not
+     *  The threshold value is defined as a class level variable to easily change it
+     *
+     *  @return true if the pixel size is within the threshold else returns false
+     * */
     private boolean checkPixelSize(){
         boolean pixelSize = false;
         ArrayList<Double> areaArrayList = new ArrayList<>();
 
-        Log.d("checkPixelSize: Radius",radiusArrayList.toString());
+        //Log.d("checkPixelSize: Radius",radiusArrayList.toString());
 
         for(double r : radiusArrayList){
             areaArrayList.add(Math.PI * r * r);
         }
 
-        Log.d("checkPixelSize: Areas",areaArrayList.toString());
+        //Log.d("checkPixelSize: Areas",areaArrayList.toString());
 
         for(double a : areaArrayList) {
              /* check that all four are within 2.5% of each other in pixel size */
@@ -225,16 +242,24 @@ public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,Array
             double min = a - threshold;
             double max = a + threshold;
 
-            Log.d("checkPixelSize: Min-Max",String.valueOf(min) + " - " + String.valueOf(max));
+            //Log.d("checkPixelSize: Min-Max",String.valueOf(min) + " - " + String.valueOf(max));
 
             for (double ar : areaArrayList) {
                 pixelSize = min >= ar && a <= max;
             }
         }
-
+        //TODO : return the pixelSize variable value
         return true;
     }
 
+    /** Used to crop the sample image bounded by the four coin corners
+     *
+     * @param initialMat mat of the sample image
+     *
+     * @param cornerArrayList array list consisting of the four coin corners
+     *
+     * @return cropped Mat
+     * */
     private Mat cropImage(Mat initialMat, ArrayList<Point> cornerArrayList) {
 
         /* determine the top-left corner top-left coin which is the 1st in the ArrayList
@@ -246,17 +271,24 @@ public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,Array
         /* create a rectangle based on the top-left and bottom-right points to crop the image */
         org.opencv.core.Rect cropBox = new org.opencv.core.Rect(tl, br);
 
-        //Log.d("Crop Box dimensions", cropBox.height + " " + cropBox.width);
-
         /* crop the original image based on the crop box by creating a submat*/
         Mat croppedMat = initialMat.submat(cropBox);
+
+        /* uncomment the below to save the coin recognition mat for debugging */
+        /* Log.d("Crop Box dimensions", cropBox.height + " " + cropBox.width);
         Imgproc.cvtColor(croppedMat,croppedMat,Imgproc.COLOR_BGR2RGB);
         Imgcodecs.imwrite(Constants.PHOTO_PATH + "/croppedCoinRecog.jpg",croppedMat);
-        Imgproc.cvtColor(croppedMat,croppedMat,Imgproc.COLOR_RGB2BGR);
+        Imgproc.cvtColor(croppedMat,croppedMat,Imgproc.COLOR_RGB2BGR);*/
+
         return croppedMat;
     }
 
-    @NonNull
+    /** This method is used to get the background color from the image to mask the detected coins
+     *
+     * @param initialMat mat of the sample image
+     *
+     * @return a Scalar consisting of the RGB values of the background color used to mask
+     * */
     private Scalar maskColor(Mat initialMat){
         org.opencv.core.Rect touchedRect = new org.opencv.core.Rect();
         Scalar mBlobColorHsv;
@@ -292,11 +324,11 @@ public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,Array
      * @param pointArrayList takes an array list consisting of the four coin centroids
      * @param radius radius of the coin
      *
-     * @return an ArrayList consisting of four corner points corresponding to the four centroids using
+     * @return an ArrayList consisting of four corners corresponding to the four centroids using
      *         which the image is cropped before processing
      */
     private ArrayList<Point> findCorners
-    (ArrayList<Point> pointArrayList, int radius){
+    (ArrayList<Point> pointArrayList, double radius){
 
         Point tempPt;
 
@@ -306,16 +338,7 @@ public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,Array
         Collections.sort(pointArrayList, new Comparator<Point>() {
             @Override
             public int compare(Point o1, Point o2) {
-                if(o1.x > o2.x)
-                    //if( o1.y > o2.y)
-                     //   return 0;
-                    //else
-                        return 1;
-                else
-                //if( o1.y > o2.y)
-                    return -1;
-                //else
-                    //return 1;
+                return o1.x > o2.x ? 1 : -1;
             }
         });
 
@@ -369,22 +392,32 @@ public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,Array
         coinArrayList.add(brCoin);
         pointArrayList.set(3,brCoin.getBr());
 
-        Log.d("Corners", pointArrayList.toString());
+        //Log.d("Corners", pointArrayList.toString());
         return pointArrayList;
     }
 
-    public ArrayList<Point> getCentroidArrayList() {
-        return centroidArrayList;
+    /** getter method to get the array list consisting of the coin objects for each
+     *  of the detected coins
+     *
+     *  @return array list of the coin objects
+     * */
+    public ArrayList<Coin> getCoinArrayList() {
+        return coinArrayList;
     }
 
-    public ArrayList<Point> getCornerArrayList() {
-        return cornerArrayList;
-    }
-
+    /** getter method to get the processed mat which is the cropped mat
+     *
+     *  @return cropped mat
+     * */
     public Mat getProcessedMat() {
         return processedMat;
     }
 
+    /** Calculates the scale factor to relate pixel and physical dimensions of the coin
+     *  used to measure the size of the seeds
+     *
+     * @return scale factor
+     * */
     public double getPixelMetric(){
         double sumRadius = 0;
 
@@ -396,23 +429,34 @@ public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,Array
         return coinSize / avgRadius;
     }
 
+    /** To get the STATUS of the coin recognition hueProcess, used to display in the Notifications
+     *
+     *  POSSIBLE VALUES : Coin size check failed
+     *                    Coin circularity failed
+     *                    All the coins not detected
+     *
+     *  @return a String with the corresponding status
+     *
+     * */
     public String getSTATUS() {
         return STATUS;
     }
 }
 
+/** a separate class to define the Coins that are detected as part of the Coin Recognition
+ * */
 class Coin {
-    private Point center;
-    private int radius;
+    private final Point center;
+    private final double radius;
     
-    private Point tl;
-    private Point tr;
-    private Point bl;
-    private Point br;
-    private org.opencv.core.Rect boundingBox;
-    private double coinArea;
+    private final Point tl;
+    private final Point tr;
+    private final Point bl;
+    private final Point br;
+    private final org.opencv.core.Rect boundingBox;
+    private final double coinArea;
 
-    public Coin(Point center, int radius){
+    public Coin(Point center, double radius){
         this.center = center;
         this.radius = radius;
         tl = new Point(center.x - radius,center.y - radius);
@@ -443,7 +487,7 @@ class Coin {
         return br;
     }
 
-    public int getRadius() {
+    public double getRadius() {
         return radius;
     }
 

@@ -60,10 +60,9 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 import org.wheatgenetics.database.MySQLiteHelper;
-import org.wheatgenetics.imageprocess.HueThreshold.HueThreshold;
+import org.wheatgenetics.imageprocess.ColorThreshold.ColorThresholding;
 import org.wheatgenetics.imageprocess.ImageProcess;
 import org.wheatgenetics.imageprocess.Seed.RawSeed;
-import org.wheatgenetics.imageprocess.WatershedLB.WatershedLB;
 import org.wheatgenetics.onekkUtils.oneKKUtils;
 
 import java.io.BufferedReader;
@@ -170,20 +169,20 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                 }
             }
         });
-        Log.d(TAG, ep.getString(SettingsFragment.COIN_NAME,"-1"));
-        startCamera();
+        //Log.d(TAG, ep.getString(SettingsFragment.COIN_NAME,"-1"));
+        //startCamera();
         createDirs();
         data = new Data(MainActivity.this,lastSampleTable);
         data.getLastData();
 
 
         /**
-         * uncomment to show the settings preferences at the process of the app
+         * uncomment to show the settings preferences at the hueProcess of the app
          */
         //final Intent settingsIntent = new Intent(this,SettingsActivity.class);
         //startActivity(settingsIntent);
 
-        //makeToast(String.valueOf(preview.getHeight()) + " " + String.valueOf(preview.getWidth()));
+        //makeToast(String.valueOf(preview.getLength()) + " " + String.valueOf(preview.getWidth()));
         //OpenCVLoader.initAsync()
         if (!OpenCVLoader.initDebug()) {
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.INIT_FAILED);
@@ -257,7 +256,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                 }
 
                 //makeToast(String.valueOf(bottom) + " " + String.valueOf(oldBottom));
-                //makeToast(String.valueOf(preview.getHeight()));
+                //makeToast(String.valueOf(preview.getLength()));
             }
         });
     }
@@ -491,6 +490,12 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     public void selectDrawerItem(MenuItem menuItem) {
 
         switch (menuItem.getItemId()) {
+            /* Real time coin recognition based on OpenCV camera */
+            /*case R.id.nav_coinrecognition:
+                final Intent cameraActivityIntent = new Intent(this,CameraActivity.class);
+                startActivity(cameraActivityIntent);
+                break;*/
+
             case R.id.nav_settings:
                 final Intent settingsIntent = new Intent(this,SettingsActivity.class);
                 startActivity(settingsIntent);
@@ -633,10 +638,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                             imageAnalysis(outputFileUri);
                             mCamera.startPreview();
                             break;
-                        case "ht":
-                            hueThreshold(outputFileUri);
-                            mCamera.startPreview();
-                            break;
                         default:
                             imageAnalysisLB(outputFileUri);
                             mCamera.startPreview();
@@ -650,6 +651,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             }
             else {
                 outputFileUri = storeRawPicture(data);
+                //hueThreshold(outputFileUri);
                 imageAnalysisLB(outputFileUri);
                 mCamera.startPreview();
             }
@@ -745,71 +747,8 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     /************************************************************************************
      * image analysis method call to perform WatershedLB, the algorithmName parameter can
      * be used to extend different algorithm implementations using the same function call
-     ************************************************************************************/
-
-    // TODO: post analysis store the data in the database with the new format
-
-    private void hueThreshold(final Uri photo) {
-        photoPath = photo.getPath();
-        photoName = photo.getLastPathSegment();
-
-        makeToast(photoName);
-        final HueThreshold hueThreshold;
-        double refDiam = Double.valueOf(ep.getString(SettingsFragment.COIN_SIZE, "1")); // Wheat default
-        double thresh = ep.getInt(SettingsFragment.THRESHOLD, 1);
-        int minHue = ep.getInt(SettingsFragment.MIN_HUE_VALUE, 30);
-        int maxHue = ep.getInt(SettingsFragment.MAX_HUE_VALUE, 255);
-        final HueThreshold.HueThresholdParams params = new HueThreshold.HueThresholdParams(thresh,minHue,maxHue);
-        hueThreshold = new HueThreshold(params);
-
-        /*//after processing the image on a separate thread this handler is called
-        final Handler handler = new Handler(){
-            @Override
-            public void handleMessage(Message msg){
-
-                w.writeProcessedImg(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg");
-                makeFileDiscoverable(new File(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg"), MainActivity.this);
-                seedCount = w.getSeedCount();
-
-                //update the seed count in the database
-
-                //old format
-                //myDB.updateData(seedCount);
-
-                //new format
-                //addRecord();
-
-                if(ep.getBoolean(SettingsFragment.DISPLAY_SEED_COUNT,false))
-                    seedCountDialog(seedCount);
-
-                if (ep.getBoolean(SettingsFragment.DISPLAY_ANALYSIS, false)) {
-                    postImageDialog(photoName);
-                }
-                //can be used to ask the user if he/she wants to process another sample
-                *//*this.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        feedbackDialog();
-                    }
-                }, 3000);*//*
-            }
-        };*/
-
-        final Bitmap inputBitmap = BitmapFactory.decodeFile(photoPath);
-       /* // creates a new thread and starts processing the image using watershed
-        final ProgressDialog progressDialog = ProgressDialog.show(this, "Processing", "Please wait .. ");
-        new Thread(new Runnable() {
-            @Override
-            public void run() {*/
-        File imageFile = hueThreshold.process(inputBitmap);
-        Uri imageUri = Uri.fromFile(imageFile);
-        imageAnalysisLB(imageUri);
-                /*progressDialog.dismiss();
-                handler.sendEmptyMessage(0);
-            }
-        }).process();*/
-    }
-
+     ***********************************************************************************
+     */
     private void imageAnalysisLB(final Uri photo) {
         photoPath = photo.getPath();
         photoName = photo.getLastPathSegment();
@@ -828,27 +767,36 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         inputText.requestFocus();
 
         /* get user settings from shared preferences */
-        final WatershedLB mSeedCounter;
+        final ColorThresholding.ColorThresholdParams colorThresholdParams;
         final String firstName = ep.getString(SettingsFragment.FIRST_NAME,"first_name");
         final String lastName = ep.getString(SettingsFragment.LAST_NAME,"last_name");
-        final int areaLow = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_LOW, "400"));
+
+        /*final int areaLow = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_LOW, "400"));
         final int areaHigh = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_HIGH, "160000"));
         final int defaultRate = Integer.valueOf(ep.getString(SettingsFragment.PARAM_DEFAULT_RATE, "34"));
         final double sizeLowerBoundRatio = Double.valueOf(ep.getString(SettingsFragment.PARAM_SIZE_LOWER_BOUND_RATIO, "0.25"));
         final double newSeedDistRatio = Double.valueOf(ep.getString(SettingsFragment.PARAM_NEW_SEED_DIST_RATIO, "4.0"));
+        */
+        final int lowerBound = ep.getInt(SettingsFragment.MIN_VALUE, 116);
+        final int upperBound = ep.getInt(SettingsFragment.MAX_VALUE, 255);
+        final int threshold = ep.getInt(SettingsFragment.THRESHOLD, 20);
+        final Boolean colorThresholding = ep.getBoolean(SettingsFragment.COLOR_THRESHOLD,false);
         final double coinSize = Double.valueOf(ep.getString(SettingsFragment.COIN_NAME,"-1"));
-        final Bitmap inputBitmap = BitmapFactory.decodeFile(photoPath);
         final Boolean showAnalysis = ep.getBoolean(SettingsFragment.DISPLAY_ANALYSIS, false);
         final Boolean backgroundProcessing = ep.getBoolean(SettingsFragment.ASK_BACKGROUND_PROCESSING,false);
         final Boolean multiProcessing = ep.getBoolean(SettingsFragment.ASK_MULTI_PROCESSING,false);
 
+        final Bitmap inputBitmap = BitmapFactory.decodeFile(photoPath);
         Log.d("CoreProcessing : Begin", oneKKUtils.getDate());
 
-        /* set Watershed parameters to be passed to the actual algorithm */
-        final WatershedLB.WatershedParams params = new WatershedLB.WatershedParams(areaLow, areaHigh, defaultRate, sizeLowerBoundRatio, newSeedDistRatio);
-        mSeedCounter = new WatershedLB(params);
+        /* set ColorThreshold parameters to be passed if opted in Settings */
+        colorThresholdParams = colorThresholding ? new ColorThresholding.ColorThresholdParams(threshold, lowerBound, upperBound) : null;
 
-        final CoreProcessingTask coreProcessingTask = new CoreProcessingTask(MainActivity.this, mSeedCounter, photoName, showAnalysis, sampleName, firstName, lastName, weight, r.nextInt(20000), backgroundProcessing, coinSize);
+        /* set Watershed parameters to be passed to the actual algorithm */
+        //final WatershedLB.WatershedParams params = new WatershedLB.WatershedParams(areaLow, areaHigh, defaultRate, sizeLowerBoundRatio, newSeedDistRatio);
+        //mSeedCounter = new WatershedLB(params);
+
+        final CoreProcessingTask coreProcessingTask = new CoreProcessingTask(MainActivity.this,colorThresholdParams, photoName, showAnalysis, sampleName, firstName, lastName, weight, r.nextInt(20000), backgroundProcessing, coinSize);
 
         if (multiProcessing)
             coreProcessingTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, inputBitmap);
@@ -1102,7 +1050,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             byte[] data = new byte[128];
             int TIMEOUT = 2000;
 
-            Log.v(TAG, "process transfer");
+            Log.v(TAG, "hueProcess transfer");
 
             UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
 

@@ -12,6 +12,7 @@ import org.opencv.imgproc.Imgproc;
  * Created by sid on 2/22/18.
  */
 
+/** can be renamed to Seed if the MeasureSeeds class is used */
 public class RawSeed {
     private double length;
     private double width;
@@ -74,11 +75,11 @@ public class RawSeed {
         return area * seedPixelSize * seedPixelSize;
     }
 
-    public double getPerim() {
+    public double getPerimeter() {
         return perimeter * seedPixelSize;
     }
 
-    public Scalar getColor() {
+    public Scalar getSeedColor() {
         return color;
     }
 

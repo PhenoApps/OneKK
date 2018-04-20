@@ -22,10 +22,11 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     public static String FIRST_NAME = "org.wheatgenetics.onekk.FIRST_NAME";
     public static String LAST_NAME = "org.wheatgenetics.onekk.LAST_NAME";
     public static String DISPLAY_ANALYSIS = "org.wheatgenetics.onekk.DISPLAY_ANALYSIS";
+    public static String COLOR_THRESHOLD = "org.wheatgenetics.onekk.COLOR_THRESHOLD";
     public static String MIN_SEED_VALUE = "org.wheatgenetics.onekk.MIN_SEED_VALUE";
     public static String MAX_SEED_VALUE = "org.wheatgenetics.onekk.MAX_SEED_VALUE";
-    public static String MIN_HUE_VALUE = "org.wheatgenetics.onekk.MIN_HUE_VALUE";
-    public static String MAX_HUE_VALUE = "org.wheatgenetics.onekk.MAX_HUE_VALUE";
+    public static String MIN_VALUE = "org.wheatgenetics.onekk.MIN_HUE_VALUE";
+    public static String MAX_VALUE = "org.wheatgenetics.onekk.MAX_HUE_VALUE";
     public static String THRESHOLD = "org.wheatgenetics.onekk.THRESHOLD";
     public static String COIN_DB = "org.wheatgenetics.onekk.COIN_DB";
     public static String COIN_SIZE = "org.wheatgenetics.onekk.COIN_SIZE";
@@ -68,8 +69,8 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         //additional setup for MIN/MAX checks in Range settings
         additionalPreferenceSetup(findPreference(MIN_SEED_VALUE), "Minimum seed value");
         additionalPreferenceSetup(findPreference(MAX_SEED_VALUE), "Maximum seed value");
-        additionalPreferenceSetup(findPreference(MIN_HUE_VALUE), "Minimum hue value");
-        additionalPreferenceSetup(findPreference(MAX_HUE_VALUE), "Maximum hue value");
+        additionalPreferenceSetup(findPreference(MIN_VALUE), "Minimum hue value");
+        additionalPreferenceSetup(findPreference(MAX_VALUE), "Maximum hue value");
         additionalPreferenceSetup(findPreference(THRESHOLD), "Threshold");
     }
 
@@ -160,16 +161,16 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                 Toast.makeText(getPreferenceScreen().getContext(), "Maximum cannot be less than Minimum", Toast.LENGTH_LONG).show();
                 return false;
             }
-        } else if (preference.getKey().equals(MIN_HUE_VALUE)) {
+        } else if (preference.getKey().equals(MIN_VALUE)) {
             text = "Minimum hue value";
-            tempVal = findPreference(MAX_HUE_VALUE).getSharedPreferences().getInt(MAX_HUE_VALUE, 0);
+            tempVal = findPreference(MAX_VALUE).getSharedPreferences().getInt(MAX_VALUE, 0);
             if (Integer.parseInt(stringValue) > tempVal) {
                 Toast.makeText(getPreferenceScreen().getContext(), "Minimum cannot be greater than Maximum", Toast.LENGTH_LONG).show();
                 return false;
             }
-        } else if (preference.getKey().equals(MAX_HUE_VALUE)) {
+        } else if (preference.getKey().equals(MAX_VALUE)) {
             text = "Maximum hue value";
-            tempVal = findPreference(MIN_HUE_VALUE).getSharedPreferences().getInt(MIN_HUE_VALUE, 0);
+            tempVal = findPreference(MIN_VALUE).getSharedPreferences().getInt(MIN_VALUE, 0);
             if (Integer.parseInt(stringValue) < tempVal) {
                 Toast.makeText(getPreferenceScreen().getContext(), "Maximum cannot be less than Minimum", Toast.LENGTH_LONG).show();
                 return false;
@@ -177,7 +178,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         } else if (preference.getKey().equals(THRESHOLD)) {
             text = "Threshold";
         }
-        preference.setTitle(preference.getTitle());
+        preference.setTitle(text + " - " + stringValue);
         return true;
     }
 }

@@ -1,0 +1,27 @@
+@startuml
+start
+while (Main Activity)
+    :Camera Preview;
+    if (Nav Menu clicked) then (yes)
+        if (Settings) then (yes)
+          #orange:Settings Activity;
+          detach
+        elseif (View Data) then (yes)
+          #blue:View Data Activity;
+          detach
+        elseif (Connect Scale) then (yes)
+          :NA;
+          detach
+        elseif (Help) then (yes)
+          :Help dialog;
+        elseif (About) then (yes)
+          :About dialog;
+        else;
+        endif
+    elseif (Capture clicked) then (yes)
+        #green:Image Processing;
+        :Store seed data;
+    endif;
+endwhile
+end
+@enduml

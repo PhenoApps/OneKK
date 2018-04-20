@@ -1,6 +1,8 @@
 package org.wheatgenetics.imageprocess.WatershedLB;
 
 import android.graphics.Bitmap;
+import android.os.Environment;
+import android.renderscript.RenderScript;
 import android.util.Log;
 
 import org.opencv.android.Utils;
@@ -14,9 +16,11 @@ import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.imgproc.Moments;
 import org.wheatgenetics.imageprocess.Seed.Seed;
+import org.wheatgenetics.onekk.MainActivity;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -26,7 +30,10 @@ import java.util.Set;
 import static org.opencv.imgproc.Imgproc.CC_STAT_AREA;
 import static org.opencv.imgproc.Imgproc.CC_STAT_LEFT;
 import static org.opencv.imgproc.Imgproc.CC_STAT_TOP;
+import static org.opencv.imgproc.Imgproc.COLOR_BGR2Lab;
 import static org.opencv.imgproc.Imgproc.COLOR_BGR2RGB;
+import static org.opencv.imgproc.Imgproc.COLOR_Lab2BGR;
+import static org.opencv.imgproc.Imgproc.COLOR_Lab2RGB;
 
 /**
  * Created by chaneylc on 8/22/2017.
@@ -34,10 +41,10 @@ import static org.opencv.imgproc.Imgproc.COLOR_BGR2RGB;
 
 public class WatershedLB {
 
-    private WatershedParams mParams;
     private Mat processedMat;
     private ArrayList<Seed> seedArrayList = null;
-    double ssum = 0;
+    private List<MatOfPoint> seedContours = null;
+    private double ssum = 0;
 
     /**
      * This class consists of variables and methods used to setup Watershed light box parameters
@@ -91,11 +98,16 @@ public class WatershedLB {
      *
      */
     public WatershedLB(WatershedParams params) {
-        mParams = params;
+        WatershedParams mParams = params;
+    }
+
+    public WatershedLB() {
     }
 
     public Bitmap process(Bitmap inputBitmap) {
         seedArrayList = new ArrayList<>();
+        seedContours = new ArrayList<>();
+
         Mat frame = new Mat();
 
         Utils.bitmapToMat(inputBitmap, frame);
@@ -348,6 +360,8 @@ public class WatershedLB {
 
                         /* create a seed object for each seed and store them in an ArrayList */
                         seedArrayList.add(new Seed(cx,cy, area, perimeter, null,0,null, matOfPoint));
+
+                        seedContours.add(matOfPoint);
                     }
                 }
 
@@ -575,5 +589,9 @@ public class WatershedLB {
 
     public ArrayList<Seed> getSeedArrayList() {
         return seedArrayList;
+    }
+
+    public List<MatOfPoint> getSeedContours() {
+        return seedContours;
     }
 }
