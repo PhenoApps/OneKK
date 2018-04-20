@@ -100,7 +100,7 @@
     <!-- Settings -> Processing strings -->
     <string name="ask_processing_technique">Always Ask</string>
     <string name="types_processing_techniques">Processing Techniques </string>
-    <string name="hue_threshold">Hue Threshold </string>
+    <string name="color_threshold">Color Threshold </string>
     <string name="hue_range">Hue Range</string>
     <string name="min_hue_value">Minimum Hue value</string>
     <string name="max_hue_value">Maximum Hue Value</string>

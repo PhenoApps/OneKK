@@ -47,7 +47,7 @@ public class MeasureSeeds {
      * Count seeds.  Median contour size is used to estimate seed count.
      * Image must be initialized and converted to HSV
      */
-    public void identifySingleSeeds() {
+    public void identifySingleSeeds(double pixelSize) {
         System.out.println("Counting seeds...");
 
         /**
@@ -203,7 +203,7 @@ public class MeasureSeeds {
         System.out.println("NUMBER OF SEEDS COUNTED: " + medCount);
         seedCount = medCount;
 
-        measureSeeds(goodContours,0);
+        measureSeeds(goodContours,pixelSize);
     }
 
     private double findMax(double[] values) {

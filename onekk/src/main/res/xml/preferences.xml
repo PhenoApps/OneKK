@@ -23,7 +23,7 @@
         android:summary="Set different processing settings"
         android:title="@string/processing">
 
-        <PreferenceCategory
+        <!--<PreferenceCategory
 
             android:title="@string/types_processing_techniques">
 
@@ -42,7 +42,7 @@
                 android:entryValues="@array/processing_technique_values"
                 android:key="org.wheatgenetics.onekk.PROCESSING_TECHNIQUE"
                 android:title="Processing Technique" />
-        </PreferenceCategory>
+        </PreferenceCategory>-->
 
 
         <PreferenceCategory android:title="Pre Processing"/>
@@ -50,8 +50,8 @@
             android:defaultValue="false"
             android:icon="@drawable/ic_tune_black_24dp"
             android:key="org.wheatgenetics.onekk.COLOR_THRESHOLD"
-            android:summary="perform hue thresholding before Watershed"
-            android:title="@string/hue_threshold" />
+            android:summary="perform color thresholding before Watershed"
+            android:title="@string/color_threshold" />
 
         <PreferenceCategory
             android:dependency="org.wheatgenetics.onekk.COLOR_THRESHOLD"

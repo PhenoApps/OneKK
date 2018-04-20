@@ -78,16 +78,17 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
 
 import static org.wheatgenetics.onekkUtils.oneKKUtils.makeFileDiscoverable;
+import static org.wheatgenetics.onekkUtils.oneKKUtils.postImageDialog;
 
 public class MainActivity extends AppCompatActivity implements OnInitListener {
 
     public final static String TAG = "OneKK";
     private SharedPreferences ep;
 
-    private ArrayList<RawSeed> rawSeeds;
     private TableLayout lastSampleTable;
     private Data data;
     private static UsbDevice mDevice;
@@ -123,6 +124,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     private Random r;
     private ImageButton cameraButton;
     private ProgressBar progressBar;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -146,7 +148,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         ep = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
 
-        lastSampleTable = (TableLayout)findViewById(R.id.lastSampleTable);
+        lastSampleTable = (TableLayout) findViewById(R.id.lastSampleTable);
         inputText = (EditText) findViewById(R.id.etInput);
         mWeightEditText = (EditText) findViewById(R.id.etWeight);
         mWeightEditText.setText(getResources().getString(R.string.not_connected));
@@ -159,15 +161,15 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         Intent intent = getIntent();
         mDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-        progressBar = (ProgressBar)findViewById(R.id.progressBar);
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
         cameraButton = (ImageButton) findViewById(R.id.camera_button);
         cameraButton.setOnClickListener(new ImageButton.OnClickListener(
-        ){
+        ) {
             @Override
             public void onClick(View view) {
-                if(ep.getString(SettingsFragment.COIN_NAME,"-1").compareTo("-1") == 0)
-                    Toast.makeText(getApplicationContext(),"Please select the Coin Name in Settings Panel!",Toast.LENGTH_LONG).show();
-                else{
+                if (ep.getString(SettingsFragment.COIN_NAME, "-1").compareTo("-1") == 0)
+                    Toast.makeText(getApplicationContext(), "Please select the Coin Name in Settings Panel!", Toast.LENGTH_LONG).show();
+                else {
                     picName = inputText.getText().toString();
                     takePic();
                 }
@@ -176,7 +178,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         //Log.d(TAG, ep.getString(SettingsFragment.COIN_NAME,"-1"));
         //startCamera();
         createDirs();
-        data = new Data(MainActivity.this,lastSampleTable);
+        data = new Data(MainActivity.this, lastSampleTable);
         data.getLastData();
 
 
@@ -193,7 +195,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.INIT_FAILED);
         } else {
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
-            finalMat = new Mat();
+            //finalMat = new Mat();
         }
 
         if (ep.getString(SettingsFragment.FIRST_NAME, "").length() == 0) {
@@ -217,9 +219,8 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             MySQLiteHelper mySQLiteHelper = new MySQLiteHelper(this);
             InputStream inputStream = null;
             try {
-                inputStream   = this.getAssets().open("coin_database.csv");
-            }
-            catch(Exception ex) {
+                inputStream = this.getAssets().open("coin_database.csv");
+            } catch (Exception ex) {
                 Log.e("Coin DB file error : ", ex.getMessage());
             }
             mySQLiteHelper.importCoinData(inputStream);
@@ -242,21 +243,21 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                         count++;
                     }
 
-                    if(count!=0) {
-                        ratio = ((double) height1)/((double) width1);
+                    if (count != 0) {
+                        ratio = ((double) height1) / ((double) width1);
                     }
                 }
 
-                if(bottom<oldBottom) {
-                    int newWidth = (int) (bottom/ratio);
-                    RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(newWidth,bottom);
+                if (bottom < oldBottom) {
+                    int newWidth = (int) (bottom / ratio);
+                    RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(newWidth, bottom);
                     lp.addRule(RelativeLayout.CENTER_HORIZONTAL);
                     lp.addRule(RelativeLayout.ALIGN_TOP);
                     preview.setLayoutParams(lp);
                 }
 
-                if(oldBottom<bottom) {
-                    RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(width1,height1);
+                if (oldBottom < bottom) {
+                    RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(width1, height1);
                     preview.setLayoutParams(lp);
                 }
 
@@ -345,15 +346,15 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
     /* Naive custom real time coin recognition */
     //TODO see if there are other optimized possibilities to handle this operation
-        /* A new thread to handle the camera preview callback.
-        *
-        *  This thread creates a new camera preview callback and processes the current frame every
-        *  2 seconds and tries to determine the contours of the four coins and display the
-        *  discovered coordinates on the preview
-        *
-        *  WARNING : If this feature is enabled make sure the processing is also done using
-        *            THREAD POOL EXECUTOR
-        */
+    /* A new thread to handle the camera preview callback.
+     *
+     *  This thread creates a new camera preview callback and processes the current frame every
+     *  2 seconds and tries to determine the contours of the four coins and display the
+     *  discovered coordinates on the preview
+     *
+     *  WARNING : If this feature is enabled make sure the processing is also done using
+     *            THREAD POOL EXECUTOR
+     */
     Thread previewThread = new Thread(new Runnable() {
         @Override
         public void run() {
@@ -368,14 +369,13 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
                     coinRecognitionTask = new CoinRecognitionTask(w, h, gb);
 
-                    coinRecognitionTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,data);
+                    coinRecognitionTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, data);
 
-                    try{
-                        Log.d("Camera Preview thread","Sleeping for 1 sec");
+                    try {
+                        Log.d("Camera Preview thread", "Sleeping for 1 sec");
                         Thread.sleep(5000);
-                    }
-                    catch (Exception ex){
-                        Log.e("Camera Preview thread",ex.toString());
+                    } catch (Exception ex) {
+                        Log.e("Camera Preview thread", ex.toString());
                     }
                 }
             });
@@ -502,12 +502,12 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                 break;*/
 
             case R.id.nav_settings:
-                final Intent settingsIntent = new Intent(this,SettingsActivity.class);
+                final Intent settingsIntent = new Intent(this, SettingsActivity.class);
                 startActivity(settingsIntent);
                 break;
 
             case R.id.view_data:
-                final Intent viewTableIntent = new Intent(this,ViewDataActivity.class);
+                final Intent viewTableIntent = new Intent(this, ViewDataActivity.class);
                 startActivity(viewTableIntent);
                 break;
 
@@ -585,6 +585,8 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     PictureCallback mPicture = new PictureCallback() {
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
+            //Naive custom real time coin recognition
+            /*
             ArrayList<Point> cornerArrayList = null;
 
             Camera.Parameters parameters = camera.getParameters();
@@ -592,9 +594,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             int h = parameters.getPreviewSize().height;
             int w = parameters.getPreviewSize().width;
 
-            //TODO : fix this to check for coins immediately after capture using an Asynctask
-            /* Naive custom real time coin recognition */
-/*
             coinRecognitionTask = new CoinRecognitionTask(w,h);
             coinRecognitionTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,data);
 
@@ -614,10 +613,10 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                 mCamera.startPreview();
             }
             else {
-*/
+            */
 
-            if (ep.getBoolean(SettingsFragment.ASK_PROCESSING_TECHNIQUE, true))
-                processingTechniqueDialog();
+            /*if (ep.getBoolean(SettingsFragment.ASK_PROCESSING_TECHNIQUE, true))
+                processingTechniqueDialog();*/
 
             r = new Random();
             Uri outputFileUri;
@@ -627,14 +626,14 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                 input = inputText.getText().toString();
 
                 /* This section of code is just a hack to run already stored sample images for UI testing
-                *
-                *  In the sample name input box the developer can enter $ followed by,
-                *  either kk or ht or lb to run different algorithms, followed by
-                *  the name of the image that is already present on the device in the Downloads directory
-                *
-                *  Example : $lbsoybeans, will run a watershed light box algorithm on a soybeans
-                *            sample image that is present in the Download directory
-                */
+                 *
+                 *  In the sample name input box the developer can enter $ followed by,
+                 *  either kk or ht or lb to run different algorithms, followed by
+                 *  the name of the image that is already present on the device in the Downloads directory
+                 *
+                 *  Example : $lbsoybeans, will run a watershed light box algorithm on a soybeans
+                 *            sample image that is present in the Download directory
+                 */
 
                 if (input.charAt(0) == '$') {
                     outputFileUri = Uri.fromFile(new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Download/" + input.substring(3) + ".jpg"));
@@ -648,14 +647,12 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                             imageAnalysisLB(outputFileUri);
                             mCamera.startPreview();
                     }
-                }
-                else {
+                } else {
                     outputFileUri = storeRawPicture(data);
                     imageAnalysisLB(outputFileUri);
                     mCamera.startPreview();
                 }
-            }
-            else {
+            } else {
                 outputFileUri = storeRawPicture(data);
                 imageAnalysisLB(outputFileUri);
                 mCamera.startPreview();
@@ -663,14 +660,14 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         }
     };
 
-    private Uri storeRawPicture(byte[] data){
+    private Uri storeRawPicture(byte[] data) {
         String fileName;
         if (picName.length() > 0) {
             fileName = picName + "_";
         } else {
             fileName = "temp_";
         }
-        File pictureFile = oneKKUtils.getOutputMediaFile(MEDIA_TYPE_IMAGE,fileName);
+        File pictureFile = oneKKUtils.getOutputMediaFile(MEDIA_TYPE_IMAGE, fileName);
         try {
             FileOutputStream fos = new FileOutputStream(pictureFile);
             fos.write(data);
@@ -685,16 +682,12 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         return Uri.fromFile(pictureFile);
     }
 
-    /************************************************************************************
+    /** NOT IMPLEMENTED
      * displays a dialogue after capturing the image, prompting the user to select a
      * processing technique, only if "Processing" -> "Always Ask" setting is checked
      * else proceed with the default technique set in the settings panel
-     ************************************************************************************/
-
-    // TODO: check the user selection and call the respective processing technique
-    // TODO: complete the function implementation
-
-    public void processingTechniqueDialog(){
+     */
+    public void processingTechniqueDialog() {
         final ArrayList mSelectedItems = new ArrayList();  // Where we track the selected items
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
 
@@ -704,20 +697,20 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                Log.v(TAG,which+"");
+                                Log.v(TAG, which + "");
                             }
                         })
 
                 .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
-                        Log.d(TAG,"clicked");
+                        Log.d(TAG, "clicked");
                     }
                 })
                 .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
-                        Log.d(TAG,"clicked negative");
+                        Log.d(TAG, "clicked negative");
                     }
                 });
 
@@ -728,25 +721,37 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
      * image analysis method call to perform the default processing MeasureSeeds
      ************************************************************************************/
     private void imageAnalysis(Uri photo) {
+        photoPath = photo.getPath();
         photoName = photo.getLastPathSegment();
-        makeToast(photoName);
+
+        sampleName = inputText.getText().toString();
+
+        if (mDevice == null
+                && mWeightEditText.getText().toString().equals("Not connected")) {
+            weight = "null";
+        } else {
+            weight = mWeightEditText.getText().toString();
+        }
+
+        inputText.setText("");
+        mWeightEditText.setText("0");
 
         double refDiam = Double.valueOf(ep.getString(SettingsFragment.COIN_SIZE, "1")); // Wheat default
 
-        ImageProcess imgP = new ImageProcess(Constants.PHOTO_PATH.toString() + "/" + photoName, refDiam, true, Double.valueOf(ep.getInt(SettingsFragment.MIN_SEED_VALUE, 0)), Double.valueOf(ep.getInt(SettingsFragment.MAX_SEED_VALUE, 0))); //TODO the min/max sizes are bad
+        ImageProcess imgP = new ImageProcess(photoPath, photoName, refDiam, true, Double.valueOf(ep.getInt(SettingsFragment.MIN_SEED_VALUE, 0)), Double.valueOf(ep.getInt(SettingsFragment.MAX_SEED_VALUE, 0))); //TODO the min/max sizes are bad
 
-
-        //writeMat2File(imgP.getProcessedMat(),Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg");
         makeFileDiscoverable(new File(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg"), this);
 
         seedCount = imgP.getSeedCount();
 
-        //rawSeeds = imgP.getList();
-        //addRecord(); // Add the current record to the table
+        data.addRecords(sampleName,photoName,firstName,lastName,seedCount,weight,imgP.getSeedList());// Add the current record to the table
+        data.createNewTableEntry(sampleName,String.valueOf(seedCount));
 
-        //if (ep.getBoolean(SettingsFragment.DISPLAY_ANALYSIS, false)) {
-        //    postImageDialog(photoName,seedCount);
-        //}
+        data.getLastData();
+
+        if (ep.getBoolean(SettingsFragment.DISPLAY_ANALYSIS, false)) {
+            postImageDialog(this,photoName,seedCount);
+        }
     }
 
     /************************************************************************************
@@ -773,8 +778,8 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         /* get user settings from shared preferences */
         final ColorThresholding.ColorThresholdParams colorThresholdParams;
-        final String firstName = ep.getString(SettingsFragment.FIRST_NAME,"first_name");
-        final String lastName = ep.getString(SettingsFragment.LAST_NAME,"last_name");
+        final String firstName = ep.getString(SettingsFragment.FIRST_NAME, "first_name");
+        final String lastName = ep.getString(SettingsFragment.LAST_NAME, "last_name");
 
         /*final int areaLow = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_LOW, "400"));
         final int areaHigh = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_HIGH, "160000"));
@@ -785,11 +790,11 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         final int lowerBound = ep.getInt(SettingsFragment.MIN_VALUE, 116);
         final int upperBound = ep.getInt(SettingsFragment.MAX_VALUE, 255);
         final int threshold = ep.getInt(SettingsFragment.THRESHOLD, 20);
-        final Boolean colorThresholding = ep.getBoolean(SettingsFragment.COLOR_THRESHOLD,false);
-        final double coinSize = Double.valueOf(ep.getString(SettingsFragment.COIN_NAME,"-1"));
+        final Boolean colorThresholding = ep.getBoolean(SettingsFragment.COLOR_THRESHOLD, false);
+        final double coinSize = Double.valueOf(ep.getString(SettingsFragment.COIN_NAME, "-1"));
         final Boolean showAnalysis = ep.getBoolean(SettingsFragment.DISPLAY_ANALYSIS, false);
-        final Boolean backgroundProcessing = ep.getBoolean(SettingsFragment.ASK_BACKGROUND_PROCESSING,false);
-        final Boolean multiProcessing = ep.getBoolean(SettingsFragment.ASK_MULTI_PROCESSING,false);
+        final Boolean backgroundProcessing = ep.getBoolean(SettingsFragment.ASK_BACKGROUND_PROCESSING, false);
+        final Boolean multiProcessing = ep.getBoolean(SettingsFragment.ASK_MULTI_PROCESSING, false);
 
         final Bitmap inputBitmap = BitmapFactory.decodeFile(photoPath);
         Log.d("CoreProcessing : Begin", oneKKUtils.getDate());
@@ -801,7 +806,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         //final WatershedLB.WatershedParams params = new WatershedLB.WatershedParams(areaLow, areaHigh, defaultRate, sizeLowerBoundRatio, newSeedDistRatio);
         //mSeedCounter = new WatershedLB(params);
 
-        final CoreProcessingTask coreProcessingTask = new CoreProcessingTask(MainActivity.this,colorThresholdParams, photoName, showAnalysis, sampleName, firstName, lastName, weight, r.nextInt(20000), backgroundProcessing, coinSize);
+        final CoreProcessingTask coreProcessingTask = new CoreProcessingTask(MainActivity.this, colorThresholdParams, photoName, showAnalysis, sampleName, firstName, lastName, weight, r.nextInt(20000), backgroundProcessing, coinSize);
 
         if (multiProcessing)
             coreProcessingTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, inputBitmap);
@@ -1180,7 +1185,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     }
 
     @Override
-    public void onBackPressed(){
+    public void onBackPressed() {
         /* THIS IS TO DISABLE back button to close MainActivity */
     }
 }

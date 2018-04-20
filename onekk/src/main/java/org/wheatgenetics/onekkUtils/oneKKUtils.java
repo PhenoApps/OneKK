@@ -118,7 +118,7 @@ public class oneKKUtils {
         final TextView tv = (TextView)personView.findViewById(R.id.tvSeedCount);
         Typeface myTypeFace = Typeface.createFromAsset(context.getAssets(), "AllerDisplay.ttf");
         tv.setTypeface(myTypeFace);
-        tv.setText("RawSeed Count : "+numberOfSeeds);
+        tv.setText("Seed Count : "+numberOfSeeds);
         File imgFile = new File(Constants.ANALYZED_PHOTO_PATH, imageName + "_new.jpg");
 
         if (imgFile.exists()) {

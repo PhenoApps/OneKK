@@ -9,7 +9,7 @@
     tools:showIn="@layout/view_data_activity">
 
     <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/tlInventory"
+        android:id="@+id/view_table"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:divider="?android:attr/dividerHorizontal"

@@ -13,6 +13,8 @@ import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.wheatgenetics.imageprocess.ImgProcess1KK.MeasureSeeds;
+import org.wheatgenetics.imageprocess.Seed.RawSeed;
+import org.wheatgenetics.onekkUtils.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +58,7 @@ public class ImageProcess {
         return (OS.contains("mac"));
     }
 
-    public ImageProcess(String inputFILE, double refDiameter, boolean crop, double minSize, double maxSize) {
+    public ImageProcess(String inputFILE, String photoName, double refDiameter, boolean crop, double minSize, double maxSize) {
 
         double start = System.currentTimeMillis();
 
@@ -71,6 +73,9 @@ public class ImageProcess {
         double time = (System.currentTimeMillis() - start) / 1000;
         System.out.println("\nProcessed in : " + time + " sec");
 
+        Imgproc.cvtColor(image,image, Imgproc.COLOR_HSV2BGR);
+
+        Imgcodecs.imwrite(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg",image);
     }
 
     private void initialize() {
@@ -92,7 +97,7 @@ public class ImageProcess {
         boolean setRefs = setReference(image);
 
         if (setRefs) {
-            measureSeeds.identifySingleSeeds();
+            measureSeeds.identifySingleSeeds(pixelSize);
         }
     }
 
@@ -272,5 +277,7 @@ public class ImageProcess {
     }
 
     public int getSeedCount(){ return measureSeeds.getSeedCount();}
+
+    public ArrayList<RawSeed> getSeedList(){return measureSeeds.getList();}
 
 }

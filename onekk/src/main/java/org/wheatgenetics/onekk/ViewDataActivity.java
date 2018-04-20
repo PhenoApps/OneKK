@@ -32,7 +32,7 @@ public class ViewDataActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        OneKKTable = (TableLayout) findViewById(R.id.tlInventory);
+        OneKKTable = (TableLayout) findViewById(R.id.view_table);
         data = new Data(ViewDataActivity.this,OneKKTable);
         data.getAllData("sample");
     }

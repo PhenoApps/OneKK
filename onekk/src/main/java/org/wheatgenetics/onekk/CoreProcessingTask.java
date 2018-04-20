@@ -29,7 +29,7 @@ import static org.wheatgenetics.onekkUtils.oneKKUtils.postImageDialog;
  * Created by sid on 1/28/18.
  */
 
-public class CoreProcessingTask extends AsyncTask<Bitmap,AsyncTask.Status,Bitmap> {
+public class CoreProcessingTask extends AsyncTask<Bitmap,String,Bitmap> {
 
     private Context context;
     private Data data = null;
@@ -224,6 +224,20 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,AsyncTask.Status,Bitmap
         //context.unregisterReceiver(broadcastReceiver);
     }
 
+    protected void onProgressUpdate(String... text){
+        boolean showAlert = Boolean.parseBoolean(text[1]);
+        String displayText = text[0];
+        if(showAlert)
+            if(!progressDialog.isShowing()){
+                progressDialog.setMessage(displayText);
+                progressDialog.show();
+            }
+            else
+                progressDialog.setMessage(displayText);
+        else
+            progressDialog.dismiss();
+    }
+
     @Override
     protected void onCancelled(Bitmap bitmap){
 
@@ -238,14 +252,6 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,AsyncTask.Status,Bitmap
         if(backgroundProcessing)
             NotificationHelper.notify(context, sampleName,text,this.notificationCounter,showAlert);
         else
-            if(showAlert)
-                if(!progressDialog.isShowing()){
-                    progressDialog.setMessage(text);
-                    progressDialog.show();
-                }
-                else
-                    progressDialog.setMessage(text);
-            else
-                progressDialog.dismiss();
+            publishProgress(text,String.valueOf(showAlert));
     }
 }

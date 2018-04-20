@@ -77,9 +77,7 @@ public class OneKKAndroidUnitTest{
         double refDiam = seedSize; // Wheat default
         photoPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/gwheat.jpg";
         photoName = "gwheat.jpg";
-        ImageProcess imgP = new ImageProcess(photoPath, refDiam, true, 0.0, 2.0); //TODO the min/max sizes are bad
-
-        //Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/analyzed_test_new.jpg",imgP.getProcessedMat());
+        ImageProcess imgP = new ImageProcess(photoPath, photoName,refDiam, true, 0.0, 2.0); //TODO the min/max sizes are bad
 
         seedCount = imgP.getSeedCount();
 

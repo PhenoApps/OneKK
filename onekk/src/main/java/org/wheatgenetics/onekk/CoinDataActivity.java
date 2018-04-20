@@ -35,7 +35,7 @@ public class CoinDataActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        OneKKTable = (TableLayout) findViewById(R.id.tlInventory);
+        OneKKTable = (TableLayout) findViewById(R.id.coin_table);
         data = new Data(CoinDataActivity.this,OneKKTable);
         getAllData("coins");
     }
