@@ -60,11 +60,11 @@ public class RawSeed {
      * Getter classes
      */
     public double getLength() {
-        return length * seedPixelSize;
+        return (length/2) * seedPixelSize;
     }
 
     public double getWidth() {
-        return width * seedPixelSize;
+        return (width/2) * seedPixelSize;
     }
 
     public double getCirc() {

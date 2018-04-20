@@ -182,6 +182,7 @@ public class OneKKAndroidUnitTest{
         int threshold = 57;
         int lowerBound = 146;
         int upperBound = 255;
+
         if(!setupDoneFlag)
             setup();
         photoPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/gwheat.jpg";
