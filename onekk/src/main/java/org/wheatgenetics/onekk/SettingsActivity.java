@@ -8,11 +8,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 
+import org.wheatgenetics.ui.AppCompatPreferenceActivity;
+
 /************************************************************************************
  * This class initiates and handles all the Settings Activity
  ************************************************************************************/
 
-public class SettingsActivity extends AppCompatPreferenceActivity{
+public class SettingsActivity extends AppCompatPreferenceActivity {
 
 
     @Override

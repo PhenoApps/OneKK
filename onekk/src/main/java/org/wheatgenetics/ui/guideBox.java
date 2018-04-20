@@ -1,4 +1,4 @@
-package org.wheatgenetics.onekk;
+package org.wheatgenetics.ui;
 
 import android.content.Context;
 import android.content.res.Resources;

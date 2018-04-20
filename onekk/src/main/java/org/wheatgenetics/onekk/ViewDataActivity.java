@@ -8,6 +8,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.TableLayout;
 
+import org.wheatgenetics.database.Data;
+
 /**
  * This class is the activity class for View Data feature and is
  * initialized from the Navigation Drawer setup in the main menu of MainActivity

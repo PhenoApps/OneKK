@@ -1,4 +1,4 @@
-package org.wheatgenetics.onekk;
+package org.wheatgenetics.onekkUtils;
 
 /**
  * Copyright 2005 Bytecode Pty Ltd.

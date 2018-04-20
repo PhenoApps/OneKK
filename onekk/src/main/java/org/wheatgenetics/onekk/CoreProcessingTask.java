@@ -12,10 +12,11 @@ import android.util.TimingLogger;
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.wheatgenetics.database.Data;
 import org.wheatgenetics.imageprocess.ColorThreshold.ColorThresholding;
 import org.wheatgenetics.imageprocess.ImgProcess1KK.MeasureSeeds;
-import org.wheatgenetics.imageprocess.Seed.MSeeds;
 import org.wheatgenetics.imageprocess.WatershedLB.WatershedLB;
+import org.wheatgenetics.onekkUtils.Constants;
 import org.wheatgenetics.onekkUtils.NotificationHelper;
 import org.wheatgenetics.onekkUtils.oneKKUtils;
 
@@ -44,7 +45,6 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,AsyncTask.Status,Bitmap
     private Boolean backgroundProcessing;
     private int notificationCounter;
     private double coinSize;
-    private TimingLogger timingLogger;
     private CoinRecognitionTask coinRecognitionTask;
     private ColorThresholding.ColorThresholdParams ctParams;
     private WatershedLB watershedLB;
@@ -103,7 +103,17 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,AsyncTask.Status,Bitmap
         /* the first bitmap consists of the image */
         Bitmap outputBitmap = bitmaps[0];
 
-        this.timingLogger = new TimingLogger("CoreProcessing",sampleName);
+        /*
+        *  adb shell setprop log.tag.<TAGNAME> VERBOSE
+        *
+        *  TAGNAME = CoreProcessing
+        *
+        *  To see the timings in the console make sure you run this command
+        *
+        *  adb shell setprop log.tag.CoreProcessing VERBOSE
+        *
+        */
+        TimingLogger timingLogger = new TimingLogger("CoreProcessing", sampleName);
         Mat tempMat = new Mat();
 
         displayAlert("Coin Recognition...",true);
@@ -149,10 +159,14 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,AsyncTask.Status,Bitmap
             seedCount = (int) watershedLB.getNumSeeds();
 
             /* once the processing is complete we characterize the seeds */
+
+            /* Open CV based approach*/
+
             /*MSeeds mSeeds = new MSeeds(coinRecognitionTask.getPixelMetric(), watershedLB.getProcessedMat());
             mSeeds.process(watershedLB.getSeedArrayList());
             Utils.matToBitmap(mSeeds.getmSeedsProcessedMat(),outputBitmap);*/
 
+            /* Trevor's implementation */
             MeasureSeeds measureSeeds = new MeasureSeeds();
             measureSeeds.measureSeeds(watershedLB.getSeedContours(),coinRecognitionTask.getPixelMetric());
 
@@ -172,6 +186,7 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,AsyncTask.Status,Bitmap
 
             System.gc();
         }
+
         /* if all the coins are not detected or fail any of the constraint checks then that particular
         * processing is cancelled
         */

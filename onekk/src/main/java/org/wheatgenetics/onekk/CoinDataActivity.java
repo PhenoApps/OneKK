@@ -1,24 +1,16 @@
 package org.wheatgenetics.onekk;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.TableLayout;
 
-import org.wheatgenetics.database.MySQLiteHelper;
+import org.wheatgenetics.database.Data;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-
-import static org.wheatgenetics.onekk.Data.getAllData;
+import static org.wheatgenetics.database.Data.getAllData;
 
 /**
  * This class is the activity class for Coin Data feature and is

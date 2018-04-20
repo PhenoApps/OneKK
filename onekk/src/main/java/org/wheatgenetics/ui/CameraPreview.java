@@ -1,4 +1,4 @@
-package org.wheatgenetics.onekk;
+package org.wheatgenetics.ui;
 
 import java.io.IOException;
 

@@ -1,4 +1,4 @@
-package org.wheatgenetics.onekk;
+package org.wheatgenetics.database;
 
 /**
  * Created by sid on 1/23/18.
@@ -29,11 +29,10 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.wheatgenetics.database.MySQLiteHelper;
-import org.wheatgenetics.database.SampleRecord;
-import org.wheatgenetics.database.SeedRecord;
 import org.wheatgenetics.imageprocess.Seed.RawSeed;
-import org.wheatgenetics.imageprocess.Seed.Seed;
+import org.wheatgenetics.onekkUtils.Constants;
+import org.wheatgenetics.onekk.R;
+import org.wheatgenetics.onekkUtils.CSVWriter;
 import org.wheatgenetics.onekkUtils.oneKKUtils;
 
 import java.io.File;
@@ -69,7 +68,7 @@ public class Data {
         db = new MySQLiteHelper(context);
     }
 
-    public static void getLastData() {
+    public void getLastData() {
         OneKKTable.removeAllViews();
         List<SampleRecord> list = db.getLastSample();
         db.close();
@@ -109,7 +108,7 @@ public class Data {
     }
 
     // FIXME: 1/23/18
-    public static void parseListToTable(List<?> list) {
+    private static void parseListToTable(List<?> list) {
 
         int itemCount = list.size();
 
@@ -123,7 +122,7 @@ public class Data {
             }
         }
 
-    public static void parseListToLastSampleTable(List<?> list){
+    private static void parseListToLastSampleTable(List<?> list){
             int itemCount = list.size();
             if(itemCount > 0){
                 String[] temp = list.get(0).toString().split(",");
@@ -131,7 +130,7 @@ public class Data {
             }
     }
 
-    public static void createNewTableEntry(String country, final String coinName, String diameter) {
+    private static void createNewTableEntry(String country, final String coinName, String diameter) {
         //inputText.setText("");
 
 		/* Create a new row to be added. */
@@ -249,7 +248,7 @@ public class Data {
     /************************************************************************************
      * Adds a new entry to the end of the View Data
      ************************************************************************************/
-    public static void createNewTableEntry(String sample, String seedCount, String avgL, String avgW, String wt) {
+    private static void createNewTableEntry(String sample, String seedCount, String avgL, String avgW, String wt) {
 
 		/* Create a new row to be added. */
         TableRow tr = new TableRow(context);
@@ -328,10 +327,9 @@ public class Data {
     /************************************************************************************
      * Adds a new record to the internal list of records
      ************************************************************************************/
-    // FIXME: 1/23/18
+    // FIXME: 1/23/18 change the parameters to a Seed Record and a Sample Record
 
-
-      public void addRecords(String sampleName, String photoName, String firstName, String lastName, int seedCount, String weight, ArrayList<RawSeed> seedArrayList) {
+    public void addRecords(String sampleName, String photoName, String firstName, String lastName, int seedCount, String weight, ArrayList<RawSeed> seedArrayList) {
       // Add all measured seeds to database
           for(RawSeed s : seedArrayList){
               db.addSeedRecord(new SeedRecord(sampleName, s.getLength(), s.getWidth(), s.getPerimeter(), s.getArea(), "",null));
@@ -351,7 +349,7 @@ public class Data {
       double areaCV = (db.sdSample(sampleName, "area")) / (db.averageSample(sampleName, "area"));
 
       String seedCountString = String.valueOf(seedCount);
-      String date = oneKKUtils.getDate().toString();
+      String date = oneKKUtils.getDate();
 
       // Add sample to database
       db.addSampleRecord(new SampleRecord(sampleName, photoName,
@@ -436,7 +434,7 @@ public class Data {
     }
 
     // FIXME: 1/23/18
-    public static void deleteCoinDialog(String tag) {
+    private static void deleteCoinDialog(String tag) {
         final String[] id = tag.split("~");
         final String countryId = id[0];
         final String nameId = id[1];
@@ -553,7 +551,7 @@ public class Data {
     }
 
     // FIXME: 1/23/18
-    public static void dropTables() {
+    private static void dropTables() {
         db.deleteAll();
         OneKKTable.removeAllViews();
         currentItemNum = 1;

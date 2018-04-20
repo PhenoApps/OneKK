@@ -59,11 +59,15 @@ import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
+import org.wheatgenetics.database.Data;
 import org.wheatgenetics.database.MySQLiteHelper;
 import org.wheatgenetics.imageprocess.ColorThreshold.ColorThresholding;
 import org.wheatgenetics.imageprocess.ImageProcess;
 import org.wheatgenetics.imageprocess.Seed.RawSeed;
+import org.wheatgenetics.onekkUtils.Constants;
 import org.wheatgenetics.onekkUtils.oneKKUtils;
+import org.wheatgenetics.ui.CameraPreview;
+import org.wheatgenetics.ui.guideBox;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -184,6 +188,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         //makeToast(String.valueOf(preview.getLength()) + " " + String.valueOf(preview.getWidth()));
         //OpenCVLoader.initAsync()
+
         if (!OpenCVLoader.initDebug()) {
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.INIT_FAILED);
         } else {
@@ -317,7 +322,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         PackageManager pm = getPackageManager();
         if (pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_AUTOFOCUS)) {
             Camera.Parameters params = mCamera.getParameters();
-            //params.setRotation(90);
+
             if (params.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
                 params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
             } else if (params.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
@@ -331,14 +336,14 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         // Create our Preview view and set it as the content of our activity.
         mPreview = new CameraPreview(this, mCamera);
         preview.addView(mPreview);
-        //coinRecognition = new CoinRecognition();
         gb = new guideBox(this, Integer.parseInt(ep.getString(SettingsFragment.COIN_SIZE, "4")));
         preview.addView(gb, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
-        /* Uncomment the below line to enable real time coin recognition */
+        /* Uncomment the below line to enable naive custom real time coin recognition */
         //previewThread.start();
     }
 
+    /* Naive custom real time coin recognition */
     //TODO see if there are other optimized possibilities to handle this operation
         /* A new thread to handle the camera preview callback.
         *
@@ -588,6 +593,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             int w = parameters.getPreviewSize().width;
 
             //TODO : fix this to check for coins immediately after capture using an Asynctask
+            /* Naive custom real time coin recognition */
 /*
             coinRecognitionTask = new CoinRecognitionTask(w,h);
             coinRecognitionTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,data);
@@ -651,7 +657,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             }
             else {
                 outputFileUri = storeRawPicture(data);
-                //hueThreshold(outputFileUri);
                 imageAnalysisLB(outputFileUri);
                 mCamera.startPreview();
             }

@@ -1,4 +1,4 @@
-package org.wheatgenetics.onekk;
+package org.wheatgenetics.ui;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -8,6 +8,9 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import org.wheatgenetics.onekk.R;
+import org.wheatgenetics.onekk.SettingsFragment;
 
 /**
  * Created by sid on 2/14/18.

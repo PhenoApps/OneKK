@@ -18,9 +18,8 @@ import android.widget.TextView;
 
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
-import org.wheatgenetics.onekk.Constants;
 import org.wheatgenetics.onekk.R;
-import org.wheatgenetics.onekk.TouchImageView;
+import org.wheatgenetics.ui.TouchImageView;
 
 import java.io.File;
 import java.text.SimpleDateFormat;

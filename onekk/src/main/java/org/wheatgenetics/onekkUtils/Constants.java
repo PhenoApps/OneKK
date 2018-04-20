@@ -1,4 +1,4 @@
-package org.wheatgenetics.onekk;
+package org.wheatgenetics.onekkUtils;
 
 import android.os.Environment;
 

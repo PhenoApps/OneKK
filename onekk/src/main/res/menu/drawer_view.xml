@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <!--<item
+    <!-- Real time coin recognition based on OpenCV camera
+    <item
         android:id="@+id/nav_coinrecognition"
         android:icon="@drawable/ic_settings"
-        android:title="@string/coinrecognition" />-->
+        android:title="@string/coinrecognition" />
+    -->
 
     <item
         android:id="@+id/nav_settings"

@@ -14,7 +14,7 @@
             android:textAlignment="center"
     />
 
-    <org.wheatgenetics.onekk.TouchImageView
+    <org.wheatgenetics.ui.TouchImageView
         android:id="@+id/postImage"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" />
