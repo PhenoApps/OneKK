@@ -661,16 +661,11 @@ public class Data {
     }
 
     // FIXME: 1/23/18
-    public static String exportDatabase(Cursor cursorForExport, String type) throws Exception {
+    private static String exportDatabase(Cursor cursorForExport, String type) throws Exception {
         File file = null;
 
         try {
             file = new File(Constants.EXPORT_PATH, "export_" + type + "_" + getDate() + ".csv");
-        } catch (Exception e) {
-            Log.e("Data", e.getMessage());
-        }
-
-        try {
             file.createNewFile();
             CSVWriter csvWrite = new CSVWriter(new FileWriter(file));
             csvWrite.writeNext(cursorForExport.getColumnNames());
@@ -686,17 +681,17 @@ public class Data {
             }
             csvWrite.close();
             cursorForExport.close();
-        } catch (Exception sqlEx) {
-            Log.e("Data", sqlEx.getMessage(), sqlEx);
+            makeFileDiscoverable(file, context);
+            //shareFile(file.getPath());
+        } catch (Exception e) {
+            Log.e("Data", e.getMessage());
         }
 
-        makeFileDiscoverable(file, context);
         return file.toString();
-        //shareFile(file.toString());
     }
 
     // FIXME: 1/23/18
-    public static void shareFile(final String filePath) {
+    private static void shareFile(final String filePath) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setMessage(context.getResources().getString(R.string.share_file))
                 .setCancelable(false)
@@ -706,7 +701,7 @@ public class Data {
                             public void onClick(DialogInterface dialog, int id) {
                                 Intent intent = new Intent();
                                 intent.setAction(android.content.Intent.ACTION_SEND);
-                                intent.setType("text/plain");
+                                intent.setType("text/*");
                                 intent.putExtra(Intent.EXTRA_STREAM, Uri.parse(filePath));
                                 context.startActivity(Intent.createChooser(intent, "Sending File..."));
                             }

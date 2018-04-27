@@ -821,13 +821,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         final ColorThresholding.ColorThresholdParams colorThresholdParams;
         final String firstName = ep.getString(SettingsFragment.FIRST_NAME, "first_name");
         final String lastName = ep.getString(SettingsFragment.LAST_NAME, "last_name");
-
-        /*final int areaLow = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_LOW, "400"));
-        final int areaHigh = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_HIGH, "160000"));
-        final int defaultRate = Integer.valueOf(ep.getString(SettingsFragment.PARAM_DEFAULT_RATE, "34"));
-        final double sizeLowerBoundRatio = Double.valueOf(ep.getString(SettingsFragment.PARAM_SIZE_LOWER_BOUND_RATIO, "0.25"));
-        final double newSeedDistRatio = Double.valueOf(ep.getString(SettingsFragment.PARAM_NEW_SEED_DIST_RATIO, "4.0"));
-        */
         final int lowerBound = ep.getInt(SettingsFragment.MIN_VALUE, 116);
         final int upperBound = ep.getInt(SettingsFragment.MAX_VALUE, 255);
         final int threshold = ep.getInt(SettingsFragment.THRESHOLD, 20);
@@ -836,6 +829,12 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         final Boolean showAnalysis = ep.getBoolean(SettingsFragment.DISPLAY_ANALYSIS, false);
         final Boolean backgroundProcessing = ep.getBoolean(SettingsFragment.ASK_BACKGROUND_PROCESSING, false);
         final Boolean multiProcessing = ep.getBoolean(SettingsFragment.ASK_MULTI_PROCESSING, false);
+        /*final int areaLow = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_LOW, "400"));
+        final int areaHigh = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_HIGH, "160000"));
+        final int defaultRate = Integer.valueOf(ep.getString(SettingsFragment.PARAM_DEFAULT_RATE, "34"));
+        final double sizeLowerBoundRatio = Double.valueOf(ep.getString(SettingsFragment.PARAM_SIZE_LOWER_BOUND_RATIO, "0.25"));
+        final double newSeedDistRatio = Double.valueOf(ep.getString(SettingsFragment.PARAM_NEW_SEED_DIST_RATIO, "4.0"));
+        */
 
         final Bitmap inputBitmap = BitmapFactory.decodeFile(photoPath);
         Log.d("CoreProcessing : Begin", oneKKUtils.getDate());

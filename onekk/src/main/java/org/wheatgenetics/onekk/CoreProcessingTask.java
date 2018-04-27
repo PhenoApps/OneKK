@@ -29,6 +29,17 @@ import static org.wheatgenetics.onekkUtils.oneKKUtils.postImageDialog;
  * Created by sid on 1/28/18.
  */
 
+/** This class controls all the background processing and notifications
+ *  in the following stages
+ *
+ *  1. Coin Recognition
+ *  2. Color Thresholding, if required
+ *  3. Image Analysis
+ *  4. Measure Seeds
+ *  5. Store Data
+ *  6. Save Analyzed image
+ *
+ * */
 public class CoreProcessingTask extends AsyncTask<Bitmap,String,Bitmap> {
 
     private Context context;
@@ -47,7 +58,6 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,String,Bitmap> {
     private double coinSize;
     private CoinRecognitionTask coinRecognitionTask;
     private ColorThresholding.ColorThresholdParams ctParams;
-    private WatershedLB watershedLB;
 
     public CoreProcessingTask(Context context, ColorThresholding.ColorThresholdParams ctParams, String photoName,
                               Boolean showAnalysis, String sampleName, String firstName,
@@ -108,7 +118,7 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,String,Bitmap> {
         *
         *  TAGNAME = CoreProcessing
         *
-        *  To see the timings in the console make sure you run this command
+        *  To see the timings from TimingLogger in the console make sure you run this command
         *
         *  adb shell setprop log.tag.CoreProcessing VERBOSE
         *
@@ -120,6 +130,9 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,String,Bitmap> {
 
         /* convert the bitmap to a mat and start coin recognition */
         Utils.bitmapToMat(bitmaps[0],tempMat);
+
+        if(tempMat.empty())
+            cancel(true);
         coinRecognitionTask = new CoinRecognitionTask(coinSize);
         coinRecognitionTask.process(tempMat);
 
@@ -151,9 +164,9 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,String,Bitmap> {
             }
 
             /* start the watershed light box processing */
-            watershedLB = new WatershedLB();
+            WatershedLB watershedLB = new WatershedLB();
             displayAlert("Processing...", true);
-            outputBitmap = this.watershedLB.process(croppedBitmap);
+            outputBitmap = watershedLB.process(croppedBitmap);
 
             timingLogger.addSplit("Image Analysis");
             seedCount = (int) watershedLB.getNumSeeds();
