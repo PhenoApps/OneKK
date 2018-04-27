@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -76,6 +77,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -87,9 +89,9 @@ import static org.wheatgenetics.onekkUtils.oneKKUtils.postImageDialog;
 public class MainActivity extends AppCompatActivity implements OnInitListener {
 
     public final static String TAG = "OneKK";
+    public static final int MEDIA_TYPE_IMAGE = 1;
     private SharedPreferences ep;
 
-    private TableLayout lastSampleTable;
     private Data data;
     private static UsbDevice mDevice;
 
@@ -101,20 +103,18 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     int notificationCounter = 1;
     private String firstName = "";
     private String lastName = "";
+    private String picName = "";
+    private String photoName;
+    private String photoPath;
 
-    guideBox gb;
-    CoinRecognitionTask coinRecognitionTask;
-    FrameLayout preview;
+    private guideBox gb;
+    private CoinRecognitionTask coinRecognitionTask;
+    private FrameLayout preview;
 
     @SuppressWarnings("deprecation")
     private Camera mCamera;
     private CameraPreview mPreview;
-    private String picName = "";
-    private String photoName;
-    private String photoPath;
-    public static final int MEDIA_TYPE_IMAGE = 1;
-    private Bitmap outputBitmap;
-    private Mat finalMat;
+
     private LinearLayout parent;
     private ScrollView changeContainer;
     private String sampleName;
@@ -122,8 +122,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     private ActionBarDrawerToggle mDrawerToggle;
     private DrawerLayout mDrawerLayout;
     private Random r;
-    private ImageButton cameraButton;
-    private ProgressBar progressBar;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -148,7 +146,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         ep = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
 
-        lastSampleTable = (TableLayout) findViewById(R.id.lastSampleTable);
+        TableLayout lastSampleTable = (TableLayout) findViewById(R.id.lastSampleTable);
         inputText = (EditText) findViewById(R.id.etInput);
         mWeightEditText = (EditText) findViewById(R.id.etWeight);
         mWeightEditText.setText(getResources().getString(R.string.not_connected));
@@ -161,8 +159,8 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         Intent intent = getIntent();
         mDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-        progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        cameraButton = (ImageButton) findViewById(R.id.camera_button);
+
+        ImageButton cameraButton = (ImageButton) findViewById(R.id.camera_button);
         cameraButton.setOnClickListener(new ImageButton.OnClickListener(
         ) {
             @Override
@@ -175,8 +173,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                 }
             }
         });
-        //Log.d(TAG, ep.getString(SettingsFragment.COIN_NAME,"-1"));
-        //startCamera();
+
         createDirs();
         data = new Data(MainActivity.this, lastSampleTable);
         data.getLastData();
@@ -195,7 +192,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.INIT_FAILED);
         } else {
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
-            //finalMat = new Mat();
         }
 
         if (ep.getString(SettingsFragment.FIRST_NAME, "").length() == 0) {
@@ -267,21 +263,22 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         });
     }
 
-    private void createDirs() {
-        createDir(Constants.MAIN_PATH);
-        createDir(Constants.EXPORT_PATH);
-        createDir(Constants.PHOTO_PATH);
-        createDir(Constants.ANALYZED_PHOTO_PATH);
-    }
-
     public int getVersion() {
         int v = 0;
         try {
             v = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
         } catch (PackageManager.NameNotFoundException e) {
-            Log.e("Field Book", "" + e.getMessage());
+            Log.e(TAG, "" + e.getMessage());
         }
         return v;
+    }
+
+    private void createDirs() {
+        createDir(Constants.MAIN_PATH);
+        createDir(Constants.EXPORT_PATH);
+        createDir(Constants.PHOTO_PATH);
+        createDir(Constants.PHOTO_SAMPLES_PATH);
+        createDir(Constants.ANALYZED_PHOTO_PATH);
     }
 
     private void createDir(File path) {
@@ -297,6 +294,50 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             } catch (IOException e) {
                 Log.e(TAG, e.getMessage());
             }
+
+            /* copy sample images when the directory is created */
+            if(path.compareTo(Constants.PHOTO_SAMPLES_PATH) == 0)
+                copySampleImages();
+        }
+    }
+
+    /** copy sample images into the directory OneKK/Photos/Samples */
+    private void copySampleImages(){
+
+        AssetManager assetManager = getAssets();
+
+            String[] files = {"gwheat.jpg","nsoybeans.jpg","soybeans.jpg","wheat.jpg","silphium.jpg","maize.jpg"};
+
+            for(String filename : files) {
+                InputStream in;
+                OutputStream out;
+
+                try {
+                    in = assetManager.open(filename);
+
+                    String outDir = Constants.PHOTO_SAMPLES_PATH.toString();
+
+                    File outFile = new File(outDir, filename);
+
+                    out = new FileOutputStream(outFile);
+                    copyImage(in, out);
+                    in.close();
+                    in = null;
+                    out.flush();
+                    out.close();
+                    out = null;
+                } catch(IOException e) {
+                    Log.e(TAG, "Failed to copy asset file: " + filename, e);
+                }
+            }
+    }
+
+    /** used by copySampleImages method */
+    private void copyImage(InputStream in, OutputStream out) throws IOException {
+        byte[] buffer = new byte[1024];
+        int read;
+        while ((read = in.read(buffer)) != -1) {
+            out.write(buffer, 0, read);
         }
     }
 
@@ -620,7 +661,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
             r = new Random();
             Uri outputFileUri;
-            String input = "";
+            String input;
 
             if (inputText.getText().length() != 0) {
                 input = inputText.getText().toString();
@@ -628,15 +669,15 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                 /* This section of code is just a hack to run already stored sample images for UI testing
                  *
                  *  In the sample name input box the developer can enter $ followed by,
-                 *  either kk or ht or lb to run different algorithms, followed by
-                 *  the name of the image that is already present on the device in the Downloads directory
+                 *  either kk or lb to run different algorithms, followed by
+                 *  the name of the image that is already present on the device in the Samples directory
                  *
                  *  Example : $lbsoybeans, will run a watershed light box algorithm on a soybeans
-                 *            sample image that is present in the Download directory
+                 *            sample image that is present in the OneKK/Photos/Samples directory
                  */
 
                 if (input.charAt(0) == '$') {
-                    outputFileUri = Uri.fromFile(new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Download/" + input.substring(3) + ".jpg"));
+                    outputFileUri = Uri.fromFile(new File(Constants.PHOTO_SAMPLES_PATH.toString() + "/" + input.substring(3) + ".jpg"));
                     inputText.setText(input.substring(3) + r.nextInt(200));
                     switch (input.substring(1, 3)) {
                         case "kk":

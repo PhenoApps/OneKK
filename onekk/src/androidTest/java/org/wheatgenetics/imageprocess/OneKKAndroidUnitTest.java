@@ -25,23 +25,23 @@ import static junit.framework.Assert.assertTrue;
 @SmallTest
 public class OneKKAndroidUnitTest{
 
-    private int areaLow = Integer.valueOf("400");
-    private int areaHigh = Integer.valueOf("160000");
-    private int defaultRate = Integer.valueOf("34");
-    private double sizeLowerBoundRatio = Double.valueOf("0.25");
-    private double seedSize = 1;
-    private double newSeedDistRatio = Double.valueOf("4.0");
+    private final int areaLow = Integer.valueOf("400");
+    private final int areaHigh = Integer.valueOf("160000");
+    private final int defaultRate = Integer.valueOf("34");
+    private final double sizeLowerBoundRatio = Double.valueOf("0.25");
+    private final double seedSize = 1;
+    private final double newSeedDistRatio = Double.valueOf("4.0");
 
     private int seedCount = 0;
     private boolean setupDoneFlag = false;
 
-    private int SEEDCOUNT_SOYBEANS = 50;
-    private int SEEDCOUNT_SOYBEANS_OVERLAPPING = 50;
+    private final int SEEDCOUNT_SOYBEANS = 50;
+    private final int SEEDCOUNT_SOYBEANS_OVERLAPPING = 50;
     private int SEEDCOUNT_REDSEEDS = 114;
-    private int SEEDCOUNT_WHEAT = 173;
-    private int SEEDCOUNT_WHEAT_COLORED = 269;
-    private int SEEDCOUNT_MAIZE = 62;
-    private int SEEDCOUNT_SILPHIUM = 45;
+    private final int SEEDCOUNT_WHEAT = 173;
+    private final int SEEDCOUNT_WHEAT_COLORED = 269;
+    private final int SEEDCOUNT_MAIZE = 62;
+    private final int SEEDCOUNT_SILPHIUM = 45;
 
     private WatershedLB mSeedCounter;
     private String photoPath;
