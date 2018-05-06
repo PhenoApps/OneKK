@@ -41,15 +41,12 @@
             android:launchMode="singleTask"
             android:screenOrientation="sensorPortrait"
             android:windowSoftInputMode="stateHidden">
-            <intent-filter>
-                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
-            </intent-filter>
-
             <meta-data
                 android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
                 android:resource="@xml/device_filter" />
 
             <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -57,12 +54,14 @@
         </activity>
         <activity
             android:name=".SettingsActivity"
-            android:label="Settings"
-            android:parentActivityName=".MainActivity" />
+            android:label="Settings">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="org.wheatgenetics.onekk.MainActivity" />
+        </activity>
         <activity
             android:name=".ViewDataActivity"
             android:label="@string/view_data_activity"
-            android:parentActivityName=".MainActivity"
             android:theme="@style/AppTheme">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -71,12 +70,14 @@
         <activity
             android:name=".CoinDataActivity"
             android:label="@string/coin_data_activity"
-            android:parentActivityName=".SettingsActivity"
             android:theme="@style/AppTheme">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="org.wheatgenetics.onekk.MainActivity" />
+                android:value="org.wheatgenetics.onekk.SettingsActivity" />
         </activity>
+        <activity
+            android:name=".ReportActivity"
+            android:label="@string/title_activity_report"></activity>
     </application>
 
 </manifest>

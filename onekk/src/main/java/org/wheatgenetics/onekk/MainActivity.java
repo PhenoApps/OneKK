@@ -556,6 +556,11 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                 findScale();
                 break;
 
+            case R.id.nav_report:
+                final Intent reportActivityIntent = new Intent(this,ReportActivity.class);
+                startActivity(reportActivityIntent);
+                break;
+
             case R.id.nav_help:
                 makeToast(getResources().getString(R.string.coming_soon));
                 break;

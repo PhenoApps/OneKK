@@ -39,6 +39,7 @@
 
     <string name="help">Help</string>
     <string name="about_title">About</string>
+    <string name="report">Report</string>
 
     <string name="versiontitle">Version</string>
 
@@ -148,17 +149,18 @@
     <!-- Strings related to Settings -->
 
     <!-- Example General settings -->
-    <string name="pref_header_general">General</string>
+    <string name="required">Required</string>
+    <string name="sample_input_image">Sample input image</string>
+    <string name="processing_settings">Processing settings</string>
+    <string name="log">Log</string>
 
-    <string name="pref_title_social_recommendations">Enable social recommendations</string>
-    <string name="pref_description_social_recommendations">Recommendations for people to contact
-        based on your message history
-    </string>
+    <string name="Optional">Optional</string>
+    <string name="include_screenshot">Include screenshot</string>
+    <string name="sample_analyzed_image">Sample analyzed image</string>
+    <string name="sample_data">Sample data</string>
+    <string name="expected_seed_count">Expected seed count</string>
+    <string name="additional_information">Additional information</string>
 
-    <string name="pref_title_display_name">Display name</string>
-    <string name="pref_default_display_name">John Smith</string>
-
-    <string name="pref_title_add_friends_to_messages">Add friends to messages</string>
     <string-array name="pref_example_list_titles">
         <item>Always</item>
         <item>When possible</item>
@@ -321,4 +323,5 @@
 
     <string name="action_cancel">Cancel</string>
     <string name="action_reply">Reply</string>
+    <string name="title_activity_report">Report</string>
 </resources>
