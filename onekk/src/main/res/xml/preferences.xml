@@ -16,14 +16,14 @@
         android:summary="Display analysis preview"
         android:title="@string/display_analysis" />
 
-    <PreferenceScreen
+    <!--<PreferenceScreen
         android:icon="@drawable/ic_settings_applications_black_24dp"
         android:key="org.wheatgenetics.onekk.PROCESSING_RANGES"
         android:persistent="false"
         android:summary="Set different processing settings"
         android:title="@string/processing">
 
-        <!--<PreferenceCategory
+        <PreferenceCategory
 
             android:title="@string/types_processing_techniques">
 
@@ -45,17 +45,17 @@
         </PreferenceCategory>-->
 
 
-        <PreferenceCategory android:title="Pre Processing"/>
-        <CheckBoxPreference
+        <!--<PreferenceCategory android:title="Pre Processing"/>-->
+        <!--<CheckBoxPreference
             android:defaultValue="false"
             android:icon="@drawable/ic_tune_black_24dp"
             android:key="org.wheatgenetics.onekk.COLOR_THRESHOLD"
             android:summary="perform color thresholding before Watershed"
-            android:title="@string/color_threshold" />
+            android:title="@string/color_threshold" />-->
 
         <PreferenceCategory
-            android:dependency="org.wheatgenetics.onekk.COLOR_THRESHOLD"
             android:title="@string/seed_size_range">
+            <!--android:dependency="org.wheatgenetics.onekk.COLOR_THRESHOLD"-->
             <SeekBarPreference
                 android:defaultValue="50"
                 android:key="org.wheatgenetics.onekk.MIN_SEED_VALUE"
@@ -70,7 +70,7 @@
                 android:title="@string/max_size" />
         </PreferenceCategory>
 
-        <PreferenceCategory
+        <!--<PreferenceCategory
             android:dependency="org.wheatgenetics.onekk.COLOR_THRESHOLD"
             android:title="@string/hue_range">
             <SeekBarPreference
@@ -103,8 +103,8 @@
                 android:key="org.wheatgenetics.onekk.COLOR_PREFERENCE"
                 android:summary="background color to use"
                 android:title="@string/background_color" />
-        </PreferenceCategory>
-    </PreferenceScreen>
+        </PreferenceCategory>-->
+    <!--</PreferenceScreen>-->
 
     <PreferenceCategory
         android:icon="@drawable/ic_settings"

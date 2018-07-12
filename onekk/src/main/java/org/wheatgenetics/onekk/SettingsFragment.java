@@ -69,9 +69,9 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         //additional setup for MIN/MAX checks in Range settings
         additionalPreferenceSetup(findPreference(MIN_SEED_VALUE), "Minimum seed value");
         additionalPreferenceSetup(findPreference(MAX_SEED_VALUE), "Maximum seed value");
-        additionalPreferenceSetup(findPreference(MIN_VALUE), "Minimum hue value");
-        additionalPreferenceSetup(findPreference(MAX_VALUE), "Maximum hue value");
-        additionalPreferenceSetup(findPreference(THRESHOLD), "Threshold");
+        //additionalPreferenceSetup(findPreference(MIN_VALUE), "Minimum hue value");
+        //additionalPreferenceSetup(findPreference(MAX_VALUE), "Maximum hue value");
+        //additionalPreferenceSetup(findPreference(THRESHOLD), "Threshold");
     }
 
     /** Adding additional preferences to REFERENCE COIN SIZE
@@ -161,7 +161,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                 Toast.makeText(getPreferenceScreen().getContext(), "Maximum cannot be less than Minimum", Toast.LENGTH_LONG).show();
                 return false;
             }
-        } else if (preference.getKey().equals(MIN_VALUE)) {
+        } /*else if (preference.getKey().equals(MIN_VALUE)) {
             text = "Minimum hue value";
             tempVal = findPreference(MAX_VALUE).getSharedPreferences().getInt(MAX_VALUE, 0);
             if (Integer.parseInt(stringValue) > tempVal) {
@@ -177,7 +177,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             }
         } else if (preference.getKey().equals(THRESHOLD)) {
             text = "Threshold";
-        }
+        }*/
         preference.setTitle(text + " - " + stringValue);
         return true;
     }
