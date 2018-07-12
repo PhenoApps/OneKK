@@ -17,7 +17,7 @@
         android:icon="@drawable/ic_view_data"
         android:title="@string/view_data"/>
 
-    <item
+    <!--<item
         android:id="@+id/nav_scaleConnect"
         android:icon="@drawable/ic_usb"
         android:title="@string/connect_scale_title" />
@@ -25,7 +25,7 @@
     <item
         android:id="@+id/nav_report"
         android:icon="@drawable/ic_report"
-        android:title="@string/report" />
+        android:title="@string/report" />-->
 
     <item
         android:id="@+id/nav_help"
