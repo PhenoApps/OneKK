@@ -324,4 +324,10 @@
     <string name="action_cancel">Cancel</string>
     <string name="action_reply">Reply</string>
     <string name="title_activity_report">Report</string>
+    <string name="intro_title_1">Intro Title1</string>
+    <string name="intro_title_2">Intro Title 2</string>
+    <string name="intro_title_3">Intro Title 3</string>
+    <string name="intro_body_1">Intro Body 1</string>
+    <string name="intro_body_2">Intro Body 2</string>
+    <string name="intro_body_3">Intro Body 3</string>
 </resources>

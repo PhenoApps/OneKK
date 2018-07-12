@@ -222,6 +222,12 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             mySQLiteHelper.importCoinData(inputStream);
         }
 
+        if (!ep.getBoolean("onlyLoadTutorialOnce", false)) {
+            launchIntro();
+            ed.putBoolean("onlyLoadTutorialOnce", true);
+            ed.apply();
+        }
+
         FrameLayout measuringStick = (FrameLayout) findViewById(R.id.measureStick);
         measuringStick.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
             int count = 0;
@@ -261,6 +267,26 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                 //makeToast(String.valueOf(preview.getLength()));
             }
         });
+    }
+
+    private void launchIntro() {
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                //  Launch app intro
+                final Intent i = new Intent(MainActivity.this, IntroActivity.class);
+
+                runOnUiThread(new Runnable() {
+                    @Override public void run() {
+                        startActivity(i);
+                    }
+                });
+
+
+            }
+        }).start();
     }
 
     public int getVersion() {

@@ -77,7 +77,8 @@
         </activity>
         <activity
             android:name=".ReportActivity"
-            android:label="@string/title_activity_report"></activity>
+            android:label="@string/title_activity_report" />
+        <activity android:name=".IntroActivity"></activity>
     </application>
 
 </manifest>
