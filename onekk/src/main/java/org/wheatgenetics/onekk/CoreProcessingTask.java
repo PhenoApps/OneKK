@@ -233,7 +233,8 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,String,Bitmap> {
         if (showAnalysis) {
                 postImageDialog(context,photoName,seedCount);
         }
-        data.getLastData();
+        if(data != null)
+            data.getLastData();
         //context.unregisterReceiver(broadcastReceiver);
     }
 

@@ -13,7 +13,8 @@ import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Point;
+import android.graphics.Matrix;
+import android.graphics.Typeface;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.usb.UsbConstants;
@@ -25,7 +26,6 @@ import android.hardware.usb.UsbManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech.OnInitListener;
 import android.support.design.widget.NavigationView;
@@ -49,7 +49,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TableLayout;
@@ -59,15 +58,14 @@ import android.widget.Toast;
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.core.Mat;
 import org.wheatgenetics.database.Data;
 import org.wheatgenetics.database.MySQLiteHelper;
 import org.wheatgenetics.imageprocess.ColorThreshold.ColorThresholding;
 import org.wheatgenetics.imageprocess.ImageProcess;
-import org.wheatgenetics.imageprocess.Seed.RawSeed;
 import org.wheatgenetics.onekkUtils.Constants;
 import org.wheatgenetics.onekkUtils.oneKKUtils;
 import org.wheatgenetics.ui.CameraPreview;
+import org.wheatgenetics.ui.TouchImageView;
 import org.wheatgenetics.ui.guideBox;
 
 import java.io.BufferedReader;
@@ -80,7 +78,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Random;
 
 import static org.wheatgenetics.onekkUtils.oneKKUtils.makeFileDiscoverable;
@@ -568,6 +565,10 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                 startActivity(cameraActivityIntent);
                 break;*/
 
+            case R.id.nav_samples:
+                samplesDialog();
+                break;
+
             case R.id.nav_settings:
                 final Intent settingsIntent = new Intent(this, SettingsActivity.class);
                 startActivity(settingsIntent);
@@ -690,7 +691,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             /*if (ep.getBoolean(SettingsFragment.ASK_PROCESSING_TECHNIQUE, true))
                 processingTechniqueDialog();*/
 
-            r = new Random();
             Uri outputFileUri;
             String input;
 
@@ -834,6 +834,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     private void imageAnalysisLB(final Uri photo) {
         photoPath = photo.getPath();
         photoName = photo.getLastPathSegment();
+        r = new Random();
 
         sampleName = inputText.getText().toString();
 
@@ -894,6 +895,71 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             mCamera.release();
             mCamera = null;
         }
+    }
+
+    /**
+     * This method lets the user run the analysis on some sample images that come along with the app
+     */
+
+    private void samplesDialog(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+
+        builder.setTitle("Select a Sample");
+
+        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(MainActivity.this, android.R.layout.select_dialog_item);
+        arrayAdapter.add("Soybeans");
+        arrayAdapter.add("Maize");
+        arrayAdapter.add("Silphium");
+        arrayAdapter.add("Wheat");
+
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        builder.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                final String sampleName = arrayAdapter.getItem(which).toLowerCase();
+                final AlertDialog.Builder samplePreviewAlert = new AlertDialog.Builder(MainActivity.this);
+
+                LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
+                final View personView = inflater.inflate(R.layout.post_image, new LinearLayout(MainActivity.this), false);
+                final TextView tv = (TextView)personView.findViewById(R.id.tvSeedCount);
+                Typeface myTypeFace = Typeface.createFromAsset(MainActivity.this.getAssets(), "AllerDisplay.ttf");
+                tv.setTypeface(myTypeFace);
+                tv.setText(sampleName);
+                File imgFile = new File(Constants.PHOTO_SAMPLES_PATH, sampleName + ".jpg");
+
+                if (imgFile.exists()) {
+                    TouchImageView imgView = (TouchImageView) personView.findViewById(R.id.postImage);
+                    Bitmap bmImg = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+
+                    Matrix matrix = new Matrix();
+                    matrix.postRotate(90);
+                    Bitmap rbmImg = Bitmap.createBitmap(bmImg, 0, 0, bmImg.getWidth(), bmImg.getHeight(), matrix, true);
+                    imgView.setImageBitmap(rbmImg);
+                }
+
+                samplePreviewAlert.setCancelable(true);
+                samplePreviewAlert.setView(personView);
+                samplePreviewAlert.setPositiveButton(MainActivity.this.getResources().getString(R.string.analyze), new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        Uri outputFileUri = Uri.fromFile(new File(Constants.PHOTO_SAMPLES_PATH.toString() + "/" + sampleName + ".jpg"));
+                        imageAnalysisLB(outputFileUri);
+                    }
+                });
+                samplePreviewAlert.setNegativeButton(MainActivity.this.getResources().getString(R.string.close), new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        dialog.dismiss();
+                    }
+                });
+                samplePreviewAlert.show();
+            }
+        });
+        builder.show();
     }
 
     private void aboutDialog() {
