@@ -245,9 +245,9 @@ public class WatershedLB {
             } else {
                 areaList.add(area);
                 sumArea = sumArea + area;
-                Imgproc.circle(frame, new Point(cx, cy), 20, new Scalar(32, 64, 255), -1);
-                Imgproc.getTextSize(String.valueOf(k), Core.FONT_HERSHEY_COMPLEX,0.5,1,textSize);
-                Imgproc.putText(frame,String.valueOf(k),new Point(cx+(textSize[0]*3),cy+(textSize[0]*3)),Core.FONT_HERSHEY_COMPLEX,1.0,new Scalar(32,64,255),2);
+                //Imgproc.circle(frame, new Point(cx, cy), 20, new Scalar(32, 64, 255), -1);
+                //Imgproc.getTextSize(String.valueOf(k), Core.FONT_HERSHEY_COMPLEX,0.5,1,textSize);
+                //Imgproc.putText(frame,String.valueOf(k),new Point(cx+(textSize[0]*3),cy+(textSize[0]*3)),Core.FONT_HERSHEY_COMPLEX,1.0,new Scalar(32,64,255),2);
             }
         }
 
@@ -350,7 +350,7 @@ public class WatershedLB {
                         Imgproc.drawContours(frame,contours,-1, new Scalar(0,255,0),3);
 
                         /* draw a circle to mark the center of the seed */
-                        Imgproc.circle(frame, new Point(cx, cy), 15, new Scalar(0,255,255), -1);
+                        //Imgproc.circle(frame, new Point(cx, cy), 15, new Scalar(0,255,255), -1);
 
                         /* get the text size to write values on the mat */
                         Imgproc.getTextSize(String.valueOf(i), Core.FONT_HERSHEY_COMPLEX,0.5,1,textSize);
