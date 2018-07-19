@@ -419,7 +419,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
      *  WARNING : If this feature is enabled make sure the processing is also done using
      *            THREAD POOL EXECUTOR
      */
-    Thread previewThread = new Thread(new Runnable() {
+    /*Thread previewThread = new Thread(new Runnable() {
         @Override
         public void run() {
             mCamera.setPreviewCallback(new Camera.PreviewCallback() {
@@ -444,7 +444,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                 }
             });
         }
-    });
+    });*/
 
     @SuppressWarnings("deprecation")
     public static Camera getCameraInstance() {

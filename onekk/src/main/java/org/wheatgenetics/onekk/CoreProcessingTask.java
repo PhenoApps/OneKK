@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.util.TimingLogger;
+import android.widget.Toast;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
@@ -256,10 +257,13 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,String,Bitmap> {
     protected void onCancelled(Bitmap bitmap){
 
         Log.d("WatershedLB Activity", "Cancelled");
-
-        displayAlert("Processing Cancelled : " + coinRecognitionTask.getSTATUS(),false);
-
-        //context.unregisterReceiver(broadcastReceiver);
+        if(backgroundProcessing) {
+            displayAlert("Processing Cancelled : " + coinRecognitionTask.getSTATUS(), false);
+        }
+        else {
+            progressDialog.dismiss();
+            Toast.makeText(context, coinRecognitionTask.getSTATUS(), Toast.LENGTH_LONG).show();
+        }
     }
 
     private void displayAlert(String text, boolean showAlert){

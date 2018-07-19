@@ -15,7 +15,9 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
+import org.wheatgenetics.onekkUtils.Constants;
 import org.wheatgenetics.ui.guideBox;
 
 import java.io.ByteArrayOutputStream;
@@ -27,7 +29,7 @@ import java.util.Comparator;
  * Created by sid on 3/6/18.
  */
 
-public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,ArrayList<Point>> {
+public class CoinRecognitionTask /*extends AsyncTask<byte[],AsyncTask.Status,ArrayList<Point>>*/ {
 
     private static double COIN_CIRCULARITY = 0.95;
     private static double COIN_SIZE_THRESHOLD = 2.5;
@@ -60,13 +62,13 @@ public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,Array
      * */
     /* ================== REAL TIME COIN RECOGNITION - START =========================*/
 
-    /* used in static processing */
+    /* used in static processing *//*
     public CoinRecognitionTask(int cameraWidth, int cameraHeight){
         this.cameraWidth = cameraWidth;
         this.cameraHeight = cameraHeight;
     }
 
-    /* used in real time processing */
+    *//* used in real time processing *//*
     public CoinRecognitionTask(int cameraWidth, int cameraHeight, guideBox gb){
         this.cameraWidth = cameraWidth;
         this.cameraHeight = cameraHeight;
@@ -113,7 +115,7 @@ public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,Array
 
         previousSize = coinCoordsList.size();
 
-    }
+    }*/
 
     /* ===================== REAL TIME COIN RECOGNITION - END =========================*/
 
@@ -169,7 +171,7 @@ public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,Array
             radiusArrayList.add(c[2]);
             centroidArrayList.add(center);
         }
-        //Imgcodecs.imwrite(Constants.PHOTO_PATH + "/houghCoinRecog.jpg",processedMat);
+        Imgcodecs.imwrite(Constants.PHOTO_PATH + "/houghCoinRecog.jpg",processedMat);
     }
 
     /** used to perform various checks on the detected coins
@@ -283,15 +285,17 @@ public class CoinRecognitionTask extends AsyncTask<byte[],AsyncTask.Status,Array
         org.opencv.core.Rect cropBox = new org.opencv.core.Rect(tl, br);
 
         timingLogger.addSplit("cropImage");
-        /* crop and return the original image based on the crop box by creating a submat*/
-        return initialMat.submat(cropBox);
 
         /* uncomment the below to save the coin recognition cropped mat for debugging */
-        /* Log.d("Crop Box dimensions", cropBox.height + " " + cropBox.width);
+         Log.d("Crop Box dimensions", cropBox.height + " " + cropBox.width);
         Mat croppedMat = initialMat.submat(cropBox);
         Imgproc.cvtColor(croppedMat,croppedMat,Imgproc.COLOR_BGR2RGB);
         Imgcodecs.imwrite(Constants.PHOTO_PATH + "/croppedCoinRecog.jpg",croppedMat);
-        Imgproc.cvtColor(croppedMat,croppedMat,Imgproc.COLOR_RGB2BGR);*/
+        Imgproc.cvtColor(croppedMat,croppedMat,Imgproc.COLOR_RGB2BGR);
+
+        /* crop and return the original image based on the crop box by creating a submat*/
+        return initialMat.submat(cropBox);
+
     }
 
     /** This method is used to get the background color from the image to mask the detected coins
