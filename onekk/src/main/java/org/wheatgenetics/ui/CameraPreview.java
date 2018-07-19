@@ -1,7 +1,5 @@
 package org.wheatgenetics.ui;
 
-import java.io.IOException;
-
 import android.content.Context;
 import android.hardware.Camera;
 import android.util.Log;
@@ -9,6 +7,9 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.WindowManager;
+
+import java.io.IOException;
+import java.util.List;
 
 /**
  * A basic Camera preview class
@@ -65,6 +66,11 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
         this.setCameraDisplayOrientation(0, this.mCamera);
 
+        Camera.Size bestPreviewSize = determineBestPreviewSize(mCamera.getParameters());
+
+        mCamera.getParameters().setPreviewSize(bestPreviewSize.width,bestPreviewSize.height);
+        mCamera.getParameters().setPictureSize(bestPreviewSize.width,bestPreviewSize.height);
+
         try {
             mCamera.setPreviewDisplay(mHolder);
             mCamera.startPreview();
@@ -72,6 +78,32 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         } catch (Exception e) {
             Log.d("CAMPREV", "Error starting camera preview: " + e.getMessage());
         }
+    }
+
+    /* https://stackoverflow.com/questions/26958110/android-taken-photo-is-bigger-than-the-preview */
+    public static Camera.Size determineBestPreviewSize(Camera.Parameters parameters) {
+        List<Camera.Size> sizes = parameters.getSupportedPreviewSizes();
+        return determineBestSize(sizes);
+    }
+
+    protected static Camera.Size determineBestSize(List<Camera.Size> sizes) {
+        Camera.Size bestSize = null;
+        long used = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+        long availableMemory = Runtime.getRuntime().maxMemory() - used;
+        for (Camera.Size currentSize : sizes) {
+            int newArea = currentSize.width * currentSize.height;
+            long neededMemory = newArea * 4 * 4; // newArea * 4 Bytes/pixel * 4 needed copies of the bitmap (for safety :) )
+            boolean isDesiredRatio = (currentSize.width / 4) == (currentSize.height / 3);
+            boolean isBetterSize = (bestSize == null || currentSize.width > bestSize.width);
+            boolean isSafe = neededMemory < availableMemory;
+            if (isDesiredRatio && isBetterSize && isSafe) {
+                bestSize = currentSize;
+            }
+        }
+        if (bestSize == null) {
+            return sizes.get(0);
+        }
+        return bestSize;
     }
 
     public void setCameraDisplayOrientation(int cameraId, android.hardware.Camera camera) {
