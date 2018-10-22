@@ -58,6 +58,7 @@ import android.widget.Toast;
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.features2d.Params;
 import org.wheatgenetics.database.Data;
 import org.wheatgenetics.database.MySQLiteHelper;
 import org.wheatgenetics.imageprocess.ColorThreshold.ColorThresholding;
@@ -76,6 +77,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
@@ -87,6 +89,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
     public final static String TAG = "OneKK";
     public static final int MEDIA_TYPE_IMAGE = 1;
+    public static final int GET_PATH_REQUEST = 3;
     private SharedPreferences ep;
 
     private Data data;
@@ -388,14 +391,35 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         if (pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_AUTOFOCUS)) {
             Camera.Parameters params = mCamera.getParameters();
 
+            //fix bug: the photo size is larger than preview size
+            //1024 magic number, solution from: https://kylewbanks.com/blog/tutorial-square-camera-with-preview-on-android
+            /*Camera.Size previewSize = params.getSupportedPreviewSizes().get(0);
+            for (Camera.Size size: params.getSupportedPreviewSizes()) {
+                if (size.width >= 1024 && size.height > 1024) {
+                    previewSize = size;
+                    break;
+                }
+            }
+            params.setPreviewSize(previewSize.width, previewSize.height);
+
+            Camera.Size picSize = params.getSupportedPictureSizes().get(0);
+            for (Camera.Size size: params.getSupportedPictureSizes()) {
+                if (size.width == previewSize.width && size.height == previewSize.height) {
+                    picSize = size;
+                    break;
+                }
+            }
+            params.setPictureSize(picSize.width, picSize.height);*/
+
             if (params.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
                 params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
             } else if (params.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
                 params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
             }
 
-            mCamera.setParameters(params);
 
+
+            mCamera.setParameters(params);
         }
 
         // Create our Preview view and set it as the content of our activity.
@@ -556,6 +580,19 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                 });
     }
 
+    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        if (requestCode == GET_PATH_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                String path = data.getStringExtra("ImagePath");
+                //Log.e("error", "======" + path);
+                int index = path.lastIndexOf('/');
+                String sampleName = path.substring(index + 1, path.length() - 4);
+                //Log.e("error", "name======" + sampleName);
+                analysisChoosingPhoto(path, sampleName);
+            }
+        }
+    }
+
     public void selectDrawerItem(MenuItem menuItem) {
 
         switch (menuItem.getItemId()) {
@@ -578,7 +615,11 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                 final Intent viewTableIntent = new Intent(this, ViewDataActivity.class);
                 startActivity(viewTableIntent);
                 break;
-
+            case R.id.choose_photo:
+                final Intent choosePhotoIntent = new Intent(this, ChoosePhotoActivity.class);
+                //startActivity(choosePhotoIntent);
+                startActivityForResult(choosePhotoIntent, GET_PATH_REQUEST);
+                break;
             /*case R.id.nav_scaleConnect:
                 findScale();
                 break;
@@ -897,10 +938,48 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         }
     }
 
+    private void analysisChoosingPhoto(final String path, final String name) {
+        final AlertDialog.Builder samplePreviewAlert = new AlertDialog.Builder(MainActivity.this);
+
+        LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
+        final View personView = inflater.inflate(R.layout.post_image, new LinearLayout(MainActivity.this), false);
+        final TextView tv = (TextView)personView.findViewById(R.id.tvSeedCount);
+        Typeface myTypeFace = Typeface.createFromAsset(MainActivity.this.getAssets(), "AllerDisplay.ttf");
+        tv.setTypeface(myTypeFace);
+        tv.setText(name);
+        //File imgFile = new File(Constants.PHOTO_SAMPLES_PATH, sampleName + ".jpg");
+        File imgFile = new File(path);
+
+        if (imgFile.exists()) {
+            TouchImageView imgView = (TouchImageView) personView.findViewById(R.id.postImage);
+            Bitmap bmImg = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+
+            Matrix matrix = new Matrix();
+            matrix.postRotate(90);
+            Bitmap rbmImg = Bitmap.createBitmap(bmImg, 0, 0, bmImg.getWidth(), bmImg.getHeight(), matrix, true);
+            imgView.setImageBitmap(rbmImg);
+        }
+
+        samplePreviewAlert.setCancelable(true);
+        samplePreviewAlert.setView(personView);
+        samplePreviewAlert.setPositiveButton(MainActivity.this.getResources().getString(R.string.analyze), new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                //Uri outputFileUri = Uri.fromFile(new File(Constants.PHOTO_SAMPLES_PATH.toString() + "/" + name + ".jpg"));
+                Uri outputFileUri = Uri.fromFile(new File(path));
+                imageAnalysisLB(outputFileUri);
+            }
+        });
+        samplePreviewAlert.setNegativeButton(MainActivity.this.getResources().getString(R.string.close), new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                dialog.dismiss();
+            }
+        });
+        samplePreviewAlert.show();
+    }
+
     /**
      * This method lets the user run the analysis on some sample images that come along with the app
      */
-
     private void samplesDialog(){
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
 
@@ -923,7 +1002,9 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 final String sampleName = arrayAdapter.getItem(which).toLowerCase();
-                final AlertDialog.Builder samplePreviewAlert = new AlertDialog.Builder(MainActivity.this);
+                String path = Constants.PHOTO_SAMPLES_PATH + "/" + sampleName + ".jpg";
+                analysisChoosingPhoto(path, sampleName);
+                /*final AlertDialog.Builder samplePreviewAlert = new AlertDialog.Builder(MainActivity.this);
 
                 LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
                 final View personView = inflater.inflate(R.layout.post_image, new LinearLayout(MainActivity.this), false);
@@ -956,7 +1037,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                         dialog.dismiss();
                     }
                 });
-                samplePreviewAlert.show();
+                samplePreviewAlert.show();*/
             }
         });
         builder.show();
