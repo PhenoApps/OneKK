@@ -141,6 +141,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         NavigationView nvDrawer = (NavigationView) findViewById(R.id.nvView);
+        /* setup navigation click listener*/
         setupDrawerContent(nvDrawer);
         setupDrawer();
 
@@ -388,39 +389,40 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         mCamera = getCameraInstance();
 
         PackageManager pm = getPackageManager();
+        Camera.Parameters params = mCamera.getParameters();
         if (pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_AUTOFOCUS)) {
-            Camera.Parameters params = mCamera.getParameters();
-
-            //fix bug: the photo size is larger than preview size
-            //1024 magic number, solution from: https://kylewbanks.com/blog/tutorial-square-camera-with-preview-on-android
-            /*Camera.Size previewSize = params.getSupportedPreviewSizes().get(0);
-            for (Camera.Size size: params.getSupportedPreviewSizes()) {
-                if (size.width >= 1024 && size.height > 1024) {
-                    previewSize = size;
-                    break;
-                }
-            }
-            params.setPreviewSize(previewSize.width, previewSize.height);
-
-            Camera.Size picSize = params.getSupportedPictureSizes().get(0);
-            for (Camera.Size size: params.getSupportedPictureSizes()) {
-                if (size.width == previewSize.width && size.height == previewSize.height) {
-                    picSize = size;
-                    break;
-                }
-            }
-            params.setPictureSize(picSize.width, picSize.height);*/
-
+            //Camera.Parameters params = mCamera.getParameters();
             if (params.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
                 params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
             } else if (params.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
                 params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
             }
-
-
-
-            mCamera.setParameters(params);
         }
+
+        //fix bug: the photo size is larger than preview size
+        //Use the biggest preview size: 1920 X 1440
+        Camera.Size previewSize = params.getSupportedPreviewSizes().get(0);
+        for (Camera.Size size: params.getSupportedPreviewSizes()) {
+            if (size.width >= 1024 && size.height > 1024) {
+                previewSize = size;
+                Log.i("MainActivity", "Preview Size: " + size.width + " " + size.height);
+                break;
+            }
+
+        }
+        params.setPreviewSize(previewSize.width, previewSize.height);
+
+        //If set photo size as same as preview size, the photo size will smaller than expect, so we do not need to set photo size.
+        /*Camera.Size picSize = params.getSupportedPictureSizes().get(0);
+        for (Camera.Size size: params.getSupportedPictureSizes()) {
+            if (size.width == previewSize.width && size.height == previewSize.height) {
+                picSize = size;
+                break;
+            }
+        }
+        params.setPictureSize(picSize.width, picSize.height);*/
+
+        mCamera.setParameters(params);
 
         // Create our Preview view and set it as the content of our activity.
         mPreview = new CameraPreview(this, mCamera);
@@ -569,6 +571,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         mDrawerLayout.setDrawerListener(mDrawerToggle);
     }
 
+    /* set navigation click listener*/
     private void setupDrawerContent(NavigationView navigationView) {
         navigationView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
@@ -593,6 +596,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         }
     }
 
+    /* Set navigation click action*/
     public void selectDrawerItem(MenuItem menuItem) {
 
         switch (menuItem.getItemId()) {
