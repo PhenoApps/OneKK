@@ -151,7 +151,7 @@ public class CoinRecognitionTask /*extends AsyncTask<byte[],AsyncTask.Status,Arr
          * '8' - change this value to detect circles with different distances to each other
          * change min_radius & max_radius to detect larger circles
          */
-
+        //original value
         Imgproc.HoughCircles(gray, circles, Imgproc.HOUGH_GRADIENT, 1.0,
                 (double) gray.rows() / 8,
                 100.0, 30.0, 150, 300);
@@ -159,7 +159,7 @@ public class CoinRecognitionTask /*extends AsyncTask<byte[],AsyncTask.Status,Arr
         timingLogger.addSplit("Process");
 
         Scalar maskColor = maskColor(initialMat);
-
+        Log.i("CoinRecognitionTask", "Circle number: " + circles.cols());
         for (int x = 0; x < circles.cols(); x++) {
             double[] c = circles.get(0, x);
             Point center = new Point(Math.round(c[0]), Math.round(c[1]));
@@ -171,6 +171,7 @@ public class CoinRecognitionTask /*extends AsyncTask<byte[],AsyncTask.Status,Arr
             radiusArrayList.add(c[2]);
             centroidArrayList.add(center);
         }
+
         Imgcodecs.imwrite(Constants.PHOTO_PATH + "/houghCoinRecog.jpg",processedMat);
     }
 

@@ -70,9 +70,10 @@
                 android:title="@string/max_size" />
         </PreferenceCategory>
 
-        <!--<PreferenceCategory
-            android:dependency="org.wheatgenetics.onekk.COLOR_THRESHOLD"
+        <PreferenceCategory
             android:title="@string/hue_range">
+            <!--android:dependency="org.wheatgenetics.onekk.COLOR_THRESHOLD"-->
+
             <SeekBarPreference
                 android:defaultValue="116"
                 android:key="org.wheatgenetics.onekk.MIN_HUE_VALUE"
@@ -87,8 +88,9 @@
                 android:title="@string/max_hue_value" />
         </PreferenceCategory>
         <PreferenceCategory
-            android:dependency="org.wheatgenetics.onekk.COLOR_THRESHOLD"
             android:title="@string/threshold">
+            <!--android:dependency="org.wheatgenetics.onekk.COLOR_THRESHOLD"-->
+
             <SeekBarPreference
                 android:defaultValue="20"
                 android:key="org.wheatgenetics.onekk.THRESHOLD"
@@ -103,7 +105,7 @@
                 android:key="org.wheatgenetics.onekk.COLOR_PREFERENCE"
                 android:summary="background color to use"
                 android:title="@string/background_color" />
-        </PreferenceCategory>-->
+        </PreferenceCategory>
     <!--</PreferenceScreen>-->
 
     <PreferenceCategory

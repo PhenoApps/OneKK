@@ -67,6 +67,13 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="org.wheatgenetics.onekk.MainActivity" />
         </activity>
+        <activity android:name=".ChoosePhotoActivity"
+            android:label="Choose Photo Activity"
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="org.wheatgenetics.onekk.MainActivity" />
+        </activity>
         <activity
             android:name=".CoinDataActivity"
             android:label="@string/coin_data_activity"
