@@ -1,5 +1,5 @@
 package org.wheatgenetics.database;
-
+/* seed information*/
 public class SeedRecord {
 
     private int id;

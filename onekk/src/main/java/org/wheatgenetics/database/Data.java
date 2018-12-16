@@ -52,6 +52,7 @@ import static org.wheatgenetics.onekkUtils.oneKKUtils.stringDecimal;
 public class Data {
 
     private static Context context;
+    //handler of database
     private static MySQLiteHelper db;
     private static int currentItemNum = 1;
     private static TableLayout OneKKTable;
@@ -108,6 +109,7 @@ public class Data {
     }
 
     // FIXME: 1/23/18
+    //Add data to table view
     private static void parseListToTable(List<?> list) {
 
         int itemCount = list.size();
@@ -120,8 +122,8 @@ public class Data {
                 else
                     createNewTableEntry(temp[0], temp[5], stringDecimal(temp[7]), stringDecimal(temp[8]), stringDecimal(temp[6]));
             }
-        }
-
+    }
+    //add data to table view
     private static void parseListToLastSampleTable(List<?> list){
             int itemCount = list.size();
             if(itemCount > 0){
@@ -558,6 +560,7 @@ public class Data {
     }
 
     // FIXME: 1/23/18
+    /* get data from database get show them in dialog */
     public static void exportSeedSamplesDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setMessage(context.getResources().getString(R.string.export_choice))
@@ -661,6 +664,7 @@ public class Data {
     }
 
     // FIXME: 1/23/18
+    /* export database data to .csv file*/
     private static String exportDatabase(Cursor cursorForExport, String type) throws Exception {
         File file = null;
 

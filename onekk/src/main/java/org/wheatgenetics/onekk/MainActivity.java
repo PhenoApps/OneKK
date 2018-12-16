@@ -89,7 +89,9 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
     public final static String TAG = "OneKK";
     public static final int MEDIA_TYPE_IMAGE = 1;
+    //request message of getting the image path
     public static final int GET_PATH_REQUEST = 3;
+    //setting information handler
     private SharedPreferences ep;
 
     private Data data;
@@ -784,8 +786,10 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         } else {
             fileName = "temp_";
         }
+        //Generates a Media file with specified type and name
         File pictureFile = oneKKUtils.getOutputMediaFile(MEDIA_TYPE_IMAGE, fileName);
         try {
+            //write image file
             FileOutputStream fos = new FileOutputStream(pictureFile);
             fos.write(data);
             fos.close();
@@ -794,6 +798,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         } catch (IOException e) {
             Log.d(TAG, "Error accessing file: " + e.getMessage());
         }
+        //Makes the saved file discoverable in Gallery/File Manager
         makeFileDiscoverable(pictureFile, MainActivity.this);
 
         return Uri.fromFile(pictureFile);
@@ -883,8 +888,8 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         sampleName = inputText.getText().toString();
 
-        if (mDevice == null
-                && mWeightEditText.getText().toString().equals("Not connected")) {
+
+        if (mDevice == null && mWeightEditText.getText().toString().equals("Not connected")) {
             weight = "null";
         } else {
             weight = mWeightEditText.getText().toString();
@@ -923,7 +928,8 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         //final WatershedLB.WatershedParams params = new WatershedLB.WatershedParams(areaLow, areaHigh, defaultRate, sizeLowerBoundRatio, newSeedDistRatio);
         //mSeedCounter = new WatershedLB(params);
 
-        final CoreProcessingTask coreProcessingTask = new CoreProcessingTask(MainActivity.this, colorThresholdParams, photoName, showAnalysis, sampleName, firstName, lastName, weight, r.nextInt(20000), backgroundProcessing, coinSize);
+        final CoreProcessingTask coreProcessingTask = new CoreProcessingTask(MainActivity.this, colorThresholdParams,
+                photoName, showAnalysis, sampleName, firstName, lastName, weight, r.nextInt(20000), backgroundProcessing, coinSize);
 
         if (multiProcessing)
             coreProcessingTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, inputBitmap);

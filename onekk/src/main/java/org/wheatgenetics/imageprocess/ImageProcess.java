@@ -82,12 +82,14 @@ public class ImageProcess {
         checkOS();
         image = Imgcodecs.imread(imageFile);
         System.out.println(String.format("Processing %s", imageFile));
+        //HSV: Hue, Saturation, value
         Imgproc.cvtColor(image, image, Imgproc.COLOR_BGR2HSV);
     }
 
     private void processImage(double min,double max) {
 
         if (cropImage) {
+            //crop image to the minimum bounding box of 4 coins
             image = cropImage(image);
         }
 
@@ -164,6 +166,10 @@ public class ImageProcess {
         Mat imgBLUE = filterBlue(image);
         Mat hierarchy = new Mat();
         List<MatOfPoint> contours = new ArrayList<>();
+        //RETR_TREE:  It retrieves all the contours and creates a full family hierarchy list. It even tells, who is the grandpa, father, son, grandson and even beyond... :)
+        //details: https://docs.opencv.org/3.1.0/d9/d8b/tutorial_py_contours_hierarchy.html
+        //CHAIN_APPROX_SIMPLE compresses horizontal, vertical, and diagonal segments and leaves only their end points.
+        //For example, an up-right rectangular contour is encoded with 4 points.
         Imgproc.findContours(imgBLUE, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE, new Point(0, 0));
 
         for (int i = 0; i < contours.size(); i++) {

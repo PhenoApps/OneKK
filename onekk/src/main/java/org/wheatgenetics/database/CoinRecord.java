@@ -1,5 +1,6 @@
 package org.wheatgenetics.database;
 
+/* This class for getting and setting the coin related information*/
 public class CoinRecord {
 
     private int id;
