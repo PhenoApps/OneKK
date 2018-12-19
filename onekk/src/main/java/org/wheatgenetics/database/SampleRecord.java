@@ -1,5 +1,6 @@
 package org.wheatgenetics.database;
 
+/* sample information */
 public class SampleRecord {
 
     private int id;

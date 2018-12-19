@@ -58,6 +58,9 @@ public class MeasureSeeds {
         Mat imgNG = image;
         Mat hierarchy = new Mat();
         List<MatOfPoint> contours = new ArrayList<>();
+        //RETR_EXTERNAL: it returns only extreme outer contours. Details please check the following link
+        //https://docs.opencv.org/3.1.0/d9/d8b/tutorial_py_contours_hierarchy.html
+        //CHAIN_APPROX_NONE is a flag that tells findContours to store every contour point - including contours inside other contours, or multiple along the same line.
         Imgproc.findContours(imgNG, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE, new Point(0, 0));
 
         if (contours.size() >= 1500) {
@@ -112,7 +115,6 @@ public class MeasureSeeds {
         }
 
         // Divide each element by the other element
-
         double[][][] seedMatCalc = new double[4][seedMatW.size()][seedMatW.size()];
 
         for (int k = 0; k < 4; k++) {
@@ -124,7 +126,6 @@ public class MeasureSeeds {
         }
 
         // Count number of 1s
-
         int[][] seedMatCalcMax = new int[4][seedMatW.size()];
         int count = 0;
 
@@ -243,6 +244,9 @@ public class MeasureSeeds {
         return maxValue;
     }
 
+    //find the middle size of all contours area.
+    //For example [1, 3, 4, 7], it returns 2.5.
+    //[1, 3, 4], it returns 3.
     private double findMedian(List<MatOfPoint> contours) {
         double[] contSize = new double[contours.size()];
 
