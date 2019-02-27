@@ -193,7 +193,6 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,String,Bitmap> {
 
                 data = new Data(context);
                 //data.addRecords(sampleName, photoName, firstName, lastName, seedCount, weight, mSeeds.getmSeedsArrayList());
-
                 data.addRecords(sampleName,photoName,firstName,lastName,seedCount,weight,measureSeeds.getList());
             }
             timingLogger.addSplit("Store data");

@@ -2,6 +2,7 @@ package org.wheatgenetics.onekk;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Notification;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -91,6 +92,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     public static final int MEDIA_TYPE_IMAGE = 1;
     //request message of getting the image path
     public static final int GET_PATH_REQUEST = 3;
+    public static final int GET_WEIGHT_REQUEST = 4;
     //setting information handler
     private SharedPreferences ep;
 
@@ -589,11 +591,16 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         if (requestCode == GET_PATH_REQUEST) {
             if (resultCode == RESULT_OK) {
                 String path = data.getStringExtra("ImagePath");
-                //Log.e("error", "======" + path);
                 int index = path.lastIndexOf('/');
                 String sampleName = path.substring(index + 1, path.length() - 4);
-                //Log.e("error", "name======" + sampleName);
                 analysisChoosingPhoto(path, sampleName);
+            }
+        } else if (requestCode == GET_WEIGHT_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                if (data != null) {
+                    weight = data.getStringExtra("Weight");
+                    mWeightEditText.setText(weight);
+                }
             }
         }
     }
@@ -634,7 +641,11 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                 final Intent reportActivityIntent = new Intent(this,ReportActivity.class);
                 startActivity(reportActivityIntent);
                 break;*/
-
+            case R.id.record_weight:
+                final Intent recordWeight = new Intent(this, RecordWeightActivity.class);
+                //startActivity(recordWeight);
+                startActivityForResult(recordWeight, GET_WEIGHT_REQUEST);
+                break;
             case R.id.nav_help:
                 makeToast(getResources().getString(R.string.coming_soon));
                 break;

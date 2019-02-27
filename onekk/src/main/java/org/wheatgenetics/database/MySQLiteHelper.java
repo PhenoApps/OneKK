@@ -322,8 +322,8 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
                 sample.setPhoto(cursor.getString(2));
                 sample.setPersonId(cursor.getString(3));
                 sample.setDate(cursor.getString(4));
-                sample.setWeight(cursor.getString(5));
-                sample.setSeedCount(cursor.getString(6));
+                sample.setSeedCount(cursor.getString(5));
+                sample.setWeight(cursor.getString(6));
                 sample.setLengthAvg(Double.parseDouble(cursor.getString(7)));
                 sample.setWidthAvg(Double.parseDouble(cursor.getString(10)));
                 samples.add(sample);
