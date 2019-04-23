@@ -116,11 +116,15 @@ public class Data {
 
             for (int i = 0; i < itemCount; i++) {
                 String[] temp = list.get(i).toString().split(",");
+                SampleRecord r = (SampleRecord) list.get(i);
                 if(temp.length == 7) {
                     createNewTableEntry(temp[0], temp[6], stringDecimal(temp[5]));
                 }
-                else
-                    createNewTableEntry(temp[0], temp[5], stringDecimal(temp[7]), stringDecimal(temp[8]), stringDecimal(temp[6]));
+                else {
+                    //createNewTableEntry(temp[0], temp[5], stringDecimal(temp[7]), stringDecimal(temp[8]), stringDecimal(temp[6]));
+                    createNewTableEntry(r.getSampleId(), r.getSeedCount(), stringDecimal(r.getLengthAvg().toString()),
+                            stringDecimal(r.getWidthAvg().toString()), stringDecimal(r.getWeight()));
+                }
             }
     }
     //add data to table view

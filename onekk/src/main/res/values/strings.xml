@@ -164,6 +164,17 @@
     <string name="expected_seed_count">Expected seed count</string>
     <string name="additional_information">Additional information</string>
 
+    <!-- Record Weight Activity -->
+    <string name="label_data">Data:</string>
+    <string name="label_device_name">Device name:</string>
+    <string name="label_device_address">Device address:</string>
+    <string name="label_state">State:</string>
+    <string name="no_data">No data</string>
+    <string name="connected">Connected</string>
+    <string name="disconnected">Disconnected</string>
+    <string name="title_devices">BLE Device Scan</string>
+    <string name="record_weight">Record Weight</string>
+
     <string-array name="pref_example_list_titles">
         <item>Always</item>
         <item>When possible</item>

@@ -9,7 +9,9 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -26,6 +28,7 @@ public class ChoosePhotoActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.choose_photo_activity);
+
         imgPicture = (ImageView) findViewById(R.id.show_photo);
 
         choosePhoto();
@@ -58,7 +61,7 @@ public class ChoosePhotoActivity extends AppCompatActivity {
                 // the address of the image on the SD Card.
                 Uri imageUri = data.getData();
                 String path = getRealPathFromURI(imageUri);
-                Log.e("error", "choose====" + path);
+                //Log.e("error", "choose====" + path);
                 Intent intent = new Intent();
                 intent.putExtra("ImagePath", path);
                 setResult(RESULT_OK, intent);

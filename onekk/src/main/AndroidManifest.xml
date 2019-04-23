@@ -21,12 +21,19 @@
         android:name="android.hardware.camera.autofocus"
         android:required="false" />
 
+    <uses-feature
+        android:name="android.hardware.bluetooth_le"
+        android:required="true" />
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
 
     <application
         android:allowBackup="true"
@@ -67,7 +74,8 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="org.wheatgenetics.onekk.MainActivity" />
         </activity>
-        <activity android:name=".ChoosePhotoActivity"
+        <activity
+            android:name=".ChoosePhotoActivity"
             android:label="Choose Photo Activity"
             android:theme="@style/AppTheme">
             <meta-data
@@ -85,7 +93,15 @@
         <activity
             android:name=".ReportActivity"
             android:label="@string/title_activity_report" />
-        <activity android:name=".IntroActivity"></activity>
+        <activity android:name=".IntroActivity" />
+        <activity android:name=".RecordWeightActivity"
+            android:label="RecordWeight Activity"
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="org.wheatgenetics.onekk.MainActivity" />
+        </activity>
+        <service android:name=".BluetoothLeService" android:enabled="true"/>
     </application>
 
 </manifest>
