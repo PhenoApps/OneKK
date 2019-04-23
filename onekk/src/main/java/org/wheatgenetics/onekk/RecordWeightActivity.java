@@ -55,6 +55,7 @@ public class RecordWeightActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
         }
@@ -114,8 +115,8 @@ public class RecordWeightActivity extends AppCompatActivity {
                             if (device != null) {
                                 String deviceName = device.getName();
                                 Log.i(TAG, "=====device name=====" + deviceName);
-                                if (deviceName != null && deviceName.toLowerCase().equals("ohbt_25f1")) {
-                                    Log.i(TAG, "Find device ohbt_25f1");
+                                if (deviceName != null && deviceName.toLowerCase().startsWith("ohbt")) {
+                                    Log.i(TAG, "Find device name start with ohbt");
                                     mBluetoothDevice = device;
                                     mBluetoothAdapter.stopLeScan(mLeScanCallback);
                                     ((TextView) findViewById(R.id.device_name)).setText(device.getName());

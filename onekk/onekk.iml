@@ -21,6 +21,29 @@
         <option name="ASSETS_FOLDER_RELATIVE_PATH" value="/src/main/assets" />
       </configuration>
     </facet>
+    <facet type="kotlin-language" name="Kotlin">
+      <configuration version="3" platform="JVM 1.8" useProjectSettings="false">
+        <compilerSettings />
+        <compilerArguments>
+          <option name="destination" value="$MODULE_DIR$/build/tmp/kotlin-classes/debug" />
+          <option name="classpath" value="$MODULE_DIR$/libs/ffmpeg.jar;C:/Users/sswu/StudioProjects/OneKK/onekk/libs/javacpp.jar;C:/Users/sswu/StudioProjects/OneKK/onekk/libs/opencsv-3.1.jar;C:/Users/sswu/StudioProjects/OneKK/onekk/libs/opencv.jar;C:/Users/sswu/.gradle/caches/transforms-1/files-1.1/preference-v7-25.3.1.aar/11b767a908103d03e96d80856c95aff2/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-1/files-1.1/design-25.3.1.aar/f2458d81a060da2d6d1a979e937d0930/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-1/files-1.1/core-1.0.3.aar/43292f9e1feeb425d2b32baa7e858596/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-1/files-1.1/appintro-v4.2.0.aar/dae51f6b27049f4623f8f069bb5f3e8f/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-1/files-1.1/appcompat-v7-25.3.1.aar/cbb68dc5165591fd772dd1de7d05516c/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-1/files-1.1/transition-25.3.1.aar/ce9ccd56b83b08a23a2bacbd60ff2939/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-1/files-1.1/support-v4-25.3.1.aar/f159ec1e06074f219add4244a201c255/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-1/files-1.1/recyclerview-v7-25.3.1.aar/2dbee852ac45f4147ab6a74383dc2762/jars/classes.jar;C:/Users/sswu/StudioProjects/OneKK/openCVLibrary320/build/intermediates/intermediate-jars/debug/classes.jar;C:/Users/sswu/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-jdk7/1.2.71/4ce93f539e2133f172f1167291a911f83400a5d0/kotlin-stdlib-jdk7-1.2.71.jar;C:/Users/sswu/.gradle/caches/transforms-1/files-1.1/constraint-layout-1.0.2.aar/7f4ca8682cbd1e44981a29b33e693fe4/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-1/files-1.1/animated-vector-drawable-25.3.1.aar/65aa7c2a677cc294b64cd8b9bf125263/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-1/files-1.1/support-vector-drawable-25.4.0.aar/723e5dd47e84249e5c983317d724d8ef/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-1/files-1.1/support-fragment-25.3.1.aar/d9e79a307addedde06901725f7329d86/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-1/files-1.1/support-media-compat-25.3.1.aar/ac0ba0e6e641211333ef9bd92dd2d686/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-1/files-1.1/support-core-utils-25.3.1.aar/13830f2963b79535464d32b2aed17968/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-1/files-1.1/support-core-ui-25.3.1.aar/094e7e8ebba86970ab8ec241b42fcc21/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-1/files-1.1/support-compat-25.4.0.aar/91feef914a73e58be984094c99db7ceb/jars/classes.jar;C:/Users/sswu/.gradle/caches/modules-2/files-2.1/com.android.support/support-annotations/25.4.0/f6a2fc748ae3769633dea050563e1613e93c135e/support-annotations-25.4.0.jar;C:/Users/sswu/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.2.71/d9717625bb3c731561251f8dd2c67a1011d6764c/kotlin-stdlib-1.2.71.jar;C:/Users/sswu/AppData/Local/Android/Sdk/extras/m2repository/com/android/support/constraint/constraint-layout-solver/1.0.2/constraint-layout-solver-1.0.2.jar;C:/Users/sswu/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.2.71/ba18ca1aa0e40eb6f1865b324af2f4cbb691c1ec/kotlin-stdlib-common-1.2.71.jar;C:/Users/sswu/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/13.0/919f0dfe192fb4e063e7dacadee7f8bb9a2672a9/annotations-13.0.jar;C:/Users/sswu/AppData/Local/Android/Sdk/platforms/android-25/android.jar" />
+          <option name="noStdlib" value="true" />
+          <option name="noReflect" value="true" />
+          <option name="moduleName" value="onekk_debug" />
+          <option name="jvmTarget" value="1.8" />
+          <option name="addCompilerBuiltIns" value="true" />
+          <option name="loadBuiltInsFromDependencies" value="true" />
+          <option name="languageVersion" value="1.2" />
+          <option name="apiVersion" value="1.2" />
+          <option name="pluginOptions">
+            <array />
+          </option>
+          <option name="pluginClasspaths">
+            <array />
+          </option>
+        </compilerArguments>
+      </configuration>
+    </facet>
   </component>
   <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_7">
     <output url="file://$MODULE_DIR$/build/intermediates/classes/debug" />
@@ -123,11 +146,15 @@
     <orderEntry type="library" name="Gradle: com.github.kizitonwose.colorpreference:core-1.0.3" level="project" />
     <orderEntry type="library" name="Gradle: __local_aars__:C.\Users\sswu\StudioProjects\OneKK\onekk\libs\opencv.jar:unspecified@jar" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:support-media-compat-25.3.1" level="project" />
+    <orderEntry type="library" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.2.71@jar" level="project" />
+    <orderEntry type="library" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.2.71@jar" level="project" />
+    <orderEntry type="library" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.2.71@jar" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:animated-vector-drawable-25.3.1" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:preference-v7-25.3.1" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:support-compat-25.4.0" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: com.android.support.test:rules-0.5" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:transition-25.3.1" level="project" />
+    <orderEntry type="library" name="Gradle: org.jetbrains:annotations:13.0@jar" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:support-v4-25.3.1" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support.constraint:constraint-layout-1.0.2" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: junit:junit:4.12@jar" level="project" />

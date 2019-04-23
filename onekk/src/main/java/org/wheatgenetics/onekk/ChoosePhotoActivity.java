@@ -61,7 +61,7 @@ public class ChoosePhotoActivity extends AppCompatActivity {
                 // the address of the image on the SD Card.
                 Uri imageUri = data.getData();
                 String path = getRealPathFromURI(imageUri);
-                Log.e("error", "choose====" + path);
+                //Log.e("error", "choose====" + path);
                 Intent intent = new Intent();
                 intent.putExtra("ImagePath", path);
                 setResult(RESULT_OK, intent);
