@@ -108,6 +108,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     //request message of getting the image path
     public static final int GET_PATH_REQUEST = 3;
     public static final int GET_WEIGHT_REQUEST = 4;
+    public static final int GET_BLUETOOTH_DEVICE_REQUEST = 5;
     //setting information handler
     private SharedPreferences ep;
 
@@ -137,10 +138,12 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     private LinearLayout parent;
     private ScrollView changeContainer;
     private String sampleName;
-    //private String weight;
     private ActionBarDrawerToggle mDrawerToggle;
     private DrawerLayout mDrawerLayout;
     private Random r;
+
+    String mBluetoothDeviceName;
+    String mBluetoothDeviceAddress;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -218,9 +221,9 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             setPersonDialog();
         }
 
-        if (!ep.getBoolean("ignoreScale", false)) {
+        /*if (!ep.getBoolean("ignoreScale", false)) {
             findScale();
-        }
+        }*/
 
         Editor ed = ep.edit();
         if (ep.getInt("UpdateVersion", -1) < getVersion()) {
@@ -617,21 +620,43 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         if (requestCode == GET_PATH_REQUEST) {
             if (resultCode == RESULT_OK) {
-                /*String path = data.getStringExtra("ImagePath");
-                int index = path.lastIndexOf('/');
-                String sampleName = path.substring(index + 1, path.length() - 4);
-                analysisChoosingPhoto(path, sampleName);*/
-
                 Uri imageUri = data.getData();
                 String path = getRealPathFromURI(imageUri);
-                Log.e("error", "======" + path);
-                //Log.e("error", "choose====" + path);
-                /*Intent intent = new Intent();
-                intent.putExtra("ImagePath", path);
-                setResult(RESULT_OK, intent);
-                finish();*/
+                int index = path.lastIndexOf('/');
+                String sampleName = path.substring(index + 1, path.length() - 4);
+                analysisChoosingPhoto(path, sampleName);
+
             }
-        } /*else if (requestCode == GET_WEIGHT_REQUEST) {
+        } else if (requestCode == GET_BLUETOOTH_DEVICE_REQUEST) {
+
+            if (resultCode == RESULT_OK) {
+
+                mBluetoothDevice = data.getExtras().getParcelable("BluetoothDevice");
+                mBluetoothDeviceName = mBluetoothDevice.getName();
+                mBluetoothDeviceAddress = mBluetoothDevice.getAddress();
+
+                if (mConnected) {
+                    try {
+                        unbindService(mServiceConnection);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    mHandler.removeCallbacks(mRunnable);
+                    if (mBluetoothLeService != null) {
+                        mBluetoothLeService.disconnect();
+                        mBluetoothLeService = null;
+                    }
+
+                    mBluetoothAdapter.stopLeScan(mLeScanCallback);
+                }
+
+                Intent gattServiceIntent = new Intent(MainActivity.this, BluetoothLeService.class);
+                bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
+
+            }
+        }
+        /*else if (requestCode == GET_WEIGHT_REQUEST) {
             if (resultCode == RESULT_OK) {
                 if (data != null) {
                     weight = data.getStringExtra("Weight");
@@ -700,6 +725,19 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                 //startActivity(recordWeight);
                 startActivityForResult(recordWeight, GET_WEIGHT_REQUEST);
                 break;*/
+            case R.id.scale:
+                final Intent scaleIntent = new Intent(this, ScaleActivity.class);
+                scaleIntent.putExtra("DeviceName", mBluetoothDeviceName);
+                scaleIntent.putExtra("DeviceAddress", mBluetoothDeviceAddress);
+                if (mConnected) {
+                    scaleIntent.putExtra("ConnectionState", "Connected");
+                } else {
+                    scaleIntent.putExtra("ConnectionState", "No connection");
+                }
+
+                scaleIntent.putExtra("WeightData", weightData);
+                startActivityForResult(scaleIntent, GET_BLUETOOTH_DEVICE_REQUEST);
+                break;
             case R.id.nav_help:
                 makeToast(getResources().getString(R.string.coming_soon));
                 break;
@@ -935,11 +973,17 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         sampleName = inputText.getText().toString();
 
-        if (mDevice == null
+        /*if (mDevice == null
                 && mWeightEditText.getText().toString().equals("Not connected")) {
             weightData = "null";
         } else {
             weightData = mWeightEditText.getText().toString();
+        }*/
+
+        if (mConnected) {
+            weightData = mWeightEditText.getText().toString();
+        } else {
+            weightData = "null";
         }
 
         inputText.setText("");
@@ -976,14 +1020,20 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         sampleName = inputText.getText().toString();
 
 
-        if (mDevice == null && mWeightEditText.getText().toString().equals("Not connected")) {
+        /*if (mDevice == null && mWeightEditText.getText().toString().equals("null")) {
             weightData = "null";
         } else {
             weightData = mWeightEditText.getText().toString();
+        }*/
+
+        if (mConnected) {
+            weightData = mWeightEditText.getText().toString();
+        } else {
+            weightData = "null";
         }
 
         inputText.setText("");
-        mWeightEditText.setText("0");
+        //mWeightEditText.setText("0");
         inputText.requestFocus();
 
         /* get user settings from shared preferences */
@@ -1319,7 +1369,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         mDrawerToggle.syncState();
     }
 
-    public void findScale() {
+    /*public void findScale() {
         if (mDevice == null) {
             UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
             HashMap<String, UsbDevice> deviceList = usbManager.getDeviceList();
@@ -1367,9 +1417,9 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                                 }
                             }).show();
         }
-    }
+    }*/
 
-    private class ScaleListener extends AsyncTask<Void, Double, Void> {
+    /*private class ScaleListener extends AsyncTask<Void, Double, Void> {
         private double mLastWeight = 0;
 
         @Override
@@ -1491,7 +1541,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             mDevice = null;
             mWeightEditText.setText("Not connected");
         }
-    }
+    }*/
 
     public void onInit(int status) {
     }
@@ -1553,9 +1603,13 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
                             if (device != null) {
                                 String deviceName = device.getName();
-                                Log.e(TAG, "=====device name=====" + deviceName);
+                                Log.i(TAG, "=====device name=====" + deviceName);
                                 if (deviceName != null && deviceName.toLowerCase().startsWith("ohbt")) {
                                     Log.i(TAG, "Find device name start with ohbt");
+
+                                    mBluetoothDeviceName = deviceName;
+                                    mBluetoothDeviceAddress = device.getAddress();
+
                                     mBluetoothDevice = device;
                                     mBluetoothAdapter.stopLeScan(mLeScanCallback);
                                     Intent gattServiceIntent = new Intent(MainActivity.this, BluetoothLeService.class);
