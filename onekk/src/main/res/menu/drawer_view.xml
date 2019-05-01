@@ -26,6 +26,12 @@
         android:id="@+id/choose_photo"
         android:icon="@drawable/ic_photo_black_24dp"
         android:title="Choose Photo" />
+
+    <item
+        android:id="@+id/scale"
+        android:icon="@drawable/ic_usb_black_24dp"
+        android:title="Scale" />
+
     <!--item
         android:id="@+id/record_weight"
         android:icon="@drawable/ic_usb_black_24dp"
