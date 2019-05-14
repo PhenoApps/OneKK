@@ -67,4 +67,14 @@
         <item>11</item>
     </string-array>
 
+    <string-array name="scale_steps">
+        <item>One step</item>
+        <item>Two steps</item>
+    </string-array>
+
+    <string-array name="scale_steps_values">
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
 </resources>

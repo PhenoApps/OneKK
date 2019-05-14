@@ -6,12 +6,28 @@
         <option name="GRADLE_PROJECT_PATH" value=":onekk" />
       </configuration>
     </facet>
+    <facet type="android" name="Android">
+      <configuration>
+        <option name="SELECTED_BUILD_VARIANT" value="debug" />
+        <option name="ASSEMBLE_TASK_NAME" value="assembleDebug" />
+        <option name="COMPILE_JAVA_TASK_NAME" value="compileDebugSources" />
+        <afterSyncTasks>
+          <task>generateDebugSources</task>
+        </afterSyncTasks>
+        <option name="ALLOW_USER_CONFIGURATION" value="false" />
+        <option name="MANIFEST_FILE_RELATIVE_PATH" value="/src/main/AndroidManifest.xml" />
+        <option name="RES_FOLDER_RELATIVE_PATH" value="/src/main/res" />
+        <option name="RES_FOLDERS_RELATIVE_PATH" value="file://$MODULE_DIR$/src/main/res;file://$MODULE_DIR$/build/generated/res/rs/debug;file://$MODULE_DIR$/build/generated/res/resValues/debug" />
+        <option name="TEST_RES_FOLDERS_RELATIVE_PATH" value="" />
+        <option name="ASSETS_FOLDER_RELATIVE_PATH" value="/src/main/assets" />
+      </configuration>
+    </facet>
     <facet type="kotlin-language" name="Kotlin">
       <configuration version="3" platform="JVM 1.6" useProjectSettings="false">
         <compilerSettings />
         <compilerArguments>
           <option name="destination" value="$MODULE_DIR$/build/tmp/kotlin-classes/debug" />
-          <option name="classpath" value="$MODULE_DIR$/libs/ffmpeg.jar;C:/Users/sswu/StudioProjects/OneKK/onekk/libs/javacpp.jar;C:/Users/sswu/StudioProjects/OneKK/onekk/libs/opencsv-3.1.jar;C:/Users/sswu/StudioProjects/OneKK/onekk/libs/opencv.jar;C:/Users/sswu/StudioProjects/OneKK/openCVLibrary320/build/intermediates/intermediate-jars/debug/classes.jar;C:/Users/sswu/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-jdk7/1.2.71/4ce93f539e2133f172f1167291a911f83400a5d0/kotlin-stdlib-jdk7-1.2.71.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/740a30acc5a5a214d30557023b139952/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/5fe8072ccd97d152d903743c05e676c8/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/80e971e26f4849f72fb014e081c1cccf/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/c9d2c463f0608ec188460dc8f47efb06/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/11d2cede24851d72001e2f6a50ad51ee/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/31ce6722746e5a19cfa10adaadea8b5b/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/c7c4f591a914d5b5ee798282517b1d2d/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/0ccfac0bb543a0e7702d89d035b32bfd/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/1ce3f1a52266b8f5661c7b52628f2ed4/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/7efecb192188a3974d356edb14c9f372/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/45a2a6850fe74eb5ed05db232b8eaaa7/jars/classes.jar;C:/Users/sswu/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.2.71/d9717625bb3c731561251f8dd2c67a1011d6764c/kotlin-stdlib-1.2.71.jar;C:/Users/sswu/AppData/Local/Android/Sdk/extras/m2repository/com/android/support/constraint/constraint-layout-solver/1.0.2/constraint-layout-solver-1.0.2.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/4ad5350e3fe96800fe28baea341b44b8/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/93456715407f47c78819b31845a1ea2f/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/39669bba18ada86dade828fde7a4d22d/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/1ccbdb1ecbf125bc29bbe32fb026c42b/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/995dd297801731e541684f55a23219eb/jars/classes.jar;C:/Users/sswu/.gradle/caches/modules-2/files-2.1/com.android.support/support-annotations/25.4.0/f6a2fc748ae3769633dea050563e1613e93c135e/support-annotations-25.4.0.jar;C:/Users/sswu/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.2.71/ba18ca1aa0e40eb6f1865b324af2f4cbb691c1ec/kotlin-stdlib-common-1.2.71.jar;C:/Users/sswu/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/13.0/919f0dfe192fb4e063e7dacadee7f8bb9a2672a9/annotations-13.0.jar;C:/Users/sswu/AppData/Local/Android/Sdk/platforms/android-26/android.jar" />
+          <option name="classpath" value="$MODULE_DIR$/libs/ffmpeg.jar;C:/Users/sswu/StudioProjects/OneKK/onekk/libs/javacpp.jar;C:/Users/sswu/StudioProjects/OneKK/onekk/libs/opencsv-3.1.jar;C:/Users/sswu/StudioProjects/OneKK/onekk/libs/opencv.jar;C:/Users/sswu/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-jdk7/1.2.71/4ce93f539e2133f172f1167291a911f83400a5d0/kotlin-stdlib-jdk7-1.2.71.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/740a30acc5a5a214d30557023b139952/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/5fe8072ccd97d152d903743c05e676c8/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/80e971e26f4849f72fb014e081c1cccf/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/c9d2c463f0608ec188460dc8f47efb06/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/11d2cede24851d72001e2f6a50ad51ee/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/31ce6722746e5a19cfa10adaadea8b5b/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/c7c4f591a914d5b5ee798282517b1d2d/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/0ccfac0bb543a0e7702d89d035b32bfd/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/1ce3f1a52266b8f5661c7b52628f2ed4/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/7efecb192188a3974d356edb14c9f372/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/45a2a6850fe74eb5ed05db232b8eaaa7/jars/classes.jar;C:/Users/sswu/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.2.71/d9717625bb3c731561251f8dd2c67a1011d6764c/kotlin-stdlib-1.2.71.jar;C:/Users/sswu/AppData/Local/Android/Sdk/extras/m2repository/com/android/support/constraint/constraint-layout-solver/1.0.2/constraint-layout-solver-1.0.2.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/4ad5350e3fe96800fe28baea341b44b8/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/93456715407f47c78819b31845a1ea2f/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/39669bba18ada86dade828fde7a4d22d/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/1ccbdb1ecbf125bc29bbe32fb026c42b/jars/classes.jar;C:/Users/sswu/.gradle/caches/transforms-2/files-2.1/995dd297801731e541684f55a23219eb/jars/classes.jar;C:/Users/sswu/.gradle/caches/modules-2/files-2.1/com.android.support/support-annotations/25.4.0/f6a2fc748ae3769633dea050563e1613e93c135e/support-annotations-25.4.0.jar;C:/Users/sswu/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.2.71/ba18ca1aa0e40eb6f1865b324af2f4cbb691c1ec/kotlin-stdlib-common-1.2.71.jar;C:/Users/sswu/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/13.0/919f0dfe192fb4e063e7dacadee7f8bb9a2672a9/annotations-13.0.jar;C:/Users/sswu/AppData/Local/Android/Sdk/platforms/android-26/android.jar" />
           <option name="noStdlib" value="true" />
           <option name="noReflect" value="true" />
           <option name="moduleName" value="onekk_debug" />
@@ -36,22 +52,6 @@
             <ArgumentParseErrors />
           </option>
         </compilerArguments>
-      </configuration>
-    </facet>
-    <facet type="android" name="Android">
-      <configuration>
-        <option name="SELECTED_BUILD_VARIANT" value="debug" />
-        <option name="ASSEMBLE_TASK_NAME" value="assembleDebug" />
-        <option name="COMPILE_JAVA_TASK_NAME" value="compileDebugSources" />
-        <afterSyncTasks>
-          <task>generateDebugSources</task>
-        </afterSyncTasks>
-        <option name="ALLOW_USER_CONFIGURATION" value="false" />
-        <option name="MANIFEST_FILE_RELATIVE_PATH" value="/src/main/AndroidManifest.xml" />
-        <option name="RES_FOLDER_RELATIVE_PATH" value="/src/main/res" />
-        <option name="RES_FOLDERS_RELATIVE_PATH" value="file://$MODULE_DIR$/src/main/res;file://$MODULE_DIR$/build/generated/res/rs/debug;file://$MODULE_DIR$/build/generated/res/resValues/debug" />
-        <option name="TEST_RES_FOLDERS_RELATIVE_PATH" value="" />
-        <option name="ASSETS_FOLDER_RELATIVE_PATH" value="/src/main/assets" />
       </configuration>
     </facet>
   </component>
@@ -119,44 +119,25 @@
       <excludeFolder url="file://$MODULE_DIR$/build/generated/source/r" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/annotation_processor_list" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/apk_list" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/assets" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/blame" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/build-info" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/builds" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/check-libraries" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/check-manifest" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/checkDebugClasspath" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/classes" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/compatible_screen_manifest" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/incremental" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/incremental-classes" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/incremental-runtime-classes" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/incremental-verifier" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/instant-run-apk" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/instant-run-main-apk-res" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/instant-run-resources" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/instant_run_merged_manifests" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/instant_run_split_apk_resources" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/javaPrecompile" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/javac" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/jniLibs" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/lint" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/lint_jar" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/manifest-checker" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/manifests" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/merged_assets" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/merged_manifests" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/prebuild" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/processed_res" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/reload-dex" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/res" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/resources" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/rs" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/shader_assets" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/shaders" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/split-apk" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/split_list" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/splits-support" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/symbols" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/transforms" />
       <excludeFolder url="file://$MODULE_DIR$/build/outputs" />

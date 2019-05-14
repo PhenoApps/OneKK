@@ -724,4 +724,8 @@ public class Data {
         AlertDialog alert = builder.create();
         alert.show();
     }
+
+    public static void updateSampleWeight(String name, String weight) {
+        db.updateSampleWeight(name, weight);
+    }
 }

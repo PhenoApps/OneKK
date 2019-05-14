@@ -144,6 +144,8 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
     String mBluetoothDeviceName;
     String mBluetoothDeviceAddress;
+    //default value is 1 which means one step
+    private int mScaleSteps = 1;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -250,6 +252,8 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             ed.putBoolean("onlyLoadTutorialOnce", true);
             ed.apply();
         }
+
+        mScaleSteps = Integer.parseInt(ep.getString("scale_steps", "1"));
 
         FrameLayout measuringStick = (FrameLayout) findViewById(R.id.measureStick);
         measuringStick.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
@@ -780,6 +784,9 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     @Override
     public void onResume() {
         super.onResume();
+
+        mScaleSteps = Integer.parseInt(ep.getString("scale_steps", "1"));
+
         if (mCamera == null) {
             startCamera(); // Local method to handle camera initialization
         }
@@ -829,7 +836,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
     PictureCallback mPicture = new PictureCallback() {
         @Override
-        public void onPictureTaken(byte[] data, Camera camera) {
+        public void onPictureTaken(byte[] picData, Camera camera) {
             //Naive custom real time coin recognition
             /*
             ArrayList<Point> cornerArrayList = null;
@@ -892,12 +899,26 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                             mCamera.startPreview();
                     }
                 } else {
-                    outputFileUri = storeRawPicture(data);
+                    outputFileUri = storeRawPicture(picData);
+                    if (mScaleSteps == 2) {
+                        AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+                        alertDialog.setTitle("Weight Capture");
+                        alertDialog.setMessage("Please put seeds on the scale to update the seeds weight");
+                        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        data.updateSampleWeight(sampleName, weightData);
+                                        dialog.dismiss();
+                                    }
+                                });
+                        alertDialog.show();
+                    }
                     imageAnalysisLB(outputFileUri);
                     mCamera.startPreview();
                 }
             } else {
-                outputFileUri = storeRawPicture(data);
+
+                outputFileUri = storeRawPicture(picData);
                 imageAnalysisLB(outputFileUri);
                 mCamera.startPreview();
             }

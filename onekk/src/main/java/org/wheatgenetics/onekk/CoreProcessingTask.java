@@ -1,8 +1,10 @@
 package org.wheatgenetics.onekk;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
@@ -111,6 +113,7 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,String,Bitmap> {
 
     @Override
     protected Bitmap doInBackground(Bitmap... bitmaps){
+
         /* the first bitmap consists of the image */
         Bitmap outputBitmap = bitmaps[0];
 
