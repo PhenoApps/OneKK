@@ -70,6 +70,19 @@
                 android:title="@string/max_size" />
         </PreferenceCategory>
 
+        <PreferenceCategory
+            android:title="Scale Steps">
+            <ListPreference
+                android:key="scale_steps"
+                android:entries="@array/scale_steps"
+                android:entryValues="@array/scale_steps_values"
+                android:defaultValue="1"
+                android:icon="@drawable/ic_usb_black_24dp"
+                android:title="Choose scale steps"
+                />
+        </PreferenceCategory>
+
+
         <!--PreferenceCategory
             android:dependency="org.wheatgenetics.onekk.COLOR_THRESHOLD"
             android:title="@string/hue_range">

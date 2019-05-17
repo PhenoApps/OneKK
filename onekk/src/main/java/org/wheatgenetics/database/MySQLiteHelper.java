@@ -450,4 +450,11 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         db.delete(TABLE_SEED, null, null);
         db.close();
     }
+
+    public void updateSampleWeight(String name, String weight) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        String sql = "update sample set weight = '" + weight + "' where sample_id = '" + name + "'";
+        db.execSQL(sql);
+        db.close();
+    }
 }
