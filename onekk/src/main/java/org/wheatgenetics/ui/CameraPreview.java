@@ -68,8 +68,8 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
         Camera.Size bestPreviewSize = determineBestPreviewSize(mCamera.getParameters());
 
-        mCamera.getParameters().setPreviewSize(bestPreviewSize.width,bestPreviewSize.height);
-        mCamera.getParameters().setPictureSize(bestPreviewSize.width,bestPreviewSize.height);
+        mCamera.getParameters().setPreviewSize(bestPreviewSize.width, bestPreviewSize.height);
+        mCamera.getParameters().setPictureSize(bestPreviewSize.width, bestPreviewSize.height);
 
         try {
             mCamera.setPreviewDisplay(mHolder);
@@ -111,10 +111,18 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
                 .getRotation();
         int degrees = 0;
         switch (rotation) {
-            case Surface.ROTATION_0: degrees = 0; break;
-            case Surface.ROTATION_90: degrees = 90; break;
-            case Surface.ROTATION_180: degrees = 180; break;
-            case Surface.ROTATION_270: degrees = 270; break;
+            case Surface.ROTATION_0:
+                degrees = 0;
+                break;
+            case Surface.ROTATION_90:
+                degrees = 90;
+                break;
+            case Surface.ROTATION_180:
+                degrees = 180;
+                break;
+            case Surface.ROTATION_270:
+                degrees = 270;
+                break;
         }
 
         int result;

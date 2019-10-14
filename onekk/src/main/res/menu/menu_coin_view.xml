@@ -6,7 +6,7 @@
         android:id="@+id/action_add"
         android:orderInCategory="100"
         app:showAsAction="ifRoom"
-        android:icon="@drawable/ic_add_black_24dp"
+        android:icon="@drawable/ic_add_coin"
         android:title="@string/add"/>
 
     <item
@@ -20,6 +20,6 @@
         android:id="@+id/action_reset"
         android:orderInCategory="100"
         app:showAsAction="ifRoom"
-        android:icon="@drawable/ic_settings_backup_restore_black_24dp"
+        android:icon="@drawable/ic_reset_coin_database"
         android:title="@string/reset_data"/>
 </menu>

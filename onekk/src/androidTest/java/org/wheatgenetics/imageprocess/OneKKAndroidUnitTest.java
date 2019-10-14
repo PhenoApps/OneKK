@@ -11,8 +11,6 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
-import org.wheatgenetics.imageprocess.ColorThreshold.ColorThresholding;
-import org.wheatgenetics.imageprocess.WatershedLB.*;
 
 import java.io.File;
 
@@ -47,7 +45,6 @@ public class OneKKAndroidUnitTest{
     private String photoPath;
     private String photoName;
     private String[] imageName;
-    private ColorThresholding.ColorThresholdParams ctParams;
     private WatershedLB.WatershedParams params;
     private Bitmap inputBitmap;
     private Bitmap outputBitmap;
@@ -113,41 +110,6 @@ public class OneKKAndroidUnitTest{
     }
 
     @org.junit.Test
-    public void threshold_watershedLB_soybeans_test(){
-        int threshold = 25;
-        int lowerBound = 116;
-        int upperBound = 255;
-
-        if(!setupDoneFlag)
-            setup();
-        photoPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/nsoybeans-cropped.jpg";
-        photoName = "nsoybeans-cropped.jpg";
-        inputBitmap = BitmapFactory.decodeFile(photoPath);
-        ctParams = new ColorThresholding.ColorThresholdParams(threshold,lowerBound,upperBound);
-        ColorThresholding colorThresholding = new ColorThresholding(ctParams);
-        colorThresholding.labProcess(inputBitmap);
-        outputBitmap = mSeedCounter.process(colorThresholding.getProcessedBitmap());
-        Utils.bitmapToMat(outputBitmap,outputMat);
-        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/test_threshold_soybeans_analyzed.jpg",outputMat);
-        seedCount = (int) mSeedCounter.getNumSeeds();
-        assertTrue(seedCount == SEEDCOUNT_SOYBEANS);
-    }
-
-    @org.junit.Test
-    public void watershedLB_silphium_test(){
-        if(!setupDoneFlag)
-            setup();
-        photoPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/silphium-cropped.jpg";
-        photoName = "silphium-cropped.jpg";
-        inputBitmap = BitmapFactory.decodeFile(photoPath);
-        outputBitmap = mSeedCounter.process(inputBitmap);
-        Utils.bitmapToMat(outputBitmap,outputMat);
-        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/test_silphium_analyzed.jpg",outputMat);
-        seedCount = (int) mSeedCounter.getNumSeeds();
-        assertTrue(seedCount == SEEDCOUNT_SILPHIUM);
-    }
-
-    @org.junit.Test
     public void watershedLB_maize_test(){
         if(!setupDoneFlag)
             setup();
@@ -173,26 +135,5 @@ public class OneKKAndroidUnitTest{
         Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/test_wheat_analyzed.jpg",outputMat);
         seedCount = (int) mSeedCounter.getNumSeeds();
         assertTrue(seedCount == SEEDCOUNT_WHEAT);
-    }
-
-    @org.junit.Test
-    public void threshold_watershedLB_wheat_test(){
-        int threshold = 57;
-        int lowerBound = 146;
-        int upperBound = 255;
-
-        if(!setupDoneFlag)
-            setup();
-        photoPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/gwheat.jpg";
-        photoName = "gwheat.jpg";
-        inputBitmap = BitmapFactory.decodeFile(photoPath);
-        ctParams = new ColorThresholding.ColorThresholdParams(threshold,lowerBound,upperBound);
-        ColorThresholding colorThresholding = new ColorThresholding(ctParams);
-        colorThresholding.labProcess(inputBitmap);
-        outputBitmap = mSeedCounter.process(colorThresholding.getProcessedBitmap());
-        Utils.bitmapToMat(outputBitmap,outputMat);
-        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/WatershedImages/test_threshold_wheat_analyzed.jpg",outputMat);
-        seedCount = (int) mSeedCounter.getNumSeeds();
-        assertTrue(seedCount == SEEDCOUNT_WHEAT_COLORED);
     }
 }

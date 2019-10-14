@@ -1,16 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Real time coin recognition based on OpenCV camera
-    <item
-        android:id="@+id/nav_coinrecognition"
-        android:icon="@drawable/ic_settings"
-        android:title="@string/coinrecognition" />
-    -->
-
-    <item
-        android:id="@+id/nav_samples"
-        android:icon="@drawable/ic_samples"
-        android:title="@string/samples" />
 
     <item
         android:id="@+id/nav_settings"
@@ -18,39 +7,25 @@
         android:title="@string/settings" />
 
     <item
+        android:id="@+id/nav_samples"
+        android:icon="@drawable/ic_samples"
+        android:title="@string/samples" />
+
+    <item
         android:id="@+id/view_data"
-        android:icon="@drawable/ic_view_data"
+        android:icon="@drawable/ic_data_view"
         android:title="@string/view_data"/>
 
     <item
         android:id="@+id/choose_photo"
-        android:icon="@drawable/ic_photo_black_24dp"
+        android:icon="@drawable/ic_choose_photo"
         android:title="Choose Photo" />
 
     <item
-        android:id="@+id/scale"
-        android:icon="@drawable/ic_usb_black_24dp"
+        android:id="@+id/nav_scale"
+        android:icon="@drawable/ic_usb"
         android:title="Scale" />
 
-    <!--item
-        android:id="@+id/record_weight"
-        android:icon="@drawable/ic_usb_black_24dp"
-        android:title="Record Weight" /-->
-
-    <!--<item
-        android:id="@+id/nav_scaleConnect"
-        android:icon="@drawable/ic_usb"
-        android:title="@string/connect_scale_title" />
-
-    <item
-        android:id="@+id/nav_report"
-        android:icon="@drawable/ic_report"
-        android:title="@string/report" />-->
-
-    <item
-        android:id="@+id/nav_help"
-        android:icon="@drawable/ic_help"
-        android:title="@string/help" />
     <item
         android:id="@+id/nav_about"
         android:icon="@drawable/ic_info"

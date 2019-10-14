@@ -32,7 +32,6 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     public static String COIN_SIZE = "org.wheatgenetics.onekk.COIN_SIZE";
     public static String COIN_COUNTRY = "org.wheatgenetics.onekk.COIN_COUNTRY";
     public static String COIN_NAME = "org.wheatgenetics.onekk.COIN_NAME";
-    public static String ASK_PROCESSING_TECHNIQUE = "org.wheatgenetics.onekk.ASK_PROCESSING_TECHNIQUE";
     public static String PROCESSING_TECHNIQUE = "org.wheatgenetics.onekk.PROCESSING_TECHNIQUE";
     public static String ASK_BACKGROUND_PROCESSING = "org.wheatgenetics.onekk.ASK_BACKGROUND_PROCESSING";
     public static String ASK_MULTI_PROCESSING = "org.wheatgenetics.onekk.ASK_MULTI_PROCESSING";
@@ -56,12 +55,11 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
 
         try {
             addPreferencesFromResource(R.xml.preferences);
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             //Log.e("Settings Fragment","Preferences setup failed");
         }
 
-        mySQLiteHelper= new MySQLiteHelper(getPreferenceScreen().getContext());
+        mySQLiteHelper = new MySQLiteHelper(getPreferenceScreen().getContext());
 
         //additional setup for REFERENCE COIN SIZE settings
         additionalPreferenceSetup(findPreference(COIN_COUNTRY));
@@ -74,15 +72,16 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         //additionalPreferenceSetup(findPreference(THRESHOLD), "Threshold");
     }
 
-    /** Adding additional preferences to REFERENCE COIN SIZE
+    /**
+     * Adding additional preferences to REFERENCE COIN SIZE
      * adds a listener for Country and based on the value, populates the
      * list values for coin name list
-     * */
+     */
     private void additionalPreferenceSetup(Preference preference) {
-        listPreference = (ListPreference)preference;
+        listPreference = (ListPreference) preference;
         arrayList = new ArrayList<>();
         selectColumns = new String[]{"country"};
-        coinRecordList = mySQLiteHelper.getFromCoins(selectColumns,null,null,true);
+        coinRecordList = mySQLiteHelper.getFromCoins(selectColumns, null, null, true);
         int itemCount = coinRecordList.size();
         if (itemCount != 0) {
             for (int i = 0; i < itemCount; i++) {
@@ -97,13 +96,13 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         listPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
-                listPreference = (ListPreference)findPreference(COIN_NAME);
+                listPreference = (ListPreference) findPreference(COIN_NAME);
                 ArrayList<String> anotherArrayList = new ArrayList<>();
                 arrayList = new ArrayList<>();
                 listPreference.setEnabled(true);
                 //String country = preference.getSharedPreferences().getString(COIN_COUNTRY,null);
                 String country = newValue.toString();
-                coinRecordList = mySQLiteHelper.getFromCoins(null,selectColumns,new String[]{country},false);
+                coinRecordList = mySQLiteHelper.getFromCoins(null, selectColumns, new String[]{country}, false);
                 int itemCount = coinRecordList.size();
                 if (itemCount != 0) {
                     for (int i = 0; i < itemCount; i++) {
@@ -125,23 +124,29 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         });
 
         //If the country preference value is already set then populate the list for coin names
-        if(preference.getSharedPreferences().contains(COIN_COUNTRY))
-           listPreference.getOnPreferenceChangeListener().onPreferenceChange(preference,((ListPreference) preference).getValue());
+        if (preference.getSharedPreferences().contains(COIN_COUNTRY))
+            listPreference.getOnPreferenceChangeListener().onPreferenceChange(preference, ((ListPreference) preference).getValue());
     }
 
-    /** Adding additional preferences to MIN/MAX range sliders*/
+    /**
+     * Adding additional preferences to MIN/MAX range sliders
+     */
     private void additionalPreferenceSetup(Preference preference, String text) {
         bindPreferenceToValue(preference);
         preference.setTitle(text + " - " + preference.getSharedPreferences().getInt(preference.getKey(), 0));
     }
 
-    /** Set the listener onPreferenceChange to watch for MIN/MAX value changes.*/
+    /**
+     * Set the listener onPreferenceChange to watch for MIN/MAX value changes.
+     */
     private void bindPreferenceToValue(Preference preference) {
         preference.setOnPreferenceChangeListener(this);
     }
 
-    /** Returns true if the range seek bar value is within the
-    compared value(MIN<MAX or MAX>MIN), else returns false and restores the original value */
+    /**
+     * Returns true if the range seek bar value is within the
+     * compared value(MIN<MAX or MAX>MIN), else returns false and restores the original value
+     */
     public boolean onPreferenceChange(Preference preference, Object value) {
         String stringValue = value.toString();
         int tempVal;

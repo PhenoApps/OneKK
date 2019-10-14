@@ -135,7 +135,7 @@ public class RecordWeightActivity extends AppCompatActivity {
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder service) {
-            mBluetoothLeService = ((BluetoothLeService.LocalBinder)service).getService();
+            mBluetoothLeService = ((BluetoothLeService.LocalBinder) service).getService();
             if (!mBluetoothLeService.initialize()) {
                 Log.e(TAG, "Unable to initialize Bluetooth");
                 finish();
@@ -167,7 +167,7 @@ public class RecordWeightActivity extends AppCompatActivity {
 
                 try {
                     Thread.currentThread();
-                    Thread.sleep( mDelayTime);
+                    Thread.sleep(mDelayTime);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -175,7 +175,7 @@ public class RecordWeightActivity extends AppCompatActivity {
 
                 try {
                     Thread.currentThread();
-                    Thread.sleep( mDelayTime);
+                    Thread.sleep(mDelayTime);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -190,10 +190,10 @@ public class RecordWeightActivity extends AppCompatActivity {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    mHandler.postDelayed(mRunnable,  mDelayTime);
+                    mHandler.postDelayed(mRunnable, mDelayTime);
                 }
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
-                    displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
+                displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
 
             }
         }
@@ -229,7 +229,7 @@ public class RecordWeightActivity extends AppCompatActivity {
         super.onDestroy();
         try {
             unbindService(mServiceConnection);
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 

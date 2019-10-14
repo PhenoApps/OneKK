@@ -11,7 +11,7 @@ public class CoinRecord {
     public CoinRecord() {
     }
 
-    public CoinRecord(String country, String primary_currency, String value, String secondary_currency,String nominal, String diameter, String name) {
+    public CoinRecord(String country, String primary_currency, String value, String secondary_currency, String nominal, String diameter, String name) {
         this.country = country;
         this.primary_currency = primary_currency;
         this.value = value;
@@ -78,11 +78,10 @@ public class CoinRecord {
     }
 
     public Double getDoubleDiameter() {
-        try{
+        try {
             return Double.parseDouble(diameter);
-        }
-        catch (Exception ex){
-         return null;
+        } catch (Exception ex) {
+            return null;
         }
     }
 

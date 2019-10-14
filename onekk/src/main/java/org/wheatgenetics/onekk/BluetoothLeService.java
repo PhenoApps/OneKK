@@ -129,7 +129,7 @@ public class BluetoothLeService extends Service {
 
     public boolean initialize() {
         if (mBluetoothManager == null) {
-            mBluetoothManager = (BluetoothManager)getSystemService(Context.BLUETOOTH_SERVICE);
+            mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
             if (mBluetoothManager == null) {
                 Log.e(TAG, "Unable to initialize BluetoothManager.");
                 return false;
@@ -149,11 +149,10 @@ public class BluetoothLeService extends Service {
      * Connects to the GATT server hosted on the Bluetooth LE device.
      *
      * @param address The device address of the destination device.
-     *
      * @return Return true if the connection is initiated successfully. The connection result
-     *         is reported asynchronously through the
-     *         {@code BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)}
-     *         callback.
+     * is reported asynchronously through the
+     * {@code BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)}
+     * callback.
      */
     public boolean connect(final String address) {
         if (mBluetoothAdapter == null || address == null) {
@@ -172,7 +171,7 @@ public class BluetoothLeService extends Service {
         }
 
         final BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
-        if(device == null) {
+        if (device == null) {
             Log.w(TAG, "Device not found.  Unable to connect.");
             return false;
         }
@@ -223,7 +222,6 @@ public class BluetoothLeService extends Service {
         }
         mBluetoothGatt.readCharacteristic(characteristic);
     }*/
-
     public boolean setCharacteristicNotification(BluetoothGattCharacteristic characteristic, boolean enabled) {
         if (mBluetoothAdapter == null || mBluetoothGatt == null) {
             Log.w(TAG, "BluetoothAdapter not initialized");
@@ -253,9 +251,9 @@ public class BluetoothLeService extends Service {
         if (mBluetoothGatt != null) {
             BluetoothGattService service = mBluetoothGatt.getService(servUuid);
 
-            try{
+            try {
                 Thread.sleep(mDelayTime);
-            } catch(InterruptedException e) {
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
 
@@ -263,9 +261,9 @@ public class BluetoothLeService extends Service {
                 charac = service.getCharacteristic(uuid);
                 if (charac != null) {
                     if (setCharacteristicNotification(charac, enable)) {
-                        try{
+                        try {
                             Thread.sleep(mDelayTime);
-                        } catch(InterruptedException e) {
+                        } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
                     } else {
@@ -286,7 +284,7 @@ public class BluetoothLeService extends Service {
         Log.e(TAG, "BluetoothAdapter writing data");
         boolean isBoolean = false;
         isBoolean = mBluetoothGatt.writeCharacteristic(characteristic);
-        Log.e(TAG, "BluetoothAdapter_writeCharacteristic = " +isBoolean);  //isBoolean is true, write success
+        Log.e(TAG, "BluetoothAdapter_writeCharacteristic = " + isBoolean);  //isBoolean is true, write success
     }
 }
 

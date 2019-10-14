@@ -102,7 +102,9 @@ public class SampleRecord {
     }
 
 
-    public Double getLengthAvg() { return lengthAvg; }
+    public Double getLengthAvg() {
+        return lengthAvg;
+    }
 
     public void setLengthAvg(Double avgLength) {
         this.lengthAvg = avgLength;

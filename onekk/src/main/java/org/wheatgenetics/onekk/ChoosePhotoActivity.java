@@ -29,7 +29,7 @@ public class ChoosePhotoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.choose_photo_activity);
 
-        imgPicture = (ImageView) findViewById(R.id.show_photo);
+        imgPicture = findViewById(R.id.show_photo);
 
         choosePhoto();
     }
@@ -92,7 +92,7 @@ public class ChoosePhotoActivity extends AppCompatActivity {
     }
 
     public String getRealPathFromURI(Uri uri) {
-        String[] projection = { MediaStore.Images.Media.DATA };
+        String[] projection = {MediaStore.Images.Media.DATA};
         @SuppressWarnings("deprecation")
         Cursor cursor = managedQuery(uri, projection, null, null, null);
         int column_index = cursor

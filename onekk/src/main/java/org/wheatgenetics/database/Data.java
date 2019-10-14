@@ -29,11 +29,11 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.wheatgenetics.imageprocess.Seed.RawSeed;
-import org.wheatgenetics.onekkUtils.Constants;
+import org.wheatgenetics.imageprocess.RawSeed;
+import org.wheatgenetics.utils.Constants;
 import org.wheatgenetics.onekk.R;
-import org.wheatgenetics.onekkUtils.CSVWriter;
-import org.wheatgenetics.onekkUtils.oneKKUtils;
+import org.wheatgenetics.utils.CSVWriter;
+import org.wheatgenetics.utils.Utils;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -42,10 +42,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.lang.Math.min;
-import static org.wheatgenetics.onekkUtils.oneKKUtils.adjustFontSize;
-import static org.wheatgenetics.onekkUtils.oneKKUtils.getDate;
-import static org.wheatgenetics.onekkUtils.oneKKUtils.makeFileDiscoverable;
-import static org.wheatgenetics.onekkUtils.oneKKUtils.stringDecimal;
+import static org.wheatgenetics.utils.Utils.adjustFontSize;
+import static org.wheatgenetics.utils.Utils.getDate;
+import static org.wheatgenetics.utils.Utils.makeFileDiscoverable;
+import static org.wheatgenetics.utils.Utils.stringDecimal;
 
 //TODO : REDO this class
 
@@ -76,31 +76,31 @@ public class Data {
         parseListToLastSampleTable(list);
     }
 
-    /** Single method to get data from different tables in the Database
+    /**
+     * Single method to get data from different tables in the Database
      *
      * <p>
-     *     {@link Data#getAllData(String)}
-     *     {@value "sample, seed, coins"}
+     * {@link Data#getAllData(String)}
+     * {@value "sample, seed, coins"}
      * </p>
      *
      * @param tableName takes the table name from which all the rows are fetched
-     *
-     * */
+     */
     public static void getAllData(String tableName) {
 
         List<?> list = null;
         OneKKTable.removeAllViews();
-        switch(tableName){
-            case "sample" :
+        switch (tableName) {
+            case "sample":
                 list = db.getAllSamples();
                 break;
-            case "seed" :
+            case "seed":
                 list = db.getAllSamples();
                 break;
-            case "coins" :
+            case "coins":
                 /* null as parameters means that all the columns are selected and no where clauses
                 are used */
-                list = db.getFromCoins(null,null,null,false);
+                list = db.getFromCoins(null, null, null, false);
                 break;
         }
         db.close();
@@ -114,36 +114,36 @@ public class Data {
 
         int itemCount = list.size();
 
-            for (int i = 0; i < itemCount; i++) {
-                String[] temp = list.get(i).toString().split(",");
-                SampleRecord r = (SampleRecord) list.get(i);
-                if(temp.length == 7) {
-                    createNewTableEntry(temp[0], temp[6], stringDecimal(temp[5]));
-                }
-                else {
-                    //createNewTableEntry(temp[0], temp[5], stringDecimal(temp[7]), stringDecimal(temp[8]), stringDecimal(temp[6]));
-                    createNewTableEntry(r.getSampleId(), r.getSeedCount(), stringDecimal(r.getLengthAvg().toString()),
-                            stringDecimal(r.getWidthAvg().toString()), stringDecimal(r.getWeight()));
-                }
+        for (int i = 0; i < itemCount; i++) {
+            String[] temp = list.get(i).toString().split(",");
+            SampleRecord r = (SampleRecord) list.get(i);
+            if (temp.length == 7) {
+                createNewTableEntry(temp[0], temp[6], stringDecimal(temp[5]));
+            } else {
+                //createNewTableEntry(temp[0], temp[5], stringDecimal(temp[7]), stringDecimal(temp[8]), stringDecimal(temp[6]));
+                createNewTableEntry(r.getSampleId(), r.getSeedCount(), stringDecimal(r.getLengthAvg().toString()),
+                        stringDecimal(r.getWidthAvg().toString()), stringDecimal(r.getWeight()));
             }
+        }
     }
+
     //add data to table view
-    private static void parseListToLastSampleTable(List<?> list){
-            int itemCount = list.size();
-            if(itemCount > 0){
-                String[] temp = list.get(0).toString().split(",");
-                createNewTableEntry(temp[0], temp[4]);
-            }
+    private static void parseListToLastSampleTable(List<?> list) {
+        int itemCount = list.size();
+        if (itemCount > 0) {
+            String[] temp = list.get(0).toString().split(",");
+            createNewTableEntry(temp[0], temp[4]);
+        }
     }
 
     private static void createNewTableEntry(String country, final String coinName, String diameter) {
         //inputText.setText("");
 
-		/* Create a new row to be added. */
+        /* Create a new row to be added. */
         TableRow tr = new TableRow(context);
         tr.setLayoutParams(new TableLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        tr.setPadding(0,30,0,30);
+        tr.setPadding(0, 30, 0, 30);
         tr.setTag(country + "~" + coinName + "~" + diameter);
         float fontSize = 20.0f; //min(adjustFontSize(country),adjustFontSize(currency));
         /* Create the country field */
@@ -156,7 +156,7 @@ public class Data {
         tvCountry.setLayoutParams(new TableRow.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 0.2f));
 
-		/* Create the currency field */
+        /* Create the currency field */
         TextView tvCurrency = new TextView(context);
         tvCurrency.setGravity(Gravity.START | Gravity.BOTTOM);
         tvCurrency.setTextColor(Color.BLACK);
@@ -178,10 +178,10 @@ public class Data {
         tr.addView(tvCountry);
         tr.addView(tvCurrency);
         tr.addView(tvDiameter);
-        tr.setOnLongClickListener(new TableRow.OnLongClickListener(){
+        tr.setOnLongClickListener(new TableRow.OnLongClickListener() {
 
             @Override
-            public boolean onLongClick(View view){
+            public boolean onLongClick(View view) {
                 final String tag = (String) view.getTag();
                 deleteCoinDialog(tag);
                 return true;
@@ -190,7 +190,7 @@ public class Data {
 
         tr.setOnTouchListener(new View.OnTouchListener() {
 
-            private GestureDetector gestureDetector = new GestureDetector(context,new GestureDetector.SimpleOnGestureListener() {
+            private GestureDetector gestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
 
                 @Override
                 public boolean onDoubleTap(MotionEvent motionEvent) {
@@ -200,11 +200,10 @@ public class Data {
 
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                if(gestureDetector.onTouchEvent(event)) {
-                    coinDialog(v.getTag().toString(),false);
+                if (gestureDetector.onTouchEvent(event)) {
+                    coinDialog(v.getTag().toString(), false);
                     return true;
-                }
-                else
+                } else
                     return false;
             }
         });
@@ -217,12 +216,12 @@ public class Data {
     public static void createNewTableEntry(String sample, String seedCount) {
         //inputText.setText("");
 
-		/* Create a new row to be added. */
+        /* Create a new row to be added. */
         TableRow tr = new TableRow(context);
         tr.setLayoutParams(new TableLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-		/* Create the sample name field */
+        /* Create the sample name field */
         TextView sampleName = new TextView(context);
         sampleName.setGravity(Gravity.CENTER | Gravity.BOTTOM);
         sampleName.setTextColor(Color.BLACK);
@@ -232,7 +231,7 @@ public class Data {
         sampleName.setLayoutParams(new TableRow.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 0.2f));
 
-		/* Create the number of seeds field */
+        /* Create the number of seeds field */
         TextView numSeeds = new TextView(context);
         numSeeds.setGravity(Gravity.CENTER | Gravity.BOTTOM);
         numSeeds.setTextColor(Color.BLACK);
@@ -256,11 +255,11 @@ public class Data {
      ************************************************************************************/
     private static void createNewTableEntry(String sample, String seedCount, String avgL, String avgW, String wt) {
 
-		/* Create a new row to be added. */
+        /* Create a new row to be added. */
         TableRow tr = new TableRow(context);
         tr.setLayoutParams(new TableLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        tr.setPadding(0,30,0,30);
+        tr.setPadding(0, 30, 0, 30);
         float fontSize = 20.0f;
 
         /* Create the sample name field */
@@ -273,7 +272,7 @@ public class Data {
         sampleName.setLayoutParams(new TableRow.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 0.2f));
 
-		/* Create the number of seeds field */
+        /* Create the number of seeds field */
         TextView numSeeds = new TextView(context);
         numSeeds.setGravity(Gravity.RIGHT | Gravity.BOTTOM);
         numSeeds.setTextColor(Color.BLACK);
@@ -282,7 +281,7 @@ public class Data {
         numSeeds.setLayoutParams(new TableRow.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 0.12f));
 
-		/* Create the length field */
+        /* Create the length field */
         TextView avgLength = new TextView(context);
         avgLength.setGravity(Gravity.RIGHT | Gravity.BOTTOM);
         avgLength.setTextColor(Color.BLACK);
@@ -291,7 +290,7 @@ public class Data {
         avgLength.setLayoutParams(new TableRow.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 0.12f));
 
-		/* Create the width field */
+        /* Create the width field */
         TextView avgWidth = new TextView(context);
         avgWidth.setGravity(Gravity.RIGHT | Gravity.BOTTOM);
         avgWidth.setTextColor(Color.BLACK);
@@ -300,7 +299,7 @@ public class Data {
         avgWidth.setLayoutParams(new TableRow.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 0.12f));
 
-		/* Create the area field */
+        /* Create the area field */
         TextView sampleWeight = new TextView(context);
         sampleWeight.setGravity(Gravity.RIGHT | Gravity.BOTTOM);
         sampleWeight.setTextColor(Color.BLACK);
@@ -309,7 +308,7 @@ public class Data {
         sampleWeight.setLayoutParams(new TableRow.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 0.12f));
 
-		/* Define the listener for the longclick event */
+        /* Define the listener for the longclick event */
         sampleName.setOnLongClickListener(new View.OnLongClickListener() {
             public boolean onLongClick(View v) {
                 final String tag = (String) v.getTag();
@@ -318,7 +317,7 @@ public class Data {
             }
         });
 
-		/* Add UI elements to row and add row to table */
+        /* Add UI elements to row and add row to table */
         tr.addView(sampleName);
         tr.addView(numSeeds);
         tr.addView(avgLength);
@@ -334,42 +333,41 @@ public class Data {
      * Adds a new record to the internal list of records
      ************************************************************************************/
     // FIXME: 1/23/18 change the parameters to a Seed Record and a Sample Record
-
     public void addRecords(String sampleName, String photoName, String firstName, String lastName, int seedCount, String weight, ArrayList<RawSeed> seedArrayList) {
-      // Add all measured seeds to database
-          for(RawSeed s : seedArrayList){
-              db.addSeedRecord(new SeedRecord(sampleName, s.getLength(), s.getWidth(), s.getPerimeter(), s.getArea(), "",null));
-          }
+        // Add all measured seeds to database
+        for (RawSeed s : seedArrayList) {
+            db.addSeedRecord(new SeedRecord(sampleName, s.getLength(), s.getWidth(), s.getPerimeter(), s.getArea(), "", null));
+        }
 
-      // Calculate averages
-      double lengthAvg = db.averageSample(sampleName, "length");
-      double lengthVar = Math.pow(db.sdSample(sampleName, "length"), 2);
-      double lengthCV = (db.sdSample(sampleName, "length")) / (db.averageSample(sampleName, "length"));
+        // Calculate averages
+        double lengthAvg = db.averageSample(sampleName, "length");
+        double lengthVar = Math.pow(db.sdSample(sampleName, "length"), 2);
+        double lengthCV = (db.sdSample(sampleName, "length")) / (db.averageSample(sampleName, "length"));
 
-      double widthAvg = db.averageSample(sampleName, "width");
-      double widthVar = Math.pow(db.sdSample(sampleName, "width"), 2);
-      double widthCV = (db.sdSample(sampleName, "width")) / db.averageSample(sampleName, "width");
+        double widthAvg = db.averageSample(sampleName, "width");
+        double widthVar = Math.pow(db.sdSample(sampleName, "width"), 2);
+        double widthCV = (db.sdSample(sampleName, "width")) / db.averageSample(sampleName, "width");
 
-      double areaAvg = db.averageSample(sampleName, "area");
-      double areaVar = Math.pow(db.sdSample(sampleName, "area"), 2);
-      double areaCV = (db.sdSample(sampleName, "area")) / (db.averageSample(sampleName, "area"));
+        double areaAvg = db.averageSample(sampleName, "area");
+        double areaVar = Math.pow(db.sdSample(sampleName, "area"), 2);
+        double areaCV = (db.sdSample(sampleName, "area")) / (db.averageSample(sampleName, "area"));
 
-      String seedCountString = String.valueOf(seedCount);
-      String date = oneKKUtils.getDate();
+        String seedCountString = String.valueOf(seedCount);
+        String date = Utils.getDate();
 
-      // Add sample to database
-      db.addSampleRecord(new SampleRecord(sampleName, photoName,
-              firstName.toLowerCase() + "_" + lastName.toLowerCase(),
-      date, seedCountString, String.valueOf(weight), lengthAvg, lengthVar, lengthCV, widthAvg,
-      widthVar, widthCV, areaAvg, areaVar, areaCV));
+        // Add sample to database
+        db.addSampleRecord(new SampleRecord(sampleName, photoName,
+                firstName.toLowerCase() + "_" + lastName.toLowerCase(),
+                date, seedCountString, String.valueOf(weight), lengthAvg, lengthVar, lengthCV, widthAvg,
+                widthVar, widthCV, areaAvg, areaVar, areaCV));
 
-      // Round values for UI
-      String avgLengthStr = String.format("%.2f", lengthAvg);
-      String avgWidthStr = String.format("%.2f", widthAvg);
+        // Round values for UI
+        String avgLengthStr = String.format("%.2f", lengthAvg);
+        String avgWidthStr = String.format("%.2f", widthAvg);
 
-      //createNewTableEntry(sampleName, seedCountString);
-      currentItemNum++;
-     }
+        //createNewTableEntry(sampleName, seedCountString);
+        currentItemNum++;
+    }
 
     // FIXME: change the parameters to a Seed Record and a Sample Record
     public static void addSimpleRecord(String inputText, int seedCount, String weight) {
@@ -447,12 +445,12 @@ public class Data {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(context.getResources().getString(R.string.delete_entry));
-        builder.setMessage(context.getResources().getString(R.string.delete_msg_3) +" " + nameId + " of " + countryId+ ". " + context.getResources().getString(R.string.delete_msg_2))
+        builder.setMessage(context.getResources().getString(R.string.delete_msg_3) + " " + nameId + " of " + countryId + ". " + context.getResources().getString(R.string.delete_msg_2))
                 .setCancelable(true)
                 .setPositiveButton(context.getResources().getString(R.string.yes),
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
-                                db.deleteCoin(countryId,nameId);
+                                db.deleteCoin(countryId, nameId);
                                 getAllData("coins");
                             }
                         })
@@ -481,12 +479,12 @@ public class Data {
         final EditText etCoinName = (EditText) coinView.findViewById(R.id.newCoinName);
         final EditText etDiameter = (EditText) coinView.findViewById(R.id.newDiameter);
 
-        if(newRecord) {
+        if (newRecord) {
             record = null;
             alert.setTitle("Add Coin");
         }
         //existing record
-        else{
+        else {
             record = tag.split("~");
             etCountry.setText(record[0]);  //country
             etCoinName.setText(record[1]); //name
@@ -504,12 +502,12 @@ public class Data {
                         updates[1] = etCoinName.getText().toString();
                         updates[2] = etDiameter.getText().toString();
 
-                        db.coinData(record,updates,newRecord);
+                        db.coinData(record, updates, newRecord);
 
-                        if(record != null)
-                            Toast.makeText(context,"Coin updated", Toast.LENGTH_LONG).show();
+                        if (record != null)
+                            Toast.makeText(context, "Coin updated", Toast.LENGTH_LONG).show();
                         else
-                            Toast.makeText(context,"Coin added", Toast.LENGTH_LONG).show();
+                            Toast.makeText(context, "Coin added", Toast.LENGTH_LONG).show();
 
                         getAllData("coins");
                     }
@@ -538,9 +536,8 @@ public class Data {
                                 MySQLiteHelper mySQLiteHelper = new MySQLiteHelper(context);
                                 InputStream inputStream = null;
                                 try {
-                                    inputStream   = context.getAssets().open("coin_database.csv");
-                                }
-                                catch(Exception ex) {
+                                    inputStream = context.getAssets().open("coin_database.csv");
+                                } catch (Exception ex) {
                                     Log.e("Coin DB file error : ", ex.getMessage());
                                 }
                                 mySQLiteHelper.importCoinData(inputStream);
@@ -624,9 +621,9 @@ public class Data {
                 .setPositiveButton(context.getResources().getString(R.string.yes),
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
-                                @SuppressLint("HandlerLeak") final Handler handler = new Handler(){
+                                @SuppressLint("HandlerLeak") final Handler handler = new Handler() {
                                     @Override
-                                    public void handleMessage(Message msg){
+                                    public void handleMessage(Message msg) {
                                         //can be used to ask the user if he/she wants to process another sample
                                         this.postDelayed(new Runnable() {
                                             @Override
@@ -636,7 +633,7 @@ public class Data {
                                         }, 3000);
                                     }
                                 };
-                                Toast.makeText(context,"Exporting Coin Data",Toast.LENGTH_LONG).show();
+                                Toast.makeText(context, "Exporting Coin Data", Toast.LENGTH_LONG).show();
 
                                 // creates a new thread and starts processing export
                                 final ProgressDialog progressDialog = ProgressDialog.show(context, "Exporting Coin Data", "Please wait .. ");

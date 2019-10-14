@@ -13,7 +13,7 @@ import org.wheatgenetics.database.Data;
 /**
  * This class is the activity class for View Data feature and is
  * initialized from the Navigation Drawer setup in the main menu of MainActivity
- * */
+ */
 public class ViewDataActivity extends AppCompatActivity {
 
     private Data data;
@@ -27,18 +27,18 @@ public class ViewDataActivity extends AppCompatActivity {
 
         setContentView(R.layout.view_data_activity);
 
-        toolbar = (Toolbar) findViewById(R.id.view_data_toolbar);
+        toolbar = findViewById(R.id.view_data_toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        OneKKTable = (TableLayout) findViewById(R.id.view_table);
-        data = new Data(ViewDataActivity.this,OneKKTable);
+        OneKKTable = findViewById(R.id.view_table);
+        data = new Data(ViewDataActivity.this, OneKKTable);
         data.getAllData("sample");
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu){
+    public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater menuInflater = getMenuInflater();
         menuInflater.inflate(R.menu.menu_data_view, menu);
         return true;

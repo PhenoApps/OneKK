@@ -12,9 +12,7 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
-import org.wheatgenetics.imageprocess.ImgProcess1KK.MeasureSeeds;
-import org.wheatgenetics.imageprocess.Seed.RawSeed;
-import org.wheatgenetics.onekkUtils.Constants;
+import org.wheatgenetics.utils.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +29,6 @@ public class ImageProcess {
     private Mat labels;
     private Rect roi;
 
-
     private MeasureSeeds measureSeeds;
     private List<MatOfPoint> refContours = new ArrayList<>();
     private static String OS = System.getProperty("os.name").toLowerCase();
@@ -40,23 +37,6 @@ public class ImageProcess {
     private double pixelSize = 0; // pixel size in mm
     private boolean cropImage = false;
     private double refDiam = 1;
-
-    /**
-     * Check which operating system this is running on
-     */
-    public void checkOS() {
-        if (isWindows() || isMac()) {
-            System.loadLibrary(Core.NATIVE_LIBRARY_NAME); // Load the native library.
-        }
-    }
-
-    private static boolean isWindows() {
-        return (OS.contains("win"));
-    }
-
-    private static boolean isMac() {
-        return (OS.contains("mac"));
-    }
 
     public ImageProcess(String inputFILE, String photoName, double refDiameter, boolean crop, double minSize, double maxSize) {
 
@@ -68,25 +48,24 @@ public class ImageProcess {
         cropImage = crop;
 
         this.initialize();
-        this.processImage(minSize,maxSize);
+        this.processImage(minSize, maxSize);
 
         double time = (System.currentTimeMillis() - start) / 1000;
         System.out.println("\nProcessed in : " + time + " sec");
 
-        Imgproc.cvtColor(image,image, Imgproc.COLOR_HSV2BGR);
+        Imgproc.cvtColor(image, image, Imgproc.COLOR_HSV2BGR);
 
-        Imgcodecs.imwrite(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg",image);
+        Imgcodecs.imwrite(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg", image);
     }
 
     private void initialize() {
-        checkOS();
         image = Imgcodecs.imread(imageFile);
         System.out.println(String.format("Processing %s", imageFile));
         //HSV: Hue, Saturation, value
         Imgproc.cvtColor(image, image, Imgproc.COLOR_BGR2HSV);
     }
 
-    private void processImage(double min,double max) {
+    private void processImage(double min, double max) {
 
         if (cropImage) {
             //crop image to the minimum bounding box of 4 coins
@@ -94,7 +73,7 @@ public class ImageProcess {
         }
 
         Mat imageNG = filterGreen(image);
-        measureSeeds = new MeasureSeeds(imageNG,min,max,getRefContours());
+        measureSeeds = new MeasureSeeds(imageNG, min, max, getRefContours());
 
         boolean setRefs = setReference(image);
 
@@ -166,10 +145,6 @@ public class ImageProcess {
         Mat imgBLUE = filterBlue(image);
         Mat hierarchy = new Mat();
         List<MatOfPoint> contours = new ArrayList<>();
-        //RETR_TREE:  It retrieves all the contours and creates a full family hierarchy list. It even tells, who is the grandpa, father, son, grandson and even beyond... :)
-        //details: https://docs.opencv.org/3.1.0/d9/d8b/tutorial_py_contours_hierarchy.html
-        //CHAIN_APPROX_SIMPLE compresses horizontal, vertical, and diagonal segments and leaves only their end points.
-        //For example, an up-right rectangular contour is encoded with 4 points.
         Imgproc.findContours(imgBLUE, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE, new Point(0, 0));
 
         for (int i = 0; i < contours.size(); i++) {
@@ -282,8 +257,12 @@ public class ImageProcess {
         this.filterGreen[1] = high;
     }
 
-    public int getSeedCount(){ return measureSeeds.getSeedCount();}
+    public int getSeedCount() {
+        return measureSeeds.getSeedCount();
+    }
 
-    public ArrayList<RawSeed> getSeedList(){return measureSeeds.getList();}
+    public ArrayList<RawSeed> getSeedList() {
+        return measureSeeds.getList();
+    }
 
 }

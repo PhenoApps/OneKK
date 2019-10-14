@@ -57,7 +57,6 @@ public class ScaleActivity extends AppCompatActivity {
     String mWeightData;
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

@@ -1,10 +1,8 @@
 package org.wheatgenetics.onekk;
 
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
@@ -12,38 +10,37 @@ import android.util.Log;
 import android.util.TimingLogger;
 import android.widget.Toast;
 
-import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.wheatgenetics.database.Data;
-import org.wheatgenetics.imageprocess.ColorThreshold.ColorThresholding;
-import org.wheatgenetics.imageprocess.ImgProcess1KK.MeasureSeeds;
-import org.wheatgenetics.imageprocess.WatershedLB.WatershedLB;
-import org.wheatgenetics.onekkUtils.Constants;
-import org.wheatgenetics.onekkUtils.NotificationHelper;
-import org.wheatgenetics.onekkUtils.oneKKUtils;
+import org.wheatgenetics.imageprocess.CoinRecognitionTask;
+import org.wheatgenetics.imageprocess.MeasureSeeds;
+import org.wheatgenetics.imageprocess.WatershedLB;
+import org.wheatgenetics.utils.Constants;
+import org.wheatgenetics.utils.NotificationHelper;
+import org.wheatgenetics.utils.Utils;
 
 import java.io.File;
 
-import static org.wheatgenetics.onekkUtils.oneKKUtils.makeFileDiscoverable;
-import static org.wheatgenetics.onekkUtils.oneKKUtils.postImageDialog;
+import static org.wheatgenetics.utils.Utils.makeFileDiscoverable;
+import static org.wheatgenetics.utils.Utils.postImageDialog;
 
 /**
  * Created by sid on 1/28/18.
  */
 
-/** This class controls all the background processing and notifications
- *  in the following stages
- *
- *  1. Coin Recognition
- *  2. Color Thresholding, if required
- *  3. Image Analysis
- *  4. Measure Seeds
- *  5. Store Data
- *  6. Save Analyzed image
- *
- * */
-public class CoreProcessingTask extends AsyncTask<Bitmap,String,Bitmap> {
+/**
+ * This class controls all the background processing and notifications
+ * in the following stages
+ * <p>
+ * 1. Coin Recognition
+ * 2. Color Thresholding, if required
+ * 3. Image Analysis
+ * 4. Measure Seeds
+ * 5. Store Data
+ * 6. Save Analyzed image
+ */
+public class CoreProcessingTask extends AsyncTask<Bitmap, String, Bitmap> {
 
     private Context context;
     private Data data = null;
@@ -60,14 +57,12 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,String,Bitmap> {
     private int notificationCounter;
     private double coinSize;
     private CoinRecognitionTask coinRecognitionTask;
-    private ColorThresholding.ColorThresholdParams ctParams;
 
-    public CoreProcessingTask(Context context, ColorThresholding.ColorThresholdParams ctParams, String photoName,
+    public CoreProcessingTask(Context context, String photoName,
                               Boolean showAnalysis, String sampleName, String firstName,
                               String lastName, String weight, int notificationCounter,
-                              boolean backgroundProcessing, double coinSize){
+                              boolean backgroundProcessing, double coinSize) {
         this.context = context;
-        this.ctParams = ctParams;
         this.photoName = photoName;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -93,12 +88,12 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,String,Bitmap> {
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.d("WatershedLB Task","Cancel message received");
+            Log.d("WatershedLB Task", "Cancel message received");
 
-            if(!isCancelled())
-                displayAlert("Cancelling...",true);
+            if (!isCancelled())
+                displayAlert("Cancelling...", true);
 
-            if(intent.getBooleanExtra("CANCEL",false))
+            if (intent.getBooleanExtra("CANCEL", false))
                 cancel(true);
 
             goAsync();
@@ -108,34 +103,34 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,String,Bitmap> {
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        displayAlert("In queue...",true);
+        displayAlert("In queue...", true);
     }
 
     @Override
-    protected Bitmap doInBackground(Bitmap... bitmaps){
+    protected Bitmap doInBackground(Bitmap... bitmaps) {
 
         /* the first bitmap consists of the image */
         Bitmap outputBitmap = bitmaps[0];
 
         /*
-        *  adb shell setprop log.tag.<TAGNAME> VERBOSE
-        *
-        *  TAGNAME = CoreProcessing
-        *
-        *  To see the timings from TimingLogger in the console make sure you run this command
-        *
-        *  adb shell setprop log.tag.CoreProcessing VERBOSE
-        *
-        */
+         *  adb shell setprop log.tag.<TAGNAME> VERBOSE
+         *
+         *  TAGNAME = CoreProcessing
+         *
+         *  To see the timings from TimingLogger in the console make sure you run this command
+         *
+         *  adb shell setprop log.tag.CoreProcessing VERBOSE
+         *
+         */
         TimingLogger timingLogger = new TimingLogger("CoreProcessing", sampleName);
         Mat tempMat = new Mat();
 
-        displayAlert("Coin Recognition...",true);
+        displayAlert("Coin Recognition...", true);
 
         /* convert the bitmap to a mat and start coin recognition */
-        Utils.bitmapToMat(bitmaps[0],tempMat);
+        org.opencv.android.Utils.bitmapToMat(bitmaps[0], tempMat);
 
-        if(tempMat.empty())
+        if (tempMat.empty())
             cancel(true);
         coinRecognitionTask = new CoinRecognitionTask(coinSize);
         coinRecognitionTask.process(tempMat);
@@ -146,26 +141,14 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,String,Bitmap> {
         timingLogger.addSplit("Coin Recognition");
 
         /* if all the 4 coins are recognized and satisfy the constraints then start image processing */
-        if(coinsRecognized) {
+        if (coinsRecognized) {
 
             /* get the coins masked mat from coin recognition */
             tempMat = coinRecognitionTask.getProcessedMat();
 
             /* as the new mat is cropped bounding the image to the coins, we create a new bitmap */
-            Bitmap croppedBitmap = Bitmap.createBitmap(tempMat.cols(),tempMat.rows(),bitmaps[0].getConfig());
-            Utils.matToBitmap(tempMat,croppedBitmap);
-
-            /* if the color threshold parameters object is null, indicates that color thresholding
-            * is not required, else uses the parameters to perform the thresholding */
-            if(ctParams != null) {
-                final ColorThresholding colorThresholding = new ColorThresholding(ctParams);
-
-                colorThresholding.labProcess(croppedBitmap);
-
-                croppedBitmap = colorThresholding.getProcessedBitmap();
-
-                timingLogger.addSplit("Thresholding");
-            }
+            Bitmap croppedBitmap = Bitmap.createBitmap(tempMat.cols(), tempMat.rows(), bitmaps[0].getConfig());
+            org.opencv.android.Utils.matToBitmap(tempMat, croppedBitmap);
 
             /* start the watershed light box processing */
             WatershedLB watershedLB = new WatershedLB();
@@ -185,7 +168,7 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,String,Bitmap> {
 
             /* Trevor's implementation */
             MeasureSeeds measureSeeds = new MeasureSeeds();
-            measureSeeds.measureSeeds(watershedLB.getSeedContours(),coinRecognitionTask.getPixelMetric());
+            measureSeeds.measureSeeds(watershedLB.getSeedContours(), coinRecognitionTask.getPixelMetric());
 
             Log.d("Seed Measurements", measureSeeds.getList().toString());
             timingLogger.addSplit("Measure Seeds");
@@ -196,7 +179,7 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,String,Bitmap> {
 
                 data = new Data(context);
                 //data.addRecords(sampleName, photoName, firstName, lastName, seedCount, weight, mSeeds.getmSeedsArrayList());
-                data.addRecords(sampleName,photoName,firstName,lastName,seedCount,weight,measureSeeds.getList());
+                data.addRecords(sampleName, photoName, firstName, lastName, seedCount, weight, measureSeeds.getList());
             }
             timingLogger.addSplit("Store data");
 
@@ -204,74 +187,72 @@ public class CoreProcessingTask extends AsyncTask<Bitmap,String,Bitmap> {
         }
 
         /* if all the coins are not detected or fail any of the constraint checks then that particular
-        * processing is cancelled
-        */
-        else{
+         * processing is cancelled
+         */
+        else {
             cancel(true);
         }
         timingLogger.dumpToLog();
-        Log.d("CoreProcessing : End", oneKKUtils.getDate());
+        Log.d("CoreProcessing : End", Utils.getDate());
 
         return outputBitmap;
     }
 
-    protected void onPostExecute(Bitmap bitmap){
+    protected void onPostExecute(Bitmap bitmap) {
         super.onPostExecute(bitmap);
 
-        displayAlert("Saving processed image...",true);
+        displayAlert("Saving processed image...", true);
         //if(isCancelled())
         //    onCancelled(null);
-        Utils.bitmapToMat(bitmap,finalMat);
+        org.opencv.android.Utils.bitmapToMat(bitmap, finalMat);
 
-        Imgcodecs.imwrite(Constants.ANALYZED_PHOTO_PATH.toString() + "/analyzed_new.jpg",finalMat);
-        Imgcodecs.imwrite(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg",finalMat);
+        Imgcodecs.imwrite(Constants.ANALYZED_PHOTO_PATH.toString() + "/analyzed_new.jpg", finalMat);
+        Imgcodecs.imwrite(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg", finalMat);
 
         makeFileDiscoverable(new File(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg"), context);
 
-        if(!(sampleName.equals(""))){
-            data.createNewTableEntry(sampleName,String.valueOf(seedCount));
+        if (!(sampleName.equals(""))) {
+            data.createNewTableEntry(sampleName, String.valueOf(seedCount));
         }
-        displayAlert("Processing finished. \nSeed Count : " + seedCount,false);
+        displayAlert("Processing finished. \nSeed Count : " + seedCount, false);
 
         if (showAnalysis) {
-                postImageDialog(context,photoName,seedCount);
+            postImageDialog(context, photoName, seedCount);
         }
-        if(data != null)
+        if (data != null)
             data.getLastData();
         //context.unregisterReceiver(broadcastReceiver);
     }
 
-    protected void onProgressUpdate(String... text){
+    protected void onProgressUpdate(String... text) {
         boolean showAlert = Boolean.parseBoolean(text[1]);
         String displayText = text[0];
-        if(showAlert)
-            if(!progressDialog.isShowing()){
+        if (showAlert)
+            if (!progressDialog.isShowing()) {
                 progressDialog.setMessage(displayText);
                 progressDialog.show();
-            }
-            else
+            } else
                 progressDialog.setMessage(displayText);
         else
             progressDialog.dismiss();
     }
 
     @Override
-    protected void onCancelled(Bitmap bitmap){
+    protected void onCancelled(Bitmap bitmap) {
 
         Log.d("WatershedLB Activity", "Cancelled");
-        if(backgroundProcessing) {
+        if (backgroundProcessing) {
             displayAlert("Processing Cancelled : " + coinRecognitionTask.getSTATUS(), false);
-        }
-        else {
+        } else {
             progressDialog.dismiss();
             Toast.makeText(context, coinRecognitionTask.getSTATUS(), Toast.LENGTH_LONG).show();
         }
     }
 
-    private void displayAlert(String text, boolean showAlert){
-        if(backgroundProcessing)
-            NotificationHelper.notify(context, sampleName,text,this.notificationCounter,showAlert);
+    private void displayAlert(String text, boolean showAlert) {
+        if (backgroundProcessing)
+            NotificationHelper.notify(context, sampleName, text, this.notificationCounter, showAlert);
         else
-            publishProgress(text,String.valueOf(showAlert));
+            publishProgress(text, String.valueOf(showAlert));
     }
 }

@@ -15,12 +15,11 @@ import static org.wheatgenetics.database.Data.getAllData;
 /**
  * This class is the activity class for Coin Data feature and is
  * initialized as an intent in the SettingsActivity preferences
- * */
+ */
 public class CoinDataActivity extends AppCompatActivity {
 
     private TableLayout OneKKTable;
     private Data data;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,18 +29,18 @@ public class CoinDataActivity extends AppCompatActivity {
 
         setContentView(R.layout.coin_data_activity);
 
-        toolbar = (Toolbar) findViewById(R.id.coin_data_toolbar);
+        toolbar = findViewById(R.id.coin_data_toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        OneKKTable = (TableLayout) findViewById(R.id.coin_table);
-        data = new Data(CoinDataActivity.this,OneKKTable);
+        OneKKTable = findViewById(R.id.coin_table);
+        data = new Data(CoinDataActivity.this, OneKKTable);
         getAllData("coins");
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu){
+    public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater menuInflater = getMenuInflater();
         menuInflater.inflate(R.menu.menu_coin_view, menu);
         return true;
@@ -51,7 +50,7 @@ public class CoinDataActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_add:
-                data.coinDialog("",true);
+                data.coinDialog("", true);
                 return true;
 
             case R.id.action_export:

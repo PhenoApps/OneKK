@@ -3,7 +3,6 @@ package org.wheatgenetics.onekk;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Notification;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -28,11 +27,7 @@ import android.graphics.Matrix;
 import android.graphics.Typeface;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
-import android.hardware.usb.UsbConstants;
 import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbDeviceConnection;
-import android.hardware.usb.UsbEndpoint;
-import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -57,14 +52,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TableLayout;
@@ -74,16 +67,15 @@ import android.widget.Toast;
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.features2d.Params;
 import org.wheatgenetics.database.Data;
 import org.wheatgenetics.database.MySQLiteHelper;
-import org.wheatgenetics.imageprocess.ColorThreshold.ColorThresholding;
+import org.wheatgenetics.imageprocess.CoinRecognitionTask;
 import org.wheatgenetics.imageprocess.ImageProcess;
-import org.wheatgenetics.onekkUtils.Constants;
-import org.wheatgenetics.onekkUtils.oneKKUtils;
+import org.wheatgenetics.utils.Constants;
+import org.wheatgenetics.utils.Utils;
 import org.wheatgenetics.ui.CameraPreview;
 import org.wheatgenetics.ui.TouchImageView;
-import org.wheatgenetics.ui.guideBox;
+import org.wheatgenetics.ui.GuideBox;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -93,13 +85,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Random;
 
-import static org.wheatgenetics.onekkUtils.oneKKUtils.makeFileDiscoverable;
-import static org.wheatgenetics.onekkUtils.oneKKUtils.postImageDialog;
+import static org.wheatgenetics.utils.Utils.makeFileDiscoverable;
+import static org.wheatgenetics.utils.Utils.postImageDialog;
 
 public class MainActivity extends AppCompatActivity implements OnInitListener {
 
@@ -127,11 +116,10 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     private String photoName;
     private String photoPath;
 
-    private guideBox gb;
+    private GuideBox gb;
     private CoinRecognitionTask coinRecognitionTask;
     private FrameLayout preview;
 
-    @SuppressWarnings("deprecation")
     private Camera mCamera;
     private CameraPreview mPreview;
 
@@ -152,7 +140,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.bringToFront();
 
@@ -163,20 +151,20 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             getSupportActionBar().setHomeButtonEnabled(true);
         }
 
-        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        NavigationView nvDrawer = (NavigationView) findViewById(R.id.nvView);
+        mDrawerLayout = findViewById(R.id.drawer_layout);
+        NavigationView nvDrawer = findViewById(R.id.nvView);
         /* setup navigation click listener*/
         setupDrawerContent(nvDrawer);
         setupDrawer();
 
         ep = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
 
-        TableLayout lastSampleTable = (TableLayout) findViewById(R.id.lastSampleTable);
-        inputText = (EditText) findViewById(R.id.etInput);
-        mWeightEditText = (EditText) findViewById(R.id.etWeight);
+        TableLayout lastSampleTable = findViewById(R.id.lastSampleTable);
+        inputText = findViewById(R.id.etInput);
+        mWeightEditText = findViewById(R.id.etWeight);
         mWeightEditText.setText(getResources().getString(R.string.not_connected));
 
-        preview = (FrameLayout) findViewById(R.id.camera_preview);
+        preview = findViewById(R.id.camera_preview);
         parent = new LinearLayout(this);
         changeContainer = new ScrollView(this);
         changeContainer.removeAllViews();
@@ -185,7 +173,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         Intent intent = getIntent();
         mDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
-        ImageButton cameraButton = (ImageButton) findViewById(R.id.camera_button);
+        ImageButton cameraButton = findViewById(R.id.camera_button);
         cameraButton.setOnClickListener(new ImageButton.OnClickListener(
         ) {
             @Override
@@ -223,10 +211,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             setPersonDialog();
         }
 
-        /*if (!ep.getBoolean("ignoreScale", false)) {
-            findScale();
-        }*/
-
         Editor ed = ep.edit();
         if (ep.getInt("UpdateVersion", -1) < getVersion()) {
             ed.putInt("UpdateVersion", getVersion());
@@ -248,14 +232,13 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         }
 
         if (!ep.getBoolean("onlyLoadTutorialOnce", false)) {
-            launchIntro();
             ed.putBoolean("onlyLoadTutorialOnce", true);
             ed.apply();
         }
 
         mScaleSteps = Integer.parseInt(ep.getString("scale_steps", "1"));
 
-        FrameLayout measuringStick = (FrameLayout) findViewById(R.id.measureStick);
+        FrameLayout measuringStick = findViewById(R.id.measureStick);
         measuringStick.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
             int count = 0;
             double ratio = 0.0;
@@ -289,33 +272,10 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                     RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(width1, height1);
                     preview.setLayoutParams(lp);
                 }
-
-                //makeToast(String.valueOf(bottom) + " " + String.valueOf(oldBottom));
-                //makeToast(String.valueOf(preview.getLength()));
             }
         });
 
         scaleBluetoothInit();
-    }
-
-    private void launchIntro() {
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-
-                //  Launch app intro
-                final Intent i = new Intent(MainActivity.this, IntroActivity.class);
-
-                runOnUiThread(new Runnable() {
-                    @Override public void run() {
-                        startActivity(i);
-                    }
-                });
-
-
-            }
-        }).start();
     }
 
     public int getVersion() {
@@ -345,49 +305,53 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             try {
                 blankFile.getParentFile().mkdirs();
                 blankFile.createNewFile();
-                oneKKUtils.makeFileDiscoverable(blankFile, this);
+                Utils.makeFileDiscoverable(blankFile, this);
             } catch (IOException e) {
                 Log.e(TAG, e.getMessage());
             }
 
             /* copy sample images when the directory is created */
-            if(path.compareTo(Constants.PHOTO_SAMPLES_PATH) == 0)
+            if (path.compareTo(Constants.PHOTO_SAMPLES_PATH) == 0)
                 copySampleImages();
         }
     }
 
-    /** copy sample images into the directory OneKK/Photos/Samples */
-    private void copySampleImages(){
+    /**
+     * copy sample images into the directory OneKK/Photos/Samples
+     */
+    private void copySampleImages() {
 
         AssetManager assetManager = getAssets();
 
-            String[] files = {"gwheat.jpg","nsoybeans.jpg","soybeans.jpg","wheat.jpg","silphium.jpg","maize.jpg"};
+        String[] files = {"soybean.jpg", "wheat.jpg", "maize.jpg"};
 
-            for(String filename : files) {
-                InputStream in;
-                OutputStream out;
+        for (String filename : files) {
+            InputStream in;
+            OutputStream out;
 
-                try {
-                    in = assetManager.open(filename);
+            try {
+                in = assetManager.open(filename);
 
-                    String outDir = Constants.PHOTO_SAMPLES_PATH.toString();
+                String outDir = Constants.PHOTO_SAMPLES_PATH.toString();
 
-                    File outFile = new File(outDir, filename);
+                File outFile = new File(outDir, filename);
 
-                    out = new FileOutputStream(outFile);
-                    copyImage(in, out);
-                    in.close();
-                    in = null;
-                    out.flush();
-                    out.close();
-                    out = null;
-                } catch(IOException e) {
-                    Log.e(TAG, "Failed to copy asset file: " + filename, e);
-                }
+                out = new FileOutputStream(outFile);
+                copyImage(in, out);
+                in.close();
+                in = null;
+                out.flush();
+                out.close();
+                out = null;
+            } catch (IOException e) {
+                Log.e(TAG, "Failed to copy asset file: " + filename, e);
             }
+        }
     }
 
-    /** used by copySampleImages method */
+    /**
+     * used by copySampleImages method
+     */
     private void copyImage(InputStream in, OutputStream out) throws IOException {
         byte[] buffer = new byte[1024];
         int read;
@@ -412,7 +376,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         }
     };
 
-    @SuppressWarnings("deprecation")
     private void startCamera() {
         mCamera = getCameraInstance();
 
@@ -430,7 +393,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         //fix bug: the photo size is larger than preview size
         //Use the biggest preview size: 1920 X 1440
         Camera.Size previewSize = params.getSupportedPreviewSizes().get(0);
-        for (Camera.Size size: params.getSupportedPreviewSizes()) {
+        for (Camera.Size size : params.getSupportedPreviewSizes()) {
             if (size.width >= 1024 && size.height > 1024) {
                 previewSize = size;
                 Log.i("MainActivity", "Preview Size: " + size.width + " " + size.height);
@@ -455,54 +418,14 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         // Create our Preview view and set it as the content of our activity.
         mPreview = new CameraPreview(this, mCamera);
         preview.addView(mPreview);
-        gb = new guideBox(this, Integer.parseInt(ep.getString(SettingsFragment.COIN_SIZE, "4")));
+        gb = new GuideBox(this, Integer.parseInt(ep.getString(SettingsFragment.COIN_SIZE, "4")));
         preview.addView(gb, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
         /* Uncomment the below line to enable naive custom real time coin recognition */
         //previewThread.start();
     }
 
-    /* Naive custom real time coin recognition */
-    //TODO see if there are other optimized possibilities to handle this operation
-    /* A new thread to handle the camera preview callback.
-     *
-     *  This thread creates a new camera preview callback and processes the current frame every
-     *  2 seconds and tries to determine the contours of the four coins and display the
-     *  discovered coordinates on the preview
-     *
-     *  WARNING : If this feature is enabled make sure the processing is also done using
-     *            THREAD POOL EXECUTOR
-     */
-    /*Thread previewThread = new Thread(new Runnable() {
-        @Override
-        public void run() {
-            mCamera.setPreviewCallback(new Camera.PreviewCallback() {
-                @Override
-                public void onPreviewFrame(byte[] data, Camera camera) {
-
-                    Camera.Parameters parameters = camera.getParameters();
-
-                    int h = parameters.getPreviewSize().height;
-                    int w = parameters.getPreviewSize().width;
-
-                    coinRecognitionTask = new CoinRecognitionTask(w, h, gb);
-
-                    coinRecognitionTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, data);
-
-                    try {
-                        Log.d("Camera Preview thread", "Sleeping for 1 sec");
-                        Thread.sleep(5000);
-                    } catch (Exception ex) {
-                        Log.e("Camera Preview thread", ex.toString());
-                    }
-                }
-            });
-        }
-    });*/
-
-    @SuppressWarnings("deprecation")
     public static Camera getCameraInstance() {
-        @SuppressWarnings("deprecation")
         Camera c = null;
         try {
             c = Camera.open();
@@ -586,7 +509,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
             /** Called when a drawer has settled in a completely open state. */
             public void onDrawerOpened(View drawerView) {
-                TextView person = (TextView) findViewById(R.id.nameLabel);
+                TextView person = findViewById(R.id.nameLabel);
                 person.setText(ep.getString(SettingsFragment.FIRST_NAME, "") + " " + ep.getString(SettingsFragment.LAST_NAME, ""));
             }
 
@@ -610,10 +533,9 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                     }
                 });
     }
-    
+
     public String getRealPathFromURI(Uri uri) {
-        String[] projection = { MediaStore.Images.Media.DATA };
-        @SuppressWarnings("deprecation")
+        String[] projection = {MediaStore.Images.Media.DATA};
         Cursor cursor = managedQuery(uri, projection, null, null, null);
         int column_index = cursor
                 .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
@@ -621,7 +543,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         return cursor.getString(column_index);
     }
 
-    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == GET_PATH_REQUEST) {
             if (resultCode == RESULT_OK) {
                 Uri imageUri = data.getData();
@@ -674,25 +596,20 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     public void selectDrawerItem(MenuItem menuItem) {
 
         switch (menuItem.getItemId()) {
-            /* Real time coin recognition based on OpenCV camera */
-            /*case R.id.nav_coinrecognition:
-                final Intent cameraActivityIntent = new Intent(this,CameraActivity.class);
-                startActivity(cameraActivityIntent);
-                break;*/
-
-            case R.id.nav_samples:
-                samplesDialog();
-                break;
-
             case R.id.nav_settings:
                 final Intent settingsIntent = new Intent(this, SettingsActivity.class);
                 startActivity(settingsIntent);
+                break;
+
+            case R.id.nav_samples:
+                samplesDialog();
                 break;
 
             case R.id.view_data:
                 final Intent viewTableIntent = new Intent(this, ViewDataActivity.class);
                 startActivity(viewTableIntent);
                 break;
+
             case R.id.choose_photo:
                 /*final Intent choosePhotoIntent = new Intent(this, ChoosePhotoActivity.class);
                 //startActivity(choosePhotoIntent);
@@ -714,22 +631,8 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                 startActivityForResult(photoPickerIntent, GET_PATH_REQUEST);
 
                 break;
-            /*case R.id.nav_scaleConnect:
-                findScale();
-                break;
 
-            case R.id.nav_report:
-                final Intent reportActivityIntent = new Intent(this,ReportActivity.class);
-                startActivity(reportActivityIntent);
-                break;*/
-            /*
-            //we already move the RecordWeightActivity code to MainActivity
-            case R.id.record_weight:
-                final Intent recordWeight = new Intent(this, RecordWeightActivity.class);
-                //startActivity(recordWeight);
-                startActivityForResult(recordWeight, GET_WEIGHT_REQUEST);
-                break;*/
-            case R.id.scale:
+            case R.id.nav_scale:
                 final Intent scaleIntent = new Intent(this, ScaleActivity.class);
                 scaleIntent.putExtra("DeviceName", mBluetoothDeviceName);
                 scaleIntent.putExtra("DeviceAddress", mBluetoothDeviceAddress);
@@ -741,9 +644,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
                 scaleIntent.putExtra("WeightData", weightData);
                 startActivityForResult(scaleIntent, GET_BLUETOOTH_DEVICE_REQUEST);
-                break;
-            case R.id.nav_help:
-                makeToast(getResources().getString(R.string.coming_soon));
                 break;
 
             case R.id.nav_about:
@@ -758,18 +658,16 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     public void onDestroy() {
         super.onDestroy();
 
-        ////////////////////////////
-        //deal bluetooth connection
+        //handle bluetooth connection
         try {
             unbindService(mServiceConnection);
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
         mHandler.removeCallbacks(mRunnable);
         mBluetoothLeService = null;
         mBluetoothAdapter.stopLeScan(mLeScanCallback);
-        ////////////////////////////
     }
 
     @Override
@@ -791,14 +689,12 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             startCamera(); // Local method to handle camera initialization
         }
 
-        ///////////////////////////
-        //deal bluetooth connection
+        //handle bluetooth connection
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
         if (mBluetoothLeService != null) {
             final boolean result = mBluetoothLeService.connect(mBluetoothDevice.getAddress());
             Log.d(TAG, "Connect request result=" + result);
         }
-        ///////////////////////////
 
         Log.v(TAG, "onResume");
     }
@@ -819,10 +715,9 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             return true;
         }
 
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                mDrawerLayout.openDrawer(GravityCompat.START);
-                return true;
+        if (item.getItemId() == android.R.id.home) {
+            mDrawerLayout.openDrawer(GravityCompat.START);
+            return true;
         }
 
         return true;
@@ -933,7 +828,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             fileName = "temp_";
         }
         //Generates a Media file with specified type and name
-        File pictureFile = oneKKUtils.getOutputMediaFile(MEDIA_TYPE_IMAGE, fileName);
+        File pictureFile = Utils.getOutputMediaFile(MEDIA_TYPE_IMAGE, fileName);
         try {
             //write image file
             FileOutputStream fos = new FileOutputStream(pictureFile);
@@ -948,41 +843,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         makeFileDiscoverable(pictureFile, MainActivity.this);
 
         return Uri.fromFile(pictureFile);
-    }
-
-    /** NOT IMPLEMENTED
-     * displays a dialogue after capturing the image, prompting the user to select a
-     * processing technique, only if "Processing" -> "Always Ask" setting is checked
-     * else proceed with the default technique set in the settings panel
-     */
-    public void processingTechniqueDialog() {
-        final ArrayList mSelectedItems = new ArrayList();  // Where we track the selected items
-        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-
-        builder.setTitle("Processing technique")
-
-                .setSingleChoiceItems(R.array.processing_techniques, 0,
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                Log.v(TAG, which + "");
-                            }
-                        })
-
-                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int id) {
-                        Log.d(TAG, "clicked");
-                    }
-                })
-                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int id) {
-                        Log.d(TAG, "clicked negative");
-                    }
-                });
-
-        builder.create().show();
     }
 
     /************************************************************************************
@@ -1018,13 +878,13 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         seedCount = imgP.getSeedCount();
 
-        data.addRecords(sampleName,photoName,firstName,lastName,seedCount,weightData,imgP.getSeedList());// Add the current record to the table
-        data.createNewTableEntry(sampleName,String.valueOf(seedCount));
+        data.addRecords(sampleName, photoName, firstName, lastName, seedCount, weightData, imgP.getSeedList());// Add the current record to the table
+        data.createNewTableEntry(sampleName, String.valueOf(seedCount));
 
         data.getLastData();
 
         if (ep.getBoolean(SettingsFragment.DISPLAY_ANALYSIS, false)) {
-            postImageDialog(this,photoName,seedCount);
+            postImageDialog(this, photoName, seedCount);
         }
     }
 
@@ -1040,13 +900,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         sampleName = inputText.getText().toString();
 
-
-        /*if (mDevice == null && mWeightEditText.getText().toString().equals("null")) {
-            weightData = "null";
-        } else {
-            weightData = mWeightEditText.getText().toString();
-        }*/
-
         if (mConnected) {
             weightData = mWeightEditText.getText().toString();
         } else {
@@ -1058,13 +911,8 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         inputText.requestFocus();
 
         /* get user settings from shared preferences */
-        final ColorThresholding.ColorThresholdParams colorThresholdParams;
         final String firstName = ep.getString(SettingsFragment.FIRST_NAME, "first_name");
         final String lastName = ep.getString(SettingsFragment.LAST_NAME, "last_name");
-        final int lowerBound = ep.getInt(SettingsFragment.MIN_VALUE, 116);
-        final int upperBound = ep.getInt(SettingsFragment.MAX_VALUE, 255);
-        final int threshold = ep.getInt(SettingsFragment.THRESHOLD, 20);
-        final Boolean colorThresholding = ep.getBoolean(SettingsFragment.COLOR_THRESHOLD, false);
         final double coinSize = Double.valueOf(ep.getString(SettingsFragment.COIN_NAME, "-1"));
         final Boolean showAnalysis = ep.getBoolean(SettingsFragment.DISPLAY_ANALYSIS, false);
         final Boolean backgroundProcessing = ep.getBoolean(SettingsFragment.ASK_BACKGROUND_PROCESSING, false);
@@ -1077,16 +925,13 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         */
 
         final Bitmap inputBitmap = BitmapFactory.decodeFile(photoPath);
-        Log.d("CoreProcessing : Begin", oneKKUtils.getDate());
-
-        /* set ColorThreshold parameters to be passed if opted in Settings */
-        colorThresholdParams = colorThresholding ? new ColorThresholding.ColorThresholdParams(threshold, lowerBound, upperBound) : null;
+        Log.d("CoreProcessing : Begin", Utils.getDate());
 
         /* set Watershed parameters to be passed to the actual algorithm */
         //final WatershedLB.WatershedParams params = new WatershedLB.WatershedParams(areaLow, areaHigh, defaultRate, sizeLowerBoundRatio, newSeedDistRatio);
         //mSeedCounter = new WatershedLB(params);
 
-        final CoreProcessingTask coreProcessingTask = new CoreProcessingTask(MainActivity.this, colorThresholdParams,
+        final CoreProcessingTask coreProcessingTask = new CoreProcessingTask(MainActivity.this,
                 photoName, showAnalysis, sampleName, firstName, lastName, weightData, r.nextInt(20000), backgroundProcessing, coinSize);
 
         if (multiProcessing)
@@ -1111,7 +956,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
         final View personView = inflater.inflate(R.layout.post_image, new LinearLayout(MainActivity.this), false);
-        final TextView tv = (TextView)personView.findViewById(R.id.tvSeedCount);
+        final TextView tv = (TextView) personView.findViewById(R.id.tvSeedCount);
         Typeface myTypeFace = Typeface.createFromAsset(MainActivity.this.getAssets(), "AllerDisplay.ttf");
         tv.setTypeface(myTypeFace);
         tv.setText(name);
@@ -1148,15 +993,14 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     /**
      * This method lets the user run the analysis on some sample images that come along with the app
      */
-    private void samplesDialog(){
+    private void samplesDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
 
         builder.setTitle("Select a Sample");
 
         final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(MainActivity.this, android.R.layout.select_dialog_item);
-        arrayAdapter.add("Soybeans");
+        arrayAdapter.add("Soybean");
         arrayAdapter.add("Maize");
-        arrayAdapter.add("Silphium");
         arrayAdapter.add("Wheat");
 
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -1216,8 +1060,8 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         LayoutInflater inflater = this.getLayoutInflater();
         final View personView = inflater.inflate(R.layout.about, new LinearLayout(this), false);
-        TextView version = (TextView) personView.findViewById(R.id.tvVersion);
-        TextView otherApps = (TextView) personView.findViewById(R.id.tvOtherApps);
+        TextView version = personView.findViewById(R.id.tvVersion);
+        TextView otherApps = personView.findViewById(R.id.tvOtherApps);
 
 
         final PackageManager packageManager = this.getPackageManager();
@@ -1238,7 +1082,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         otherApps.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showOtherAppsDialog();
+                return;
             }
         });
 
@@ -1252,61 +1096,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             }
         });
         alert.show();
-    }
-
-    private void showOtherAppsDialog() {
-        final AlertDialog.Builder otherAppsAlert = new AlertDialog.Builder(this);
-
-        ListView myList = new ListView(this);
-        myList.setDivider(null);
-        myList.setDividerHeight(0);
-        String[] appsArray = new String[3];
-
-        appsArray[0] = "Field Book";
-        appsArray[1] = "Inventory";
-        appsArray[2] = "Coordinate";
-        //appsArray[3] = "Intercross";
-        //appsArray[4] = "Rangle";
-
-        Integer app_images[] = {R.drawable.other_ic_field_book, R.drawable.other_ic_inventory, R.drawable.other_ic_coordinate};
-        final String[] links = {"https://play.google.com/store/apps/details?id=com.fieldbook.tracker",
-                "https://play.google.com/store/apps/details?id=org.wheatgenetics.inventory",
-                "http://wheatgenetics.org/apps"}; //TODO update these links
-
-        myList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            public void onItemClick(AdapterView<?> av, View arg1, int which, long arg3) {
-                Uri uri = Uri.parse(links[which]);
-                Intent intent;
-
-                switch (which) {
-                    case 0:
-                        intent = new Intent(Intent.ACTION_VIEW, uri);
-                        startActivity(intent);
-                        break;
-                    case 1:
-                        intent = new Intent(Intent.ACTION_VIEW, uri);
-                        startActivity(intent);
-                        break;
-                    case 2:
-                        intent = new Intent(Intent.ACTION_VIEW, uri);
-                        startActivity(intent);
-                        break;
-                }
-            }
-        });
-
-        CustomListAdapter adapterImg = new CustomListAdapter(this, app_images, appsArray);
-        myList.setAdapter(adapterImg);
-
-        otherAppsAlert.setCancelable(true);
-        otherAppsAlert.setTitle(getResources().getString(R.string.otherapps));
-        otherAppsAlert.setView(myList);
-        otherAppsAlert.setNegativeButton(getResources().getString(R.string.ok), new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-                dialog.dismiss();
-            }
-        });
-        otherAppsAlert.show();
     }
 
     public class CustomListAdapter extends ArrayAdapter<String> {
@@ -1326,8 +1115,8 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             LayoutInflater inflater = (LayoutInflater) context
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             View single_row = inflater.inflate(R.layout.appline, null, true);
-            TextView textView = (TextView) single_row.findViewById(R.id.txt);
-            ImageView imageView = (ImageView) single_row.findViewById(R.id.img);
+            TextView textView = single_row.findViewById(R.id.txt);
+            ImageView imageView = single_row.findViewById(R.id.img);
             textView.setText(color_names[position]);
             imageView.setImageResource(image_id[position]);
             return single_row;
@@ -1343,9 +1132,9 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         LayoutInflater inflater = getLayoutInflater();
         final View personView = inflater.inflate(R.layout.person, new LinearLayout(this), false);
 
-        final EditText fName = (EditText) personView
+        final EditText fName = personView
                 .findViewById(R.id.firstName);
-        final EditText lName = (EditText) personView
+        final EditText lName = personView
                 .findViewById(R.id.lastName);
 
         fName.setText(ep.getString(SettingsFragment.FIRST_NAME, ""));
@@ -1390,180 +1179,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         mDrawerToggle.syncState();
     }
 
-    /*public void findScale() {
-        if (mDevice == null) {
-            UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
-            HashMap<String, UsbDevice> deviceList = usbManager.getDeviceList();
-            for (UsbDevice usbDevice : deviceList.values()) {
-                mDevice = usbDevice;
-                Log.v(TAG,
-                        String.format(
-                                "name=%s deviceId=%d productId=%d vendorId=%d deviceClass=%d subClass=%d protocol=%d interfaceCount=%d",
-                                mDevice.getDeviceName(), mDevice.getDeviceId(),
-                                mDevice.getProductId(), mDevice.getVendorId(),
-                                mDevice.getDeviceClass(),
-                                mDevice.getDeviceSubclass(),
-                                mDevice.getDeviceProtocol(),
-                                mDevice.getInterfaceCount()));
-                break;
-            }
-        }
-
-        if (mDevice != null) {
-            mWeightEditText.setText("0");
-            //new ScaleListener().execute();
-        } else {
-            new AlertDialog.Builder(MainActivity.this)
-                    .setTitle(getResources().getString(R.string.no_scale))
-                    .setMessage(
-                            getResources().getString(R.string.connect_scale))
-                    .setCancelable(false)
-                    .setPositiveButton(getResources().getString(R.string.try_again),
-                            new DialogInterface.OnClickListener() {
-
-                                public void onClick(DialogInterface dialog,
-                                                    int which) {
-                                    findScale();
-                                }
-
-                            })
-                    .setNegativeButton(getResources().getString(R.string.ignore),
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog,
-                                                    int which) {
-                                    Editor ed = ep.edit();
-                                    ed.putBoolean("ignoreScale", true);
-                                    ed.apply();
-                                    dialog.cancel();
-                                }
-                            }).show();
-        }
-    }*/
-
-    /*private class ScaleListener extends AsyncTask<Void, Double, Void> {
-        private double mLastWeight = 0;
-
-        @Override
-        protected Void doInBackground(Void... arg0) {
-
-            byte[] data = new byte[128];
-            int TIMEOUT = 2000;
-
-            Log.v(TAG, "hueProcess transfer");
-
-            UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
-
-            if (mDevice == null) {
-                Log.e(TAG, "no device");
-                return null;
-            }
-            UsbInterface intf = mDevice.getInterface(0);
-
-            Log.v(TAG,
-                    String.format("endpoint count = %d",
-                            intf.getEndpointCount()));
-            UsbEndpoint endpoint = intf.getEndpoint(0);
-            Log.v(TAG, String.format(
-                    "endpoint direction = %d out = %d in = %d",
-                    endpoint.getDirection(), UsbConstants.USB_DIR_OUT,
-                    UsbConstants.USB_DIR_IN));
-            UsbDeviceConnection connection = usbManager.openDevice(mDevice);
-            Log.v(TAG, "got connection:" + connection.toString());
-            connection.claimInterface(intf, true);
-            while (true) {
-
-                int length = connection.bulkTransfer(endpoint, data,
-                        data.length, TIMEOUT);
-
-                if (length != 6) {
-                    Log.e(TAG, String.format("invalid length: %d", length));
-                    return null;
-                }
-
-                byte report = data[0];
-                byte status = data[1];
-                //byte exp = data[3];
-                short weightLSB = (short) (data[4] & 0xff);
-                short weightMSB = (short) (data[5] & 0xff);
-
-                // Log.v(TAG, String.format(
-                // "report=%x status=%x exp=%x lsb=%x msb=%x", report,
-                // status, exp, weightLSB, weightMSB));
-
-                if (report != 3) {
-                    Log.v(TAG, String.format("scale status error %d", status));
-                    return null;
-                }
-
-                double mWeightGrams;
-                if (mDevice.getProductId() == 519) {
-                    mWeightGrams = (weightLSB + weightMSB * 256.0) / 10.0;
-                } else {
-                    mWeightGrams = (weightLSB + weightMSB * 256.0);
-                }
-                double mZeroGrams = 0;
-                double zWeight = (mWeightGrams - mZeroGrams);
-
-                switch (status) {
-                    case 1:
-                        Log.w(TAG, "Scale reports FAULT!\n");
-                        break;
-                    case 3:
-                        Log.i(TAG, "Weighing...");
-                        if (mLastWeight != zWeight) {
-                            publishProgress(zWeight);
-                        }
-                        break;
-                    case 2:
-                    case 4:
-                        if (mLastWeight != zWeight) {
-                            Log.i(TAG, String.format("Final Weight: %f", zWeight));
-                            publishProgress(zWeight);
-                        }
-                        break;
-                    case 5:
-                        Log.w(TAG, "Scale reports Under Zero");
-                        if (mLastWeight != zWeight) {
-                            publishProgress(0.0);
-                        }
-                        break;
-                    case 6:
-                        Log.w(TAG, "Scale reports Over Weight!");
-                        break;
-                    case 7:
-                        Log.e(TAG, "Scale reports Calibration Needed!");
-                        break;
-                    case 8:
-                        Log.e(TAG, "Scale reports Re-zeroing Needed!\n");
-                        break;
-                    default:
-                        Log.e(TAG, "Unknown status code");
-                        break;
-                }
-
-                mLastWeight = zWeight;
-            }
-        }
-
-        @Override
-        protected void onProgressUpdate(Double... weights) {
-            Double weight = weights[0];
-            Log.i(TAG, "update progress");
-            String weightText = String.format("%.1f", weight);
-            Log.i(TAG, weightText);
-            mWeightEditText.setText(weightText);
-            mWeightEditText.invalidate();
-        }
-
-        @Override
-        protected void onPostExecute(Void result) {
-            Toast.makeText(getApplicationContext(), getResources().getString(R.string.scale_disconnect),
-                    Toast.LENGTH_LONG).show();
-            mDevice = null;
-            mWeightEditText.setText("Not connected");
-        }
-    }*/
-
     public void onInit(int status) {
     }
 
@@ -1578,7 +1193,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         /* THIS IS TO DISABLE back button to close MainActivity */
     }
 
-    /////////////////////////////////
     //start scale part
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 456;
     private BluetoothAdapter mBluetoothAdapter;
@@ -1610,7 +1224,6 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         }
 
         mBluetoothAdapter.startLeScan(mLeScanCallback);
-
     }
 
     private BluetoothAdapter.LeScanCallback mLeScanCallback =
@@ -1646,7 +1259,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder service) {
-            mBluetoothLeService = ((BluetoothLeService.LocalBinder)service).getService();
+            mBluetoothLeService = ((BluetoothLeService.LocalBinder) service).getService();
             if (!mBluetoothLeService.initialize()) {
                 Log.e(TAG, "Unable to initialize Bluetooth");
                 finish();
@@ -1677,7 +1290,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
                 try {
                     Thread.currentThread();
-                    Thread.sleep( mDelayTime);
+                    Thread.sleep(mDelayTime);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -1685,7 +1298,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
                 try {
                     Thread.currentThread();
-                    Thread.sleep( mDelayTime);
+                    Thread.sleep(mDelayTime);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -1700,7 +1313,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    mHandler.postDelayed(mRunnable,  mDelayTime);
+                    mHandler.postDelayed(mRunnable, mDelayTime);
                 }
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
                 displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
@@ -1863,5 +1476,4 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             mHandler.postDelayed(this, mDelayTime);
         }
     }
-    ////////////////////////////////
 }

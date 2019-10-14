@@ -1,9 +1,7 @@
 package org.wheatgenetics.database;
 
-import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -13,7 +11,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.opencsv.CSVReader;
 
@@ -182,14 +179,14 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         double variance = 0;
         double temp = 0;
 
-        if (cursor.moveToFirst()){
+        if (cursor.moveToFirst()) {
             do {
                 double data = cursor.getDouble(0);
-                temp += (traitMean - data)*(traitMean-data);
-            } while(cursor.moveToNext());
+                temp += (traitMean - data) * (traitMean - data);
+            } while (cursor.moveToNext());
         }
 
-        variance = temp/(size-1);
+        variance = temp / (size - 1);
         return Math.sqrt(variance);
     }
 
@@ -197,19 +194,16 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
      * This method is used to add or update a coin record into coins table
      *
      * <p>
-     *     Usage : {@link org.wheatgenetics.database.MySQLiteHelper#coinData(String[], String[], boolean)}
+     * Usage : {@link org.wheatgenetics.database.MySQLiteHelper#coinData(String[], String[], boolean)}
      * </p>
      *
-     * @param record this is a String array, the value is <b>null</b> in case of a new record.
-     *               In case of an update consists of the existing coin details
-     *
-     * @param updates this is a String array consisting of the new coin details or update coin details
-     *                whether its a new or update record
-     *
+     * @param record    this is a String array, the value is <b>null</b> in case of a new record.
+     *                  In case of an update consists of the existing coin details
+     * @param updates   this is a String array consisting of the new coin details or update coin details
+     *                  whether its a new or update record
      * @param newRecord this is a boolean value indicating whether its a new record or update
-     *
-     * */
-    public void coinData(String[] record, String[] updates, boolean newRecord){
+     */
+    public void coinData(String[] record, String[] updates, boolean newRecord) {
 
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -218,21 +212,19 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         values.put(COIN_NAME, updates[1]);
         values.put(COIN_DIAMETER, updates[2]);
 
-        if(newRecord)
+        if (newRecord)
             try {
                 long id = db.insert(TABLE_COINS, "primary_currency,secondary_currency,value,nominal", values);
-                Log.d("Insert COIN",id+"");
-            }
-            catch(Exception ex) {
+                Log.d("Insert COIN", id + "");
+            } catch (Exception ex) {
                 Log.e("Failed loading Coin DB", ex.getMessage());
             }
         else {
-            String[] updatedRecord = {record[0],record[1]};
+            String[] updatedRecord = {record[0], record[1]};
             try {
-                int id = db.update(TABLE_COINS, values, String.format("%s=? and %s=?","country","name"), updatedRecord);
+                int id = db.update(TABLE_COINS, values, String.format("%s=? and %s=?", "country", "name"), updatedRecord);
                 Log.d("Update COIN", id + "");
-            }
-            catch(Exception ex) {
+            } catch (Exception ex) {
                 Log.e("Failed updating Coin DB", ex.getMessage());
             }
         }
@@ -280,7 +272,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
 
         // 2. get reference to writable DB
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.query(TABLE_SAMPLE,new String[]{SAMPLE_SID,SAMPLE_NUMSEEDS},"",null,"","","id desc","1");
+        Cursor cursor = db.query(TABLE_SAMPLE, new String[]{SAMPLE_SID, SAMPLE_NUMSEEDS}, "", null, "", "", "id desc", "1");
 
 
         // 3. go over each row, build sample and add it to list
@@ -340,26 +332,26 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         String[] columns = null;
         String wcolumns = "";
 
-        if(whichColumns != null)
+        if (whichColumns != null)
             columns = whichColumns;
         else
             columns = new String[]{"country", "name", "diameter"};
 
-        if(whereColumns != null)
-            for(int i = 0; i < whereColumns.length; i++)
+        if (whereColumns != null)
+            for (int i = 0; i < whereColumns.length; i++)
                 wcolumns = whereColumns[i] + "=?";
 
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.query(distinct,TABLE_COINS,columns,wcolumns,whereValues,"","","country asc","");
+        Cursor cursor = db.query(distinct, TABLE_COINS, columns, wcolumns, whereValues, "", "", "country asc", "");
         CoinRecord coinRecord;
         cursor.moveToLast();
         if (cursor.moveToFirst()) {
             do {
                 coinRecord = new CoinRecord();
                 // TODO: Fix this to be more generic
-                if(distinct)
+                if (distinct)
                     coinRecord.setCountry(cursor.getString(0));
-                else{
+                else {
                     coinRecord.setCountry(cursor.getString(0));
                     coinRecord.setName(cursor.getString(1));
                     coinRecord.setDiameter(cursor.getString(2));
@@ -401,7 +393,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         }
     }
 
-    public void importCoinData(InputStream inputStream){
+    public void importCoinData(InputStream inputStream) {
         InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
         SQLiteDatabase db = this.getWritableDatabase();
         db.execSQL("DROP TABLE IF EXISTS coins");
@@ -409,16 +401,15 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         CSVReader reader = new CSVReader(inputStreamReader);
         String[] next;
         try {
-            for(;;) {
+            for (; ; ) {
                 //TODO: include DB Transaction
                 next = reader.readNext();
-                if(next != null) {
+                if (next != null) {
 
-                    if((next[0].toLowerCase()).compareTo(COIN_COUNTRY) == 0) {
-                        Log.d("Loading Coin Data",next[0].toLowerCase());
+                    if ((next[0].toLowerCase()).compareTo(COIN_COUNTRY) == 0) {
+                        Log.d("Loading Coin Data", next[0].toLowerCase());
                         continue;
-                    }
-                    else {
+                    } else {
                         // 2. create ContentValues to add key "column"/value
                         ContentValues values = new ContentValues();
                         values.put(COIN_COUNTRY, next[0]);
@@ -438,9 +429,8 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
             }
             // 4. close
             db.close();
-        }
-        catch(Exception ex){
-            Log.e("Failed loading Coin DB",ex.getMessage());
+        } catch (Exception ex) {
+            Log.e("Failed loading Coin DB", ex.getMessage());
         }
     }
 

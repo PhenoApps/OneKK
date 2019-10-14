@@ -13,8 +13,6 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
-import org.wheatgenetics.imageprocess.ColorThreshold.ColorThresholding;
-import org.wheatgenetics.imageprocess.WatershedLB.WatershedLB;
 
 import java.util.Arrays;
 
@@ -48,7 +46,6 @@ public class SoybeansParameterizedTest {
     private WatershedLB mSeedCounter;
     private String photoPath;
     private String imageName;
-    private ColorThresholding.ColorThresholdParams htParams;
     private WatershedLB.WatershedParams params;
     private Bitmap inputBitmap;
     private Bitmap outputBitmap;
