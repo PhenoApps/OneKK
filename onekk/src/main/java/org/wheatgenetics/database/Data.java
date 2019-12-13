@@ -88,24 +88,34 @@ public class Data {
      */
     public static void getAllData(String tableName) {
 
-        List<?> list = null;
         OneKKTable.removeAllViews();
         switch (tableName) {
             case "sample":
-                list = db.getAllSamples();
-                break;
             case "seed":
-                list = db.getAllSamples();
+                parseListToTable(db.getAllSamples());
                 break;
             case "coins":
                 /* null as parameters means that all the columns are selected and no where clauses
                 are used */
-                list = db.getFromCoins(null, null, null, false);
+                parseCoinListToTable(db.getFromCoins(null, null, null, false));
                 break;
         }
         db.close();
 
-        parseListToTable(list);
+    }
+
+    // FIXME: 1/23/18
+    //Add data to table view
+    private static void parseCoinListToTable(List<?> list) {
+
+        int itemCount = list.size();
+
+        for (int i = 0; i < itemCount; i++) {
+            //String[] temp = list.get(i).toString().split(",");
+            CoinRecord coin = (CoinRecord) list.get(i);
+
+            createNewTableEntry(coin);
+        }
     }
 
     // FIXME: 1/23/18
@@ -115,15 +125,17 @@ public class Data {
         int itemCount = list.size();
 
         for (int i = 0; i < itemCount; i++) {
+
             String[] temp = list.get(i).toString().split(",");
             SampleRecord r = (SampleRecord) list.get(i);
-            if (temp.length == 7) {
+
+            /*if (temp.length == 7) {
                 createNewTableEntry(temp[0], temp[6], stringDecimal(temp[5]));
-            } else {
+            } else {*/
                 //createNewTableEntry(temp[0], temp[5], stringDecimal(temp[7]), stringDecimal(temp[8]), stringDecimal(temp[6]));
-                createNewTableEntry(r.getSampleId(), r.getSeedCount(), stringDecimal(r.getLengthAvg().toString()),
-                        stringDecimal(r.getWidthAvg().toString()), stringDecimal(r.getWeight()));
-            }
+            createNewTableEntry(r.getSampleId(), r.getSeedCount(), stringDecimal(r.getLengthAvg().toString()),
+                    stringDecimal(r.getWidthAvg().toString()), stringDecimal(r.getWeight()));
+            //}
         }
     }
 
@@ -136,8 +148,12 @@ public class Data {
         }
     }
 
-    private static void createNewTableEntry(String country, final String coinName, String diameter) {
+    private static void createNewTableEntry(CoinRecord coin) { //String country, final String coinName, String diameter) {
         //inputText.setText("");
+
+        String country = coin.getCountry();
+        String coinName = coin.getName();
+        String diameter = coin.getDiameter();
 
         /* Create a new row to be added. */
         TableRow tr = new TableRow(context);
