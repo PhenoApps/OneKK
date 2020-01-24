@@ -111,9 +111,9 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     }
 
     public void addSeedRecord(SeedRecord seed) {
+
         // for logging
         Log.d("Add Seed: ", seed.toString());
-
 
         // 1. get reference to writable DB
         SQLiteDatabase db = this.getWritableDatabase();
@@ -186,7 +186,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
             } while (cursor.moveToNext());
         }
 
-        variance = temp / (size - 1);
+        variance = temp / (size - 1); //TODO n-1 or n
         return Math.sqrt(variance);
     }
 

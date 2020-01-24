@@ -40,6 +40,7 @@ import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.speech.tts.TextToSpeech.OnInitListener;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -98,11 +99,13 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     public static final int GET_PATH_REQUEST = 3;
     public static final int GET_WEIGHT_REQUEST = 4;
     public static final int GET_BLUETOOTH_DEVICE_REQUEST = 5;
+    //requests for permissions
+    private final int REQ_CAMERA_PERM = 101;
+
     //setting information handler
     private SharedPreferences ep;
 
     private Data data;
-    private static UsbDevice mDevice;
 
     private EditText mWeightEditText;
     private EditText inputText;
@@ -120,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     private CoinRecognitionTask coinRecognitionTask;
     private FrameLayout preview;
 
-    private Camera mCamera;
+    //private Camera mCamera;
     private CameraPreview mPreview;
 
     private LinearLayout parent;
@@ -159,22 +162,22 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         ep = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
 
-        TableLayout lastSampleTable = findViewById(R.id.lastSampleTable);
-        inputText = findViewById(R.id.etInput);
-        mWeightEditText = findViewById(R.id.etWeight);
-        mWeightEditText.setText(getResources().getString(R.string.not_connected));
+        //TableLayout lastSampleTable = findViewById(R.id.lastSampleTable);
+        //inputText = findViewById(R.id.etInput);
+        //mWeightEditText = findViewById(R.id.etWeight);
+        //mWeightEditText.setText(getResources().getString(R.string.not_connected));
 
-        preview = findViewById(R.id.camera_preview);
+        //preview = findViewById(R.id.camera_preview);
         parent = new LinearLayout(this);
         changeContainer = new ScrollView(this);
         changeContainer.removeAllViews();
         changeContainer.addView(parent);
 
-        Intent intent = getIntent();
-        mDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+       // ImageButton cameraButton = findViewById(R.id.picture);
 
-        ImageButton cameraButton = findViewById(R.id.camera_button);
-        cameraButton.setOnClickListener(new ImageButton.OnClickListener(
+
+        //Todo move logic to camera2
+        /*cameraButton.setOnClickListener(new ImageButton.OnClickListener(
         ) {
             @Override
             public void onClick(View view) {
@@ -185,11 +188,11 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
                     takePic();
                 }
             }
-        });
+        });*/
 
         createDirs();
-        data = new Data(MainActivity.this, lastSampleTable);
-        data.getLastData();
+        //data = new Data(MainActivity.this, lastSampleTable);
+        //data.getLastData();
 
 
         /**
@@ -208,7 +211,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         }
 
         if (ep.getString(SettingsFragment.FIRST_NAME, "").length() == 0) {
-            setPersonDialog();
+            //setPersonDialog();
         }
 
         Editor ed = ep.edit();
@@ -238,45 +241,13 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
 
         mScaleSteps = Integer.parseInt(ep.getString("scale_steps", "1"));
 
-        FrameLayout measuringStick = findViewById(R.id.measureStick);
-        measuringStick.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-            int count = 0;
-            double ratio = 0.0;
-            int height1 = 0;
-            int width1 = 0;
+        //TODO get bluetooth to work with Camera2API
+        //scaleBluetoothInit();
 
-            @Override
-            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+        startCamera();
 
-                if (preview.getWidth() != 0 && preview.getHeight() != 0) {
-                    if (preview.getWidth() > width1 && preview.getHeight() > height1) {
-                        width1 = preview.getWidth();
-                        height1 = preview.getHeight();
-                        count++;
-                    }
-
-                    if (count != 0) {
-                        ratio = ((double) height1) / ((double) width1);
-                    }
-                }
-
-                if (bottom < oldBottom) {
-                    int newWidth = (int) (bottom / ratio);
-                    RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(newWidth, bottom);
-                    lp.addRule(RelativeLayout.CENTER_HORIZONTAL);
-                    lp.addRule(RelativeLayout.ALIGN_TOP);
-                    preview.setLayoutParams(lp);
-                }
-
-                if (oldBottom < bottom) {
-                    RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(width1, height1);
-                    preview.setLayoutParams(lp);
-                }
-            }
-        });
-
-        scaleBluetoothInit();
     }
+
 
     public int getVersion() {
         int v = 0;
@@ -352,6 +323,8 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     /**
      * used by copySampleImages method
      */
+
+    //TODO fix constant buffer size
     private void copyImage(InputStream in, OutputStream out) throws IOException {
         byte[] buffer = new byte[1024];
         int read;
@@ -377,62 +350,19 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     };
 
     private void startCamera() {
-        mCamera = getCameraInstance();
 
-        PackageManager pm = getPackageManager();
-        Camera.Parameters params = mCamera.getParameters();
-        if (pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_AUTOFOCUS)) {
-            //Camera.Parameters params = mCamera.getParameters();
-            if (params.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
-                params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
-            } else if (params.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
-                params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
-            }
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED) {
+
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.camera_preview, Camera2BasicFragment.newInstance())
+                    .commit();
+
+        } else {
+            ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.CAMERA }, REQ_CAMERA_PERM);
         }
 
-        //fix bug: the photo size is larger than preview size
-        //Use the biggest preview size: 1920 X 1440
-        Camera.Size previewSize = params.getSupportedPreviewSizes().get(0);
-        for (Camera.Size size : params.getSupportedPreviewSizes()) {
-            if (size.width >= 1024 && size.height > 1024) {
-                previewSize = size;
-                Log.i("MainActivity", "Preview Size: " + size.width + " " + size.height);
-                break;
-            }
-
-        }
-        params.setPreviewSize(previewSize.width, previewSize.height);
-
-        //If set photo size as same as preview size, the photo size will smaller than expect, so we do not need to set photo size.
-        /*Camera.Size picSize = params.getSupportedPictureSizes().get(0);
-        for (Camera.Size size: params.getSupportedPictureSizes()) {
-            if (size.width == previewSize.width && size.height == previewSize.height) {
-                picSize = size;
-                break;
-            }
-        }
-        params.setPictureSize(picSize.width, picSize.height);*/
-
-        mCamera.setParameters(params);
-
-        // Create our Preview view and set it as the content of our activity.
-        mPreview = new CameraPreview(this, mCamera);
-        preview.addView(mPreview);
-        gb = new GuideBox(this, Integer.parseInt(ep.getString(SettingsFragment.COIN_SIZE, "4")));
-        preview.addView(gb, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-
-        /* Uncomment the below line to enable naive custom real time coin recognition */
-        //previewThread.start();
-    }
-
-    public static Camera getCameraInstance() {
-        Camera c = null;
-        try {
-            c = Camera.open();
-        } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
-        }
-        return c;
     }
 
     private void changelog() {
@@ -457,6 +387,8 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         try {
             InputStream is = getResources().openRawResource(resId);
             InputStreamReader isr = new InputStreamReader(is);
+
+            //TODO fix constant buffer size
             BufferedReader br = new BufferedReader(isr, 8192);
 
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
@@ -544,6 +476,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
         if (requestCode == GET_PATH_REQUEST) {
             if (resultCode == RESULT_OK) {
                 Uri imageUri = data.getData();
@@ -654,6 +587,16 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         mDrawerLayout.closeDrawers();
     }
 
+    public void onRequestPermissionsResult(int result, String[] permissions, int[] granted) {
+
+        int i = 0;
+        for (String p : permissions) {
+            if (p.equals(Manifest.permission.CAMERA) && granted[i] == PackageManager.PERMISSION_GRANTED) {
+                startCamera();
+            }
+        }
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -671,38 +614,19 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-        if (mCamera == null) {
-            startCamera(); // Local method to handle camera initialization
-        }
-        Log.v(TAG, "onStart");
-    }
-
-    @Override
     public void onResume() {
         super.onResume();
 
         mScaleSteps = Integer.parseInt(ep.getString("scale_steps", "1"));
 
-        if (mCamera == null) {
-            startCamera(); // Local method to handle camera initialization
-        }
-
         //handle bluetooth connection
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
         if (mBluetoothLeService != null) {
             final boolean result = mBluetoothLeService.connect(mBluetoothDevice.getAddress());
-            Log.d(TAG, "Connect request result=" + result);
+            //Log.d(TAG, "Connect request result=" + result);
         }
-
-        Log.v(TAG, "onResume");
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -723,102 +647,97 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
         return true;
     }
 
-    private void takePic() {
-        //inputText.setEnabled(false); //TODO fix camera preview and enable this
-        mCamera.takePicture(null, null, mPicture);
-    }
 
-
-    PictureCallback mPicture = new PictureCallback() {
-        @Override
-        public void onPictureTaken(byte[] picData, Camera camera) {
-            //Naive custom real time coin recognition
-            /*
-            ArrayList<Point> cornerArrayList = null;
-
-            Camera.Parameters parameters = camera.getParameters();
-
-            int h = parameters.getPreviewSize().height;
-            int w = parameters.getPreviewSize().width;
-
-            coinRecognitionTask = new CoinRecognitionTask(w,h);
-            coinRecognitionTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,data);
-
-            try {
-                cornerArrayList = coinRecognitionTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,data).get();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-                Log.e("AsyncTask",e.getMessage());
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-                Log.e("AsyncTask",e.getMessage());
-            }
-
-            Log.d("Corner Array list",cornerArrayList.toString());
-            if(cornerArrayList.size() != 4){
-                Toast.makeText(MainActivity.this,"Couldn't detect all the coins, adjust and try again",Toast.LENGTH_LONG).show();
-                mCamera.startPreview();
-            }
-            else {
-            */
-
-            /*if (ep.getBoolean(SettingsFragment.ASK_PROCESSING_TECHNIQUE, true))
-                processingTechniqueDialog();*/
-
-            Uri outputFileUri;
-            String input;
-
-            if (inputText.getText().length() != 0) {
-                input = inputText.getText().toString();
-
-                /* This section of code is just a hack to run already stored sample images for UI testing
-                 *
-                 *  In the sample name input box the developer can enter $ followed by,
-                 *  either kk or lb to run different algorithms, followed by
-                 *  the name of the image that is already present on the device in the Samples directory
-                 *
-                 *  Example : $lbsoybeans, will run a watershed light box algorithm on a soybeans
-                 *            sample image that is present in the OneKK/Photos/Samples directory
-                 */
-
-                if (input.charAt(0) == '$') {
-                    outputFileUri = Uri.fromFile(new File(Constants.PHOTO_SAMPLES_PATH.toString() + "/" + input.substring(3) + ".jpg"));
-                    inputText.setText(input.substring(3) + r.nextInt(200));
-                    switch (input.substring(1, 3)) {
-                        case "kk":
-                            imageAnalysis(outputFileUri);
-                            mCamera.startPreview();
-                            break;
-                        default:
-                            imageAnalysisLB(outputFileUri);
-                            mCamera.startPreview();
-                    }
-                } else {
-                    outputFileUri = storeRawPicture(picData);
-                    if (mScaleSteps == 2) {
-                        AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
-                        alertDialog.setTitle("Weight Capture");
-                        alertDialog.setMessage("Please put seeds on the scale to update the seeds weight");
-                        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
-                                new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        data.updateSampleWeight(sampleName, weightData);
-                                        dialog.dismiss();
-                                    }
-                                });
-                        alertDialog.show();
-                    }
-                    imageAnalysisLB(outputFileUri);
-                    mCamera.startPreview();
-                }
-            } else {
-
-                outputFileUri = storeRawPicture(picData);
-                imageAnalysisLB(outputFileUri);
-                mCamera.startPreview();
-            }
-        }
-    };
+//    /*PictureCallback mPicture = new PictureCallback() {
+//        @Override
+//        public void onPictureTaken(byte[] picData, Camera camera) {
+//            //Naive custom real time coin recognition
+//            /*
+//            ArrayList<Point> cornerArrayList = null;
+//
+//            Camera.Parameters parameters = camera.getParameters();
+//
+//            int h = parameters.getPreviewSize().height;
+//            int w = parameters.getPreviewSize().width;
+//
+//            coinRecognitionTask = new CoinRecognitionTask(w,h);
+//            coinRecognitionTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,data);
+//
+//            try {
+//                cornerArrayList = coinRecognitionTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,data).get();
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//                Log.e("AsyncTask",e.getMessage());
+//            } catch (ExecutionException e) {
+//                e.printStackTrace();
+//                Log.e("AsyncTask",e.getMessage());
+//            }
+//
+//            Log.d("Corner Array list",cornerArrayList.toString());
+//            if(cornerArrayList.size() != 4){
+//                Toast.makeText(MainActivity.this,"Couldn't detect all the coins, adjust and try again",Toast.LENGTH_LONG).show();
+//                mCamera.startPreview();
+//            }
+//            else {
+//            */
+//
+//            /*if (ep.getBoolean(SettingsFragment.ASK_PROCESSING_TECHNIQUE, true))
+//                processingTechniqueDialog();*/
+//
+//            Uri outputFileUri;
+//            String input;
+//
+//            if (inputText.getText().length() != 0) {
+//                input = inputText.getText().toString();
+//
+//                /* This section of code is just a hack to run already stored sample images for UI testing
+//                 *
+//                 *  In the sample name input box the developer can enter $ followed by,
+//                 *  either kk or lb to run different algorithms, followed by
+//                 *  the name of the image that is already present on the device in the Samples directory
+//                 *
+//                 *  Example : $lbsoybeans, will run a watershed light box algorithm on a soybeans
+//                 *            sample image that is present in the OneKK/Photos/Samples directory
+//                 */
+//
+//                if (input.charAt(0) == '$') {
+//                    outputFileUri = Uri.fromFile(new File(Constants.PHOTO_SAMPLES_PATH.toString() + "/" + input.substring(3) + ".jpg"));
+//                    inputText.setText(input.substring(3) + r.nextInt(200));
+//                    switch (input.substring(1, 3)) {
+//                        case "kk":
+//                            imageAnalysis(outputFileUri);
+//                            mCamera.startPreview();
+//                            break;
+//                        default:
+//                            imageAnalysisLB(outputFileUri);
+//                            mCamera.startPreview();
+//                    }
+//                } else {
+//                    outputFileUri = storeRawPicture(picData);
+//                    if (mScaleSteps == 2) {
+//                        AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+//                        alertDialog.setTitle("Weight Capture");
+//                        alertDialog.setMessage("Please put seeds on the scale to update the seeds weight");
+//                        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+//                                new DialogInterface.OnClickListener() {
+//                                    public void onClick(DialogInterface dialog, int which) {
+//                                        data.updateSampleWeight(sampleName, weightData);
+//                                        dialog.dismiss();
+//                                    }
+//                                });
+//                        alertDialog.show();
+//                    }
+//                    imageAnalysisLB(outputFileUri);
+//                    mCamera.startPreview();
+//                }
+//            } else {
+//
+//                outputFileUri = storeRawPicture(picData);
+//                imageAnalysisLB(outputFileUri);
+//                mCamera.startPreview();
+//            }
+//        }
+//    };*/
 
     private Uri storeRawPicture(byte[] data) {
         String fileName;
@@ -848,18 +767,11 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     /************************************************************************************
      * image analysis method call to perform the default processing MeasureSeeds
      ************************************************************************************/
-    private void imageAnalysis(Uri photo) {
+   /* private void imageAnalysis(Uri photo) {
         photoPath = photo.getPath();
         photoName = photo.getLastPathSegment();
 
         sampleName = inputText.getText().toString();
-
-        /*if (mDevice == null
-                && mWeightEditText.getText().toString().equals("Not connected")) {
-            weightData = "null";
-        } else {
-            weightData = mWeightEditText.getText().toString();
-        }*/
 
         if (mConnected) {
             weightData = mWeightEditText.getText().toString();
@@ -887,61 +799,61 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             postImageDialog(this, photoName, seedCount);
         }
     }
-
+*/
     /************************************************************************************
      * image analysis method call to perform WatershedLB, the algorithmName parameter can
      * be used to extend different algorithm implementations using the same function call
      ***********************************************************************************
      */
-    private void imageAnalysisLB(final Uri photo) {
-        photoPath = photo.getPath();
-        photoName = photo.getLastPathSegment();
-        r = new Random();
+//    private void imageAnalysisLB(final Uri photo) {
+//        photoPath = photo.getPath();
+//        photoName = photo.getLastPathSegment();
+//        r = new Random();
+//
+//        sampleName = inputText.getText().toString();
+//
+//        if (mConnected) {
+//            weightData = mWeightEditText.getText().toString();
+//        } else {
+//            weightData = "null";
+//        }
+//
+//        inputText.setText("");
+//        //mWeightEditText.setText("0");
+//        inputText.requestFocus();
+//
+//        /* get user settings from shared preferences */
+//        final String firstName = ep.getString(SettingsFragment.FIRST_NAME, "first_name");
+//        final String lastName = ep.getString(SettingsFragment.LAST_NAME, "last_name");
+//        final double coinSize = Double.valueOf(ep.getString(SettingsFragment.COIN_NAME, "-1"));
+//        final Boolean showAnalysis = ep.getBoolean(SettingsFragment.DISPLAY_ANALYSIS, false);
+//        final Boolean backgroundProcessing = ep.getBoolean(SettingsFragment.ASK_BACKGROUND_PROCESSING, false);
+//        final Boolean multiProcessing = ep.getBoolean(SettingsFragment.ASK_MULTI_PROCESSING, false);
+//        /*final int areaLow = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_LOW, "400"));
+//        final int areaHigh = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_HIGH, "160000"));
+//        final int defaultRate = Integer.valueOf(ep.getString(SettingsFragment.PARAM_DEFAULT_RATE, "34"));
+//        final double sizeLowerBoundRatio = Double.valueOf(ep.getString(SettingsFragment.PARAM_SIZE_LOWER_BOUND_RATIO, "0.25"));
+//        final double newSeedDistRatio = Double.valueOf(ep.getString(SettingsFragment.PARAM_NEW_SEED_DIST_RATIO, "4.0"));
+//        */
+//
+//        final Bitmap inputBitmap = BitmapFactory.decodeFile(photoPath);
+//        Log.d("CoreProcessing : Begin", Utils.getDate());
+//
+//        /* set Watershed parameters to be passed to the actual algorithm */
+//        //final WatershedLB.WatershedParams params = new WatershedLB.WatershedParams(areaLow, areaHigh, defaultRate, sizeLowerBoundRatio, newSeedDistRatio);
+//        //mSeedCounter = new WatershedLB(params);
+//
+//        final CoreProcessingTask coreProcessingTask = new CoreProcessingTask(MainActivity.this,
+//                photoName, showAnalysis, sampleName, firstName, lastName, weightData, r.nextInt(20000), backgroundProcessing, coinSize);
+//
+//        if (multiProcessing)
+//            coreProcessingTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, inputBitmap);
+//        else
+//            coreProcessingTask.execute(inputBitmap);
+//        data.getLastData();
+//    }
 
-        sampleName = inputText.getText().toString();
-
-        if (mConnected) {
-            weightData = mWeightEditText.getText().toString();
-        } else {
-            weightData = "null";
-        }
-
-        inputText.setText("");
-        //mWeightEditText.setText("0");
-        inputText.requestFocus();
-
-        /* get user settings from shared preferences */
-        final String firstName = ep.getString(SettingsFragment.FIRST_NAME, "first_name");
-        final String lastName = ep.getString(SettingsFragment.LAST_NAME, "last_name");
-        final double coinSize = Double.valueOf(ep.getString(SettingsFragment.COIN_NAME, "-1"));
-        final Boolean showAnalysis = ep.getBoolean(SettingsFragment.DISPLAY_ANALYSIS, false);
-        final Boolean backgroundProcessing = ep.getBoolean(SettingsFragment.ASK_BACKGROUND_PROCESSING, false);
-        final Boolean multiProcessing = ep.getBoolean(SettingsFragment.ASK_MULTI_PROCESSING, false);
-        /*final int areaLow = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_LOW, "400"));
-        final int areaHigh = Integer.valueOf(ep.getString(SettingsFragment.PARAM_AREA_HIGH, "160000"));
-        final int defaultRate = Integer.valueOf(ep.getString(SettingsFragment.PARAM_DEFAULT_RATE, "34"));
-        final double sizeLowerBoundRatio = Double.valueOf(ep.getString(SettingsFragment.PARAM_SIZE_LOWER_BOUND_RATIO, "0.25"));
-        final double newSeedDistRatio = Double.valueOf(ep.getString(SettingsFragment.PARAM_NEW_SEED_DIST_RATIO, "4.0"));
-        */
-
-        final Bitmap inputBitmap = BitmapFactory.decodeFile(photoPath);
-        Log.d("CoreProcessing : Begin", Utils.getDate());
-
-        /* set Watershed parameters to be passed to the actual algorithm */
-        //final WatershedLB.WatershedParams params = new WatershedLB.WatershedParams(areaLow, areaHigh, defaultRate, sizeLowerBoundRatio, newSeedDistRatio);
-        //mSeedCounter = new WatershedLB(params);
-
-        final CoreProcessingTask coreProcessingTask = new CoreProcessingTask(MainActivity.this,
-                photoName, showAnalysis, sampleName, firstName, lastName, weightData, r.nextInt(20000), backgroundProcessing, coinSize);
-
-        if (multiProcessing)
-            coreProcessingTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, inputBitmap);
-        else
-            coreProcessingTask.execute(inputBitmap);
-        data.getLastData();
-    }
-
-    private void releaseCamera() {
+    /*private void releaseCamera() {
         if (mCamera != null) {
             mCamera.stopPreview();
             mCamera.setPreviewCallback(null);
@@ -949,7 +861,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             mCamera.release();
             mCamera = null;
         }
-    }
+    }*/
 
     private void analysisChoosingPhoto(final String path, final String name) {
         final AlertDialog.Builder samplePreviewAlert = new AlertDialog.Builder(MainActivity.this);
@@ -979,7 +891,7 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
             public void onClick(DialogInterface dialog, int whichButton) {
                 //Uri outputFileUri = Uri.fromFile(new File(Constants.PHOTO_SAMPLES_PATH.toString() + "/" + name + ".jpg"));
                 Uri outputFileUri = Uri.fromFile(new File(path));
-                imageAnalysisLB(outputFileUri);
+                //imageAnalysisLB(outputFileUri);
             }
         });
         samplePreviewAlert.setNegativeButton(MainActivity.this.getResources().getString(R.string.close), new DialogInterface.OnClickListener() {
@@ -1167,10 +1079,10 @@ public class MainActivity extends AppCompatActivity implements OnInitListener {
     @Override
     protected void onPause() {
         super.onPause();
-        releaseCamera(); // release the camera immediately on pause event
+        //releaseCamera(); // release the camera immediately on pause event
 
         //deal bluetooth callback function
-        unregisterReceiver(mGattUpdateReceiver);
+       // unregisterReceiver(mGattUpdateReceiver);
     }
 
     @Override

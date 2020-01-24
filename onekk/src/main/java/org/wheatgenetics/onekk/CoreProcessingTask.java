@@ -1,258 +1,258 @@
-package org.wheatgenetics.onekk;
-
-import android.app.ProgressDialog;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.os.AsyncTask;
-import android.util.Log;
-import android.util.TimingLogger;
-import android.widget.Toast;
-
-import org.opencv.core.Mat;
-import org.opencv.imgcodecs.Imgcodecs;
-import org.wheatgenetics.database.Data;
-import org.wheatgenetics.imageprocess.CoinRecognitionTask;
-import org.wheatgenetics.imageprocess.MeasureSeeds;
-import org.wheatgenetics.imageprocess.WatershedLB;
-import org.wheatgenetics.utils.Constants;
-import org.wheatgenetics.utils.NotificationHelper;
-import org.wheatgenetics.utils.Utils;
-
-import java.io.File;
-
-import static org.wheatgenetics.utils.Utils.makeFileDiscoverable;
-import static org.wheatgenetics.utils.Utils.postImageDialog;
-
-/**
- * Created by sid on 1/28/18.
- */
-
-/**
- * This class controls all the background processing and notifications
- * in the following stages
- * <p>
- * 1. Coin Recognition
- * 2. Color Thresholding, if required
- * 3. Image Analysis
- * 4. Measure Seeds
- * 5. Store Data
- * 6. Save Analyzed image
- */
-public class CoreProcessingTask extends AsyncTask<Bitmap, String, Bitmap> {
-
-    private Context context;
-    private Data data = null;
-    private final Mat finalMat = new Mat();
-    private ProgressDialog progressDialog;
-    private int seedCount = 0;
-    private String sampleName;
-    private String firstName;
-    private String lastName;
-    private String weight;
-    private String photoName;
-    private Boolean showAnalysis;
-    private Boolean backgroundProcessing;
-    private int notificationCounter;
-    private double coinSize;
-    private CoinRecognitionTask coinRecognitionTask;
-
-    public CoreProcessingTask(Context context, String photoName,
-                              Boolean showAnalysis, String sampleName, String firstName,
-                              String lastName, String weight, int notificationCounter,
-                              boolean backgroundProcessing, double coinSize) {
-        this.context = context;
-        this.photoName = photoName;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.showAnalysis = showAnalysis;
-        this.sampleName = sampleName;
-        this.weight = weight;
-
-        this.progressDialog = new ProgressDialog(context);
-        this.progressDialog.setIndeterminate(false);
-        this.progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        this.progressDialog.setCancelable(false);
-
-        this.notificationCounter = notificationCounter;
-        this.backgroundProcessing = backgroundProcessing;
-        this.coinSize = coinSize;
-
-        // TODO : add unique identification to implement "cancel processing" feature
-
-        //context.registerReceiver(broadcastReceiver,new IntentFilter("CANCEL"));
-    }
-
-    /* written for cancel feature */
-    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Log.d("WatershedLB Task", "Cancel message received");
-
-            if (!isCancelled())
-                displayAlert("Cancelling...", true);
-
-            if (intent.getBooleanExtra("CANCEL", false))
-                cancel(true);
-
-            goAsync();
-        }
-    };
-
-    @Override
-    protected void onPreExecute() {
-        super.onPreExecute();
-        displayAlert("In queue...", true);
-    }
-
-    @Override
-    protected Bitmap doInBackground(Bitmap... bitmaps) {
-
-        /* the first bitmap consists of the image */
-        Bitmap outputBitmap = bitmaps[0];
-
-        /*
-         *  adb shell setprop log.tag.<TAGNAME> VERBOSE
-         *
-         *  TAGNAME = CoreProcessing
-         *
-         *  To see the timings from TimingLogger in the console make sure you run this command
-         *
-         *  adb shell setprop log.tag.CoreProcessing VERBOSE
-         *
-         */
-        TimingLogger timingLogger = new TimingLogger("CoreProcessing", sampleName);
-        Mat tempMat = new Mat();
-
-        displayAlert("Coin Recognition...", true);
-
-        /* convert the bitmap to a mat and start coin recognition */
-        org.opencv.android.Utils.bitmapToMat(bitmaps[0], tempMat);
-
-        if (tempMat.empty())
-            cancel(true);
-        coinRecognitionTask = new CoinRecognitionTask(coinSize);
-        coinRecognitionTask.process(tempMat);
-
-        /* once the hueProcess is complete check for coin constraints */
-        boolean coinsRecognized = coinRecognitionTask.checkConstraints();
-
-        timingLogger.addSplit("Coin Recognition");
-
-        /* if all the 4 coins are recognized and satisfy the constraints then start image processing */
-        if (coinsRecognized) {
-
-            /* get the coins masked mat from coin recognition */
-            tempMat = coinRecognitionTask.getProcessedMat();
-
-            /* as the new mat is cropped bounding the image to the coins, we create a new bitmap */
-            Bitmap croppedBitmap = Bitmap.createBitmap(tempMat.cols(), tempMat.rows(), bitmaps[0].getConfig());
-            org.opencv.android.Utils.matToBitmap(tempMat, croppedBitmap);
-
-            /* start the watershed light box processing */
-            WatershedLB watershedLB = new WatershedLB();
-            displayAlert("Processing...", true);
-            outputBitmap = watershedLB.process(croppedBitmap);
-
-            timingLogger.addSplit("Image Analysis");
-            seedCount = (int) watershedLB.getNumSeeds();
-
-            /* once the processing is complete we characterize the seeds */
-
-            /* Open CV based approach*/
-
-            /*MSeeds mSeeds = new MSeeds(coinRecognitionTask.getPixelMetric(), watershedLB.getProcessedMat());
-            mSeeds.process(watershedLB.getSeedArrayList());
-            Utils.matToBitmap(mSeeds.getmSeedsProcessedMat(),outputBitmap);*/
-
-            /* Trevor's implementation */
-            MeasureSeeds measureSeeds = new MeasureSeeds();
-            measureSeeds.measureSeeds(watershedLB.getSeedContours(), coinRecognitionTask.getPixelMetric());
-
-            Log.d("Seed Measurements", measureSeeds.getList().toString());
-            timingLogger.addSplit("Measure Seeds");
-
-            /* if the sample name is provided the data is added to the database */
-            if (!(sampleName.equals(""))) {
-                displayAlert("Adding sample to database...", true);
-
-                data = new Data(context);
-                //data.addRecords(sampleName, photoName, firstName, lastName, seedCount, weight, mSeeds.getmSeedsArrayList());
-                data.addRecords(sampleName, photoName, firstName, lastName, seedCount, weight, measureSeeds.getList());
-            }
-            timingLogger.addSplit("Store data");
-
-            System.gc();
-        }
-
-        /* if all the coins are not detected or fail any of the constraint checks then that particular
-         * processing is cancelled
-         */
-        else {
-            cancel(true);
-        }
-        timingLogger.dumpToLog();
-        Log.d("CoreProcessing : End", Utils.getDate());
-
-        return outputBitmap;
-    }
-
-    protected void onPostExecute(Bitmap bitmap) {
-        super.onPostExecute(bitmap);
-
-        displayAlert("Saving processed image...", true);
-        //if(isCancelled())
-        //    onCancelled(null);
-        org.opencv.android.Utils.bitmapToMat(bitmap, finalMat);
-
-        Imgcodecs.imwrite(Constants.ANALYZED_PHOTO_PATH.toString() + "/analyzed_new.jpg", finalMat);
-        Imgcodecs.imwrite(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg", finalMat);
-
-        makeFileDiscoverable(new File(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg"), context);
-
-        if (!(sampleName.equals(""))) {
-            data.createNewTableEntry(sampleName, String.valueOf(seedCount));
-        }
-        displayAlert("Processing finished. \nSeed Count : " + seedCount, false);
-
-        if (showAnalysis) {
-            postImageDialog(context, photoName, seedCount);
-        }
-        if (data != null)
-            data.getLastData();
-        //context.unregisterReceiver(broadcastReceiver);
-    }
-
-    protected void onProgressUpdate(String... text) {
-        boolean showAlert = Boolean.parseBoolean(text[1]);
-        String displayText = text[0];
-        if (showAlert)
-            if (!progressDialog.isShowing()) {
-                progressDialog.setMessage(displayText);
-                progressDialog.show();
-            } else
-                progressDialog.setMessage(displayText);
-        else
-            progressDialog.dismiss();
-    }
-
-    @Override
-    protected void onCancelled(Bitmap bitmap) {
-
-        Log.d("WatershedLB Activity", "Cancelled");
-        if (backgroundProcessing) {
-            displayAlert("Processing Cancelled : " + coinRecognitionTask.getSTATUS(), false);
-        } else {
-            progressDialog.dismiss();
-            Toast.makeText(context, coinRecognitionTask.getSTATUS(), Toast.LENGTH_LONG).show();
-        }
-    }
-
-    private void displayAlert(String text, boolean showAlert) {
-        if (backgroundProcessing)
-            NotificationHelper.notify(context, sampleName, text, this.notificationCounter, showAlert);
-        else
-            publishProgress(text, String.valueOf(showAlert));
-    }
-}
+//package org.wheatgenetics.onekk;
+//
+//import android.app.ProgressDialog;
+//import android.content.BroadcastReceiver;
+//import android.content.Context;
+//import android.content.Intent;
+//import android.graphics.Bitmap;
+//import android.os.AsyncTask;
+//import android.util.Log;
+//import android.util.TimingLogger;
+//import android.widget.Toast;
+//
+//import org.opencv.core.Mat;
+//import org.opencv.imgcodecs.Imgcodecs;
+//import org.wheatgenetics.database.Data;
+//import org.wheatgenetics.imageprocess.CoinRecognitionTask;
+//import org.wheatgenetics.imageprocess.MeasureSeeds;
+//import org.wheatgenetics.imageprocess.WatershedLB;
+//import org.wheatgenetics.utils.Constants;
+//import org.wheatgenetics.utils.NotificationHelper;
+//import org.wheatgenetics.utils.Utils;
+//
+//import java.io.File;
+//
+//import static org.wheatgenetics.utils.Utils.makeFileDiscoverable;
+//import static org.wheatgenetics.utils.Utils.postImageDialog;
+//
+///**
+// * Created by sid on 1/28/18.
+// */
+//
+///**
+// * This class controls all the background processing and notifications
+// * in the following stages
+// * <p>
+// * 1. Coin Recognition
+// * 2. Color Thresholding, if required
+// * 3. Image Analysis
+// * 4. Measure Seeds
+// * 5. Store Data
+// * 6. Save Analyzed image
+// */
+//public class CoreProcessingTask extends AsyncTask<Bitmap, String, Bitmap> {
+//
+//    private Context context;
+//    private Data data = null;
+//    private final Mat finalMat = new Mat();
+//    private ProgressDialog progressDialog;
+//    private int seedCount = 0;
+//    private String sampleName;
+//    private String firstName;
+//    private String lastName;
+//    private String weight;
+//    private String photoName;
+//    private Boolean showAnalysis;
+//    private Boolean backgroundProcessing;
+//    private int notificationCounter;
+//    private double coinSize;
+//    private CoinRecognitionTask coinRecognitionTask;
+//
+//    public CoreProcessingTask(Context context, String photoName,
+//                              Boolean showAnalysis, String sampleName, String firstName,
+//                              String lastName, String weight, int notificationCounter,
+//                              boolean backgroundProcessing, double coinSize) {
+//        this.context = context;
+//        this.photoName = photoName;
+//        this.firstName = firstName;
+//        this.lastName = lastName;
+//        this.showAnalysis = showAnalysis;
+//        this.sampleName = sampleName;
+//        this.weight = weight;
+//
+//        this.progressDialog = new ProgressDialog(context);
+//        this.progressDialog.setIndeterminate(false);
+//        this.progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+//        this.progressDialog.setCancelable(false);
+//
+//        this.notificationCounter = notificationCounter;
+//        this.backgroundProcessing = backgroundProcessing;
+//        this.coinSize = coinSize;
+//
+//        // TODO : add unique identification to implement "cancel processing" feature
+//
+//        //context.registerReceiver(broadcastReceiver,new IntentFilter("CANCEL"));
+//    }
+//
+//    /* written for cancel feature */
+//    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+//        @Override
+//        public void onReceive(Context context, Intent intent) {
+//            Log.d("WatershedLB Task", "Cancel message received");
+//
+//            if (!isCancelled())
+//                displayAlert("Cancelling...", true);
+//
+//            if (intent.getBooleanExtra("CANCEL", false))
+//                cancel(true);
+//
+//            goAsync();
+//        }
+//    };
+//
+//    @Override
+//    protected void onPreExecute() {
+//        super.onPreExecute();
+//        displayAlert("In queue...", true);
+//    }
+//
+//    @Override
+//    protected Bitmap doInBackground(Bitmap... bitmaps) {
+//
+//        /* the first bitmap consists of the image */
+//        Bitmap outputBitmap = bitmaps[0];
+//
+//        /*
+//         *  adb shell setprop log.tag.<TAGNAME> VERBOSE
+//         *
+//         *  TAGNAME = CoreProcessing
+//         *
+//         *  To see the timings from TimingLogger in the console make sure you run this command
+//         *
+//         *  adb shell setprop log.tag.CoreProcessing VERBOSE
+//         *
+//         */
+//        TimingLogger timingLogger = new TimingLogger("CoreProcessing", sampleName);
+//        Mat tempMat = new Mat();
+//
+//        displayAlert("Coin Recognition...", true);
+//
+//        /* convert the bitmap to a mat and start coin recognition */
+//        org.opencv.android.Utils.bitmapToMat(bitmaps[0], tempMat);
+//
+//        if (tempMat.empty())
+//            cancel(true);
+//        coinRecognitionTask = new CoinRecognitionTask(coinSize);
+//        coinRecognitionTask.process(tempMat);
+//
+//        /* once the hueProcess is complete check for coin constraints */
+//        boolean coinsRecognized = coinRecognitionTask.checkConstraints();
+//
+//        timingLogger.addSplit("Coin Recognition");
+//
+//        /* if all the 4 coins are recognized and satisfy the constraints then start image processing */
+//        if (coinsRecognized) {
+//
+//            /* get the coins masked mat from coin recognition */
+//            tempMat = coinRecognitionTask.getProcessedMat();
+//
+//            /* as the new mat is cropped bounding the image to the coins, we create a new bitmap */
+//            Bitmap croppedBitmap = Bitmap.createBitmap(tempMat.cols(), tempMat.rows(), bitmaps[0].getConfig());
+//            org.opencv.android.Utils.matToBitmap(tempMat, croppedBitmap);
+//
+//            /* start the watershed light box processing */
+//            WatershedLB watershedLB = new WatershedLB();
+//            displayAlert("Processing...", true);
+//            outputBitmap = watershedLB.process(croppedBitmap);
+//
+//            timingLogger.addSplit("Image Analysis");
+//            seedCount = (int) watershedLB.getNumSeeds();
+//
+//            /* once the processing is complete we characterize the seeds */
+//
+//            /* Open CV based approach*/
+//
+//            /*MSeeds mSeeds = new MSeeds(coinRecognitionTask.getPixelMetric(), watershedLB.getProcessedMat());
+//            mSeeds.process(watershedLB.getSeedArrayList());
+//            Utils.matToBitmap(mSeeds.getmSeedsProcessedMat(),outputBitmap);*/
+//
+//            /* Trevor's implementation */
+//            MeasureSeeds measureSeeds = new MeasureSeeds();
+//            measureSeeds.measureSeeds(watershedLB.getSeedContours(), coinRecognitionTask.getPixelMetric());
+//
+//            Log.d("Seed Measurements", measureSeeds.getList().toString());
+//            timingLogger.addSplit("Measure Seeds");
+//
+//            /* if the sample name is provided the data is added to the database */
+//            if (!(sampleName.equals(""))) {
+//                displayAlert("Adding sample to database...", true);
+//
+//                data = new Data(context);
+//                //data.addRecords(sampleName, photoName, firstName, lastName, seedCount, weight, mSeeds.getmSeedsArrayList());
+//                data.addRecords(sampleName, photoName, firstName, lastName, seedCount, weight, measureSeeds.getList());
+//            }
+//            timingLogger.addSplit("Store data");
+//
+//            System.gc();
+//        }
+//
+//        /* if all the coins are not detected or fail any of the constraint checks then that particular
+//         * processing is cancelled
+//         */
+//        else {
+//            cancel(true);
+//        }
+//        timingLogger.dumpToLog();
+//        Log.d("CoreProcessing : End", Utils.getDate());
+//
+//        return outputBitmap;
+//    }
+//
+//    protected void onPostExecute(Bitmap bitmap) {
+//        super.onPostExecute(bitmap);
+//
+//        displayAlert("Saving processed image...", true);
+//        //if(isCancelled())
+//        //    onCancelled(null);
+//        org.opencv.android.Utils.bitmapToMat(bitmap, finalMat);
+//
+//        Imgcodecs.imwrite(Constants.ANALYZED_PHOTO_PATH.toString() + "/analyzed_new.jpg", finalMat);
+//        Imgcodecs.imwrite(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg", finalMat);
+//
+//        makeFileDiscoverable(new File(Constants.ANALYZED_PHOTO_PATH.toString() + "/" + photoName + "_new.jpg"), context);
+//
+//        if (!(sampleName.equals(""))) {
+//            data.createNewTableEntry(sampleName, String.valueOf(seedCount));
+//        }
+//        displayAlert("Processing finished. \nSeed Count : " + seedCount, false);
+//
+//        if (showAnalysis) {
+//            postImageDialog(context, photoName, seedCount);
+//        }
+//        if (data != null)
+//            data.getLastData();
+//        //context.unregisterReceiver(broadcastReceiver);
+//    }
+//
+//    protected void onProgressUpdate(String... text) {
+//        boolean showAlert = Boolean.parseBoolean(text[1]);
+//        String displayText = text[0];
+//        if (showAlert)
+//            if (!progressDialog.isShowing()) {
+//                progressDialog.setMessage(displayText);
+//                progressDialog.show();
+//            } else
+//                progressDialog.setMessage(displayText);
+//        else
+//            progressDialog.dismiss();
+//    }
+//
+//    @Override
+//    protected void onCancelled(Bitmap bitmap) {
+//
+//        Log.d("WatershedLB Activity", "Cancelled");
+//        if (backgroundProcessing) {
+//            displayAlert("Processing Cancelled : " + coinRecognitionTask.getSTATUS(), false);
+//        } else {
+//            progressDialog.dismiss();
+//            Toast.makeText(context, coinRecognitionTask.getSTATUS(), Toast.LENGTH_LONG).show();
+//        }
+//    }
+//
+//    private void displayAlert(String text, boolean showAlert) {
+//        if (backgroundProcessing)
+//            NotificationHelper.notify(context, sampleName, text, this.notificationCounter, showAlert);
+//        else
+//            publishProgress(text, String.valueOf(showAlert));
+//    }
+//}

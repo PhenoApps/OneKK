@@ -29,6 +29,7 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.wheatgenetics.imageprocess.DetectSeeds.Seed;
 import org.wheatgenetics.imageprocess.RawSeed;
 import org.wheatgenetics.utils.Constants;
 import org.wheatgenetics.onekk.R;
@@ -349,9 +350,45 @@ public class Data {
      * Adds a new record to the internal list of records
      ************************************************************************************/
     // FIXME: 1/23/18 change the parameters to a Seed Record and a Sample Record
-    public void addRecords(String sampleName, String photoName, String firstName, String lastName, int seedCount, String weight, ArrayList<RawSeed> seedArrayList) {
+    /*public void addRecords(String sampleName, String photoName, String firstName, String lastName, int seedCount, String weight, ArrayList<RawSeed> seedArrayList) {
         // Add all measured seeds to database
         for (RawSeed s : seedArrayList) {
+            db.addSeedRecord(new SeedRecord(sampleName, s.getLength(), s.getWidth(), s.getPerimeter(), s.getArea(), "", null));
+        }
+
+        // Calculate averages
+        double lengthAvg = db.averageSample(sampleName, "length");
+        double lengthVar = Math.pow(db.sdSample(sampleName, "length"), 2);
+        double lengthCV = (db.sdSample(sampleName, "length")) / (db.averageSample(sampleName, "length"));
+
+        double widthAvg = db.averageSample(sampleName, "width");
+        double widthVar = Math.pow(db.sdSample(sampleName, "width"), 2);
+        double widthCV = (db.sdSample(sampleName, "width")) / db.averageSample(sampleName, "width");
+
+        double areaAvg = db.averageSample(sampleName, "area");
+        double areaVar = Math.pow(db.sdSample(sampleName, "area"), 2);
+        double areaCV = (db.sdSample(sampleName, "area")) / (db.averageSample(sampleName, "area"));
+
+        String seedCountString = String.valueOf(seedCount);
+        String date = Utils.getDate();
+
+        // Add sample to database
+        db.addSampleRecord(new SampleRecord(sampleName, photoName,
+                firstName.toLowerCase() + "_" + lastName.toLowerCase(),
+                date, seedCountString, String.valueOf(weight), lengthAvg, lengthVar, lengthCV, widthAvg,
+                widthVar, widthCV, areaAvg, areaVar, areaCV));
+
+        // Round values for UI
+        String avgLengthStr = String.format("%.2f", lengthAvg);
+        String avgWidthStr = String.format("%.2f", widthAvg);
+
+        //createNewTableEntry(sampleName, seedCountString);
+        currentItemNum++;
+    }*/
+
+    public void addRecords(String sampleName, String photoName, String firstName, String lastName, int seedCount, String weight, ArrayList<Seed> seedArrayList) {
+        // Add all measured seeds to database
+        for (Seed s : seedArrayList) {
             db.addSeedRecord(new SeedRecord(sampleName, s.getLength(), s.getWidth(), s.getPerimeter(), s.getArea(), "", null));
         }
 
