@@ -78,6 +78,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import org.wheatgenetics.database.Data;
+import org.wheatgenetics.imageprocess.CircularWatershed;
 import org.wheatgenetics.imageprocess.DetectSeeds;
 
 import java.io.File;
@@ -1022,10 +1023,10 @@ public class Camera2BasicFragment extends Fragment
                 output = new FileOutputStream(mFile);
                 output.write(bytes);
 
-                new AsyncTask<String, String, Pair<Bitmap, Pair<ArrayList<DetectSeeds.Seed>, Integer>>>() {
+                new AsyncTask<String, String, Pair<Bitmap, Pair<ArrayList<CircularWatershed.Seed>, Integer>>>() {
 
                     @Override
-                    protected Pair<Bitmap, Pair<ArrayList<DetectSeeds.Seed>, Integer>> doInBackground(String... path) {
+                    protected Pair<Bitmap, Pair<ArrayList<CircularWatershed.Seed>, Integer>> doInBackground(String... path) {
 
                         final Bitmap inputBitmap = BitmapFactory.decodeFile(path[0]);
                         int rotate = 0;
@@ -1054,19 +1055,20 @@ public class Camera2BasicFragment extends Fragment
                         }
 
 
+
                         //final Bitmap inputBitmap = path[0];
 
-                        DetectSeeds detect = new DetectSeeds(new DetectSeeds.DetectSeedsParams(5000));
+                        CircularWatershed detect = new CircularWatershed(new CircularWatershed.DetectSeedsParams(5000));
 
-                        Pair<Bitmap, ArrayList<DetectSeeds.Seed>> result = detect.process(inputBitmap);
+                        Pair<Bitmap, ArrayList<CircularWatershed.Seed>> result = detect.process(inputBitmap);
 
-                        Pair<Bitmap, Pair<ArrayList<DetectSeeds.Seed>, Integer>> output = new Pair<>(result.first, new Pair<>(result.second, rotate));
+                        Pair<Bitmap, Pair<ArrayList<CircularWatershed.Seed>, Integer>> output = new Pair<>(result.first, new Pair<>(result.second, rotate));
 
                         return output;
                     }
 
                     @Override
-                    protected void onPostExecute(Pair<Bitmap, Pair<ArrayList<DetectSeeds.Seed>, Integer>> result) {
+                    protected void onPostExecute(Pair<Bitmap, Pair<ArrayList<CircularWatershed.Seed>, Integer>> result) {
 
                         Data data = new Data(getContext());
                         data.addRecords("", "test", "c", "c", 1, "", result.second.first);

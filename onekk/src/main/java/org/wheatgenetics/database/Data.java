@@ -29,7 +29,8 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.wheatgenetics.imageprocess.DetectSeeds.Seed;
+import org.wheatgenetics.imageprocess.CircularWatershed;
+import org.wheatgenetics.imageprocess.CircularWatershed.Seed;
 import org.wheatgenetics.imageprocess.RawSeed;
 import org.wheatgenetics.utils.Constants;
 import org.wheatgenetics.onekk.R;
@@ -386,7 +387,7 @@ public class Data {
         currentItemNum++;
     }*/
 
-    public void addRecords(String sampleName, String photoName, String firstName, String lastName, int seedCount, String weight, ArrayList<Seed> seedArrayList) {
+    public void addRecords(String sampleName, String photoName, String firstName, String lastName, int seedCount, String weight, ArrayList<CircularWatershed.Seed> seedArrayList) {
         // Add all measured seeds to database
         for (Seed s : seedArrayList) {
             db.addSeedRecord(new SeedRecord(sampleName, s.getLength(), s.getWidth(), s.getPerimeter(), s.getArea(), "", null));
