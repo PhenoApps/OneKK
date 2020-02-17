@@ -266,7 +266,7 @@ public class DetectSeeds {
 
                         //TODO add ground truth as parameter to detect seeds
                         String measurement = String.valueOf(measureArea(coinGroundTruth.getKey(), 280.552077, area));
-                        Imgproc.putText(dst, measurement.substring(0, measurement.lastIndexOf('.')+2), new Point(bbox.x, bbox.y), Core.FONT_HERSHEY_PLAIN, 4, TEXT_COLOR, 3);
+                        Imgproc.putText(dst, measurement.substring(0, measurement.lastIndexOf('.')+2), new Point(bbox.x, bbox.y), Imgproc.FONT_HERSHEY_PLAIN, 4, TEXT_COLOR, 3);
                     }
                 }
 

@@ -1,2 +1,1 @@
-include ':onekk'
-include ':openCVLibrary343'
+include ':onekk', ':openCV'

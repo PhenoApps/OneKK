@@ -1,6 +1,7 @@
 package org.wheatgenetics.imageprocess;
 
 import android.graphics.Bitmap;
+import android.os.Environment;
 import android.support.v4.util.Pair;
 import android.util.Log;
 
@@ -15,6 +16,7 @@ import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
@@ -184,7 +186,9 @@ public class CircularWatershed {
 
         Imgproc.cvtColor(threshed, threshed, Imgproc.COLOR_RGB2GRAY);
 
-        Imgproc.threshold(threshed, threshed, 0, 255, Imgproc.THRESH_BINARY | Imgproc.THRESH_OTSU);
+        Imgproc.threshold(threshed, threshed, 0, 255, Imgproc.THRESH_BINARY_INV + Imgproc.THRESH_OTSU);
+
+        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/OneKK/threshed.jpg", threshed);
 
         Mat kernel = new Mat(3, 3, CvType.CV_8U);
 
@@ -200,38 +204,50 @@ public class CircularWatershed {
 
         Imgproc.distanceTransform(sure_bg, dist_transform, Imgproc.DIST_L2, 5);
 
+        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/OneKK/dt.jpg", dist_transform);
+
         double max_val = findMax(dist_transform);
 
         Mat sure_fg = new Mat();
 
         Imgproc.threshold(dist_transform, sure_fg, 0.2 * max_val, 255, 0);
 
+        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/OneKK/sure_fg.jpg", sure_fg);
+
         sure_fg.convertTo(sure_fg, CvType.CV_8U);
+
+        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/OneKK/sure_fg8u.jpg", sure_fg);
 
         Mat unknown = new Mat();
 
-        Core.subtract(sure_fg, sure_bg, unknown);
+        Core.subtract(sure_bg, sure_fg, unknown);
+
+        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/OneKK/unknown.jpg", unknown);
 
         Mat markers = new Mat();
 
         Imgproc.connectedComponents(sure_fg, markers);
 
+        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/OneKK/markers.jpg", markers);
+
         Core.add(markers, Mat.ones(markers.size(), markers.type()), markers);
 
-        for (int i = 0; i < markers.rows(); i++) {
-            for (int j = 0; j < markers.cols(); j++) {
-                double[] value = unknown.get(i, j);
-                if (unknown.get(i, j)[0] == 255) {
-                    markers.put(i, j, 0);
-                }
-            }
-        }
+//        for (int i = 0; i < markers.rows(); i++) {
+//            for (int j = 0; j < markers.cols(); j++) {
+//                double[] value = unknown.get(i, j);
+//                if (unknown.get(i, j)[0] == 255) {
+//                    markers.put(i, j, 0);
+//                }
+//            }
+//        }
 
         markers.convertTo(markers, CvType.CV_32SC1);
 
         src.convertTo(src, CvType.CV_8UC3);
 
         Imgproc.cvtColor(src, src, Imgproc.COLOR_RGBA2RGB);
+
+        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/OneKK/markersA.jpg", markers);
 
 
         Imgproc.watershed(src, markers);
@@ -257,6 +273,7 @@ public class CircularWatershed {
         MatOfPoint2f approxCurve = new MatOfPoint2f();
 
         for (int i = 0; i < contours.size(); i++) {
+
             if (hierarchy.get(0, i)[2] == -1) {
                 //Imgproc.convexHull(contours.get(i), hull);
                 Imgproc.approxPolyDP(new MatOfPoint2f(contours.get(i).toArray()), approxCurve, 0.01, true);
@@ -267,7 +284,7 @@ public class CircularWatershed {
 
                     Imgproc.rectangle(src, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), RECTANGLE_COLOR, 2);
 
-                    Imgproc.putText(src, String.valueOf(count), new Point(rect.x, rect.y), Core.FONT_HERSHEY_PLAIN, 4, TEXT_COLOR, 3);
+                    Imgproc.putText(src, String.valueOf(count), new Point(rect.x, rect.y), Imgproc.FONT_HERSHEY_SIMPLEX, 4, TEXT_COLOR, 3);
 
                     double area = Imgproc.contourArea(contours.get(i));
 

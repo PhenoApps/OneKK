@@ -71,7 +71,6 @@ import org.opencv.android.OpenCVLoader;
 import org.wheatgenetics.database.Data;
 import org.wheatgenetics.database.MySQLiteHelper;
 import org.wheatgenetics.imageprocess.CoinRecognitionTask;
-import org.wheatgenetics.imageprocess.ImageProcess;
 import org.wheatgenetics.utils.Constants;
 import org.wheatgenetics.utils.Utils;
 import org.wheatgenetics.ui.CameraPreview;
