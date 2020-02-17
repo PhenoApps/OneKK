@@ -1,0 +1,16 @@
+{
+  "buildFiles": [
+    "/home/chaneylc/backup/backupUubu/StudioProjects/OneKK/openCV/libcxx_helper/CMakeLists.txt"
+  ],
+  "cleanCommands": [
+    "/home/chaneylc/Android/Sdk/cmake/3.6.4111459/bin/cmake --build /home/chaneylc/backup/backupUubu/StudioProjects/OneKK/openCV/.externalNativeBuild/cmake/release/x86_64 --target clean"
+  ],
+  "libraries": {
+    "opencv_jni_shared-Release-x86_64": {
+      "artifactName": "opencv_jni_shared",
+      "buildCommand": "/home/chaneylc/Android/Sdk/cmake/3.6.4111459/bin/cmake --build /home/chaneylc/backup/backupUubu/StudioProjects/OneKK/openCV/.externalNativeBuild/cmake/release/x86_64 --target opencv_jni_shared",
+      "abi": "x86_64",
+      "output": "/home/chaneylc/backup/backupUubu/StudioProjects/OneKK/openCV/.externalNativeBuild/cmake/release/x86_64/libopencv_jni_shared.a"
+    }
+  }
+}

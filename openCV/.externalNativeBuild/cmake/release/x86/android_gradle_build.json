@@ -1,0 +1,41 @@
+
+{
+	"buildFiles" : 
+	[
+		"/home/chaneylc/backup/backupUubu/StudioProjects/OneKK/openCV/libcxx_helper/CMakeLists.txt"
+	],
+	"cleanCommands" : 
+	[
+		"/home/chaneylc/Android/Sdk/cmake/3.6.4111459/bin/cmake --build /home/chaneylc/backup/backupUubu/StudioProjects/OneKK/openCV/.externalNativeBuild/cmake/release/x86 --target clean"
+	],
+	"cppFileExtensions" : [ "cpp" ],
+	"libraries" : 
+	{
+		"opencv_jni_shared-Release-x86" : 
+		{
+			"abi" : "x86",
+			"artifactName" : "opencv_jni_shared",
+			"buildCommand" : "/home/chaneylc/Android/Sdk/cmake/3.6.4111459/bin/cmake --build /home/chaneylc/backup/backupUubu/StudioProjects/OneKK/openCV/.externalNativeBuild/cmake/release/x86 --target opencv_jni_shared",
+			"buildType" : "release",
+			"files" : 
+			[
+				
+				{
+					"flags" : "  --target=i686-none-linux-android21 --gcc-toolchain=/home/chaneylc/Android/Sdk/ndk-bundle/toolchains/llvm/prebuilt/linux-x86_64 --sysroot=/home/chaneylc/Android/Sdk/ndk-bundle/toolchains/llvm/prebuilt/linux-x86_64/sysroot    -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -mstackrealign -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -O2 -DNDEBUG  -fPIC    -c ",
+					"src" : "/home/chaneylc/backup/backupUubu/StudioProjects/OneKK/openCV/libcxx_helper/dummy.cpp",
+					"workingDirectory" : "/home/chaneylc/backup/backupUubu/StudioProjects/OneKK/openCV/.externalNativeBuild/cmake/release/x86"
+				}
+			],
+			"output" : "/home/chaneylc/backup/backupUubu/StudioProjects/OneKK/openCV/.externalNativeBuild/cmake/release/x86/libopencv_jni_shared.a",
+			"toolchain" : "2507203229770847062"
+		}
+	},
+	"toolchains" : 
+	{
+		"2507203229770847062" : 
+		{
+			"cCompilerExecutable" : "/home/chaneylc/Android/Sdk/ndk-bundle/toolchains/llvm/prebuilt/linux-x86_64/bin/clang",
+			"cppCompilerExecutable" : "/home/chaneylc/Android/Sdk/ndk-bundle/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++"
+		}
+	}
+}
