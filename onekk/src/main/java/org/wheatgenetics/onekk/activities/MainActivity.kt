@@ -19,18 +19,64 @@ import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.preference.PreferenceManager
 import com.google.android.material.navigation.NavigationView
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
+import org.opencv.android.BaseLoaderCallback
+import org.opencv.android.LoaderCallbackInterface
+import org.opencv.android.OpenCVLoader
 import org.wheatgenetics.onekk.BuildConfig
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.databinding.ActivityMainBinding
 import org.wheatgenetics.utils.SnackbarQueue
 import java.io.File
 
+typealias LumaListener = (luma: Double) -> Unit
+
 class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
 //    private val mFirebaseAnalytics by lazy {
 //        FirebaseAnalytics.getInstance(this)
 //    }
+
+    private val mLoaderCallback: BaseLoaderCallback = object : BaseLoaderCallback(this) {
+
+        override fun onManagerConnected(status: Int) {
+
+            when (status) {
+
+                LoaderCallbackInterface.SUCCESS -> {
+
+                    Log.i("OpenCV", "OpenCV loaded successfully")
+
+                }
+
+                else -> {
+
+                    super.onManagerConnected(status)
+
+                }
+            }
+        }
+    }
+
+    override fun onResume() {
+
+        super.onResume()
+
+        if (!OpenCVLoader.initDebug()) {
+
+            Log.d("OpenCV", "Internal OpenCV library not found. Using OpenCV Manager for initialization")
+
+            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_4_0, this, mLoaderCallback)
+
+        } else {
+
+            Log.d("OpenCV", "OpenCV library found inside package. Using it!")
+
+            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS)
+
+        }
+    }
 
     private var doubleBackToExitPressedOnce = false
 

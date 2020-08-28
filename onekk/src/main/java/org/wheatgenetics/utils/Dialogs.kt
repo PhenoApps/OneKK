@@ -1,12 +1,14 @@
 package org.wheatgenetics.utils
 
 import android.app.Activity
+import android.content.DialogInterface
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
+import org.wheatgenetics.imageprocess.EnhancedWatershed
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.databinding.DialogCoinRecognitionBinding
 
@@ -121,25 +123,55 @@ class Dialogs {
             builder.show()
         }
 
-        fun askAcceptableCoinRecognition(activity: Activity, builder: AlertDialog.Builder, title: String, savedUri: Uri, function: (Boolean) -> Unit) {
+        fun askAcceptableCoinRecognition(activity: Activity, builder: AlertDialog.Builder, title: String, savedUri: Uri, function: (Bitmap?) -> Unit) {
 
             val binding = DataBindingUtil.inflate<DialogCoinRecognitionBinding>(activity.layoutInflater, R.layout.dialog_coin_recognition, null, false)
 
-            builder.setView(binding.root)
-
-            activity.contentResolver?.openInputStream(savedUri)?.let { stream ->
+            val bitmap = activity.contentResolver?.openInputStream(savedUri)?.let { stream ->
 
                 val bitmap: Bitmap? = BitmapFactory.decodeStream(stream)
 
                 stream.close()
 
-                binding.resultView.setImageBitmap(bitmap)
-
-                binding.resultView.rotation = 90f
-
-                binding.resultView.visibility = View.VISIBLE
+                bitmap
 
             }
+
+            binding.visible = true
+
+            binding.resultView.rotation = 90f
+
+            binding.resultView.setImageBitmap(bitmap)
+
+            builder.setPositiveButton(R.string.accept) { dialog, which ->
+
+                bitmap?.let { src ->
+
+                    val detect = EnhancedWatershed(EnhancedWatershed.DetectSeedsParams(5000))
+
+                    val result = detect.process(src)
+
+                    binding.resultView.setImageBitmap(result.first)
+
+                    function(result.first)
+
+                    result.first
+
+                }
+
+                //dialog.dismiss()
+
+            }
+
+            builder.setNegativeButton(R.string.decline) { dialog, which ->
+
+                function(bitmap)
+
+                dialog.dismiss()
+
+            }
+
+            builder.setView(binding.root)
 
             builder.setCancelable(false)
 

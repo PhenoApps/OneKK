@@ -8,59 +8,25 @@
         <import type="android.view.View"/>
 
         <variable
-            name="declineOnClick"
-            type="View.OnClickListener" />
-
-        <variable
-            name="acceptOnClick"
-            type="View.OnClickListener" />
+            name="visible"
+            type="boolean" />
 
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
 
         <ImageView
             android:id="@+id/resultView"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="16dp"
             android:contentDescription="TODO"
-            android:scaleType="matrix"
-            android:visibility="visible"
-            app:layout_constraintBottom_toTopOf="@id/acceptButton"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <Button
-            android:id="@+id/acceptButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:onClick="@{acceptOnClick}"
-            android:text="@string/accept"
-            app:layout_constraintBottom_toTopOf="@id/declineButton"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/resultView" />
-
-        <Button
-            android:id="@+id/declineButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:onClick="@{declineOnClick}"
-            android:text="@string/decline"
+            android:visibility="@{visible ? View.VISIBLE : View.INVISIBLE }"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/acceptButton" />
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
