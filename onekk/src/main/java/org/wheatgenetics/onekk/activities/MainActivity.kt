@@ -1,6 +1,7 @@
 package org.wheatgenetics.onekk.activities
 
 import android.content.res.Configuration
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
@@ -31,7 +32,7 @@ import org.wheatgenetics.utils.SnackbarQueue
 import java.io.File
 
 typealias LumaListener = (luma: Double) -> Unit
-
+typealias BitmapListener = (bmp: Bitmap?) -> Unit
 class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
 //    private val mFirebaseAnalytics by lazy {

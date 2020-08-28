@@ -123,29 +123,29 @@ class Dialogs {
             builder.show()
         }
 
-        fun askAcceptableCoinRecognition(activity: Activity, builder: AlertDialog.Builder, title: String, savedUri: Uri, function: (Bitmap?) -> Unit) {
+        fun askAcceptableCoinRecognition(activity: Activity, builder: AlertDialog.Builder, title: String, bmp: Bitmap, function: (Bitmap?) -> Unit) {
 
             val binding = DataBindingUtil.inflate<DialogCoinRecognitionBinding>(activity.layoutInflater, R.layout.dialog_coin_recognition, null, false)
 
-            val bitmap = activity.contentResolver?.openInputStream(savedUri)?.let { stream ->
-
-                val bitmap: Bitmap? = BitmapFactory.decodeStream(stream)
-
-                stream.close()
-
-                bitmap
-
-            }
+//            val bitmap = activity.contentResolver?.openInputStream(savedUri)?.let { stream ->
+//
+//                val bitmap: Bitmap? = BitmapFactory.decodeStream(stream)
+//
+//                stream.close()
+//
+//                bitmap
+//
+//            }
 
             binding.visible = true
 
             binding.resultView.rotation = 90f
 
-            binding.resultView.setImageBitmap(bitmap)
+            binding.resultView.setImageBitmap(bmp)
 
             builder.setPositiveButton(R.string.accept) { dialog, which ->
 
-                bitmap?.let { src ->
+                bmp?.let { src ->
 
                     val detect = EnhancedWatershed(EnhancedWatershed.DetectSeedsParams(5000))
 
@@ -165,7 +165,7 @@ class Dialogs {
 
             builder.setNegativeButton(R.string.decline) { dialog, which ->
 
-                function(bitmap)
+                function(bmp)
 
                 dialog.dismiss()
 

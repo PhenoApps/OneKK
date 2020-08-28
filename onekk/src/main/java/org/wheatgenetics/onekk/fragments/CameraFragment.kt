@@ -18,6 +18,8 @@ import androidx.core.util.Pair
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LifecycleOwner
+import kotlinx.coroutines.*
+import org.wheatgenetics.imageprocess.Blur
 import org.wheatgenetics.imageprocess.EnhancedWatershed
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.analyzers.CoinAnalyzer
@@ -25,12 +27,15 @@ import org.wheatgenetics.onekk.databinding.FragmentCameraBinding
 import org.wheatgenetics.utils.Dialogs
 import java.io.File
 import java.io.IOException
+import java.lang.Runnable
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-class CameraFragment : Fragment() {
+class CameraFragment : Fragment(), CoroutineScope by MainScope() {
+
+    private var mCoinRecognitionResultBitmap: Bitmap? = null
 
     private var imageCapture: ImageCapture? = null
 
@@ -71,7 +76,7 @@ class CameraFragment : Fragment() {
 
             this?.cameraCaptureButton?.setOnClickListener {
 
-                takePhoto()
+                callCoinRecognitionDialog()
 
             }
 
@@ -124,11 +129,19 @@ class CameraFragment : Fragment() {
 
                 val imageAnalyzer = ImageAnalysis.Builder()
                         //.setTargetResolution(Size(1280, 720))
-                        //.setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .build()
                         .also {
-                            it.setAnalyzer(cameraExecutor, CoinAnalyzer { luma ->
-                                Log.d(TAG, "Average luminosity: $luma")
+                            it.setAnalyzer(cameraExecutor, CoinAnalyzer { bmp ->
+
+                                launch {
+
+                                    bmp?.let { src ->
+
+                                        coinRecognition(System.currentTimeMillis(), src)
+
+                                    }
+                                }
                             })
                         }
 
@@ -155,6 +168,16 @@ class CameraFragment : Fragment() {
 
             }, ContextCompat.getMainExecutor(ctx))
         }
+    }
+
+    private suspend fun coinRecognition(startTime: Long, src: Bitmap) = withContext(Dispatchers.IO) {
+
+        val detect = Blur()
+
+        mCoinRecognitionResultBitmap = detect.process(src)
+
+        Log.d(TAG, "Time: ${System.currentTimeMillis()-startTime}")
+
     }
 
     private fun takePhoto() {
@@ -194,7 +217,7 @@ class CameraFragment : Fragment() {
 
                     Log.d(TAG, msg)
 
-                    callCoinRecognitionDialog(savedUri)
+                    //callCoinRecognitionDialog(savedUri)
 
                 }
             })
@@ -205,7 +228,7 @@ class CameraFragment : Fragment() {
      * Creates a Dialog that asks the user to accept or decline the image.
      * In this case, if the coin recognition step is accepted, the watershed algorithm begins.
      */
-    private fun callCoinRecognitionDialog(savedUri: Uri) {
+    private fun callCoinRecognitionDialog() {
 
         mBinding?.let { ui ->
 
@@ -217,13 +240,16 @@ class CameraFragment : Fragment() {
                     coinRecResult -> Boolean from Dialogs acceptance
                     bmp -> result image of coin recognition
                      */
-                    Dialogs.askAcceptableCoinRecognition(
-                            activity,
-                            AlertDialog.Builder(activity),
-                            getString(R.string.ask_coin_recognition_ok),
-                            savedUri) { bmp ->
+                    mCoinRecognitionResultBitmap?.let {
+
+                        Dialogs.askAcceptableCoinRecognition(
+                                activity,
+                                AlertDialog.Builder(activity),
+                                getString(R.string.ask_coin_recognition_ok),
+                                it) { bmp ->
 
 
+                        }
                     }
                 }
 
