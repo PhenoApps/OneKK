@@ -1,22 +1,12 @@
 package org.wheatgenetics.imageprocess;
 
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.ColorMatrix;
-import android.graphics.ColorMatrixColorFilter;
-import android.graphics.Paint;
-import android.support.v4.util.Pair;
-import android.util.Log;
-import android.util.SparseArray;
 
-import org.opencv.BuildConfig;
+import androidx.core.util.Pair;
+import android.util.Log;
+
 import org.opencv.android.Utils;
-import org.opencv.core.Core;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfFloat;
-import org.opencv.core.MatOfInt;
-import org.opencv.core.MatOfInt4;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
@@ -24,20 +14,13 @@ import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
-import org.opencv.imgproc.Moments;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.function.ToDoubleFunction;
-import java.util.function.ToIntFunction;
-import java.util.function.ToLongFunction;
 
 /**
  * Created by chaneylc and venkat on 1/16/2020.
@@ -207,7 +190,7 @@ public class DetectSeeds {
                 Double key1 = ((Map.Entry<Double, MatOfPoint>) a).getKey();
                 Double key2 = ((Map.Entry<Double, MatOfPoint>) b).getKey();
 
-                if (key1 == key2) return 0;
+                if (key1.equals(key2)) return 0;
                 else if (key1 > key2) return 1;
                 else return -1;
             }

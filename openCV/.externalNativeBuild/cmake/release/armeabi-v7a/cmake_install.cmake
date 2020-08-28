@@ -1,4 +1,4 @@
-# Install script for directory: /home/chaneylc/backup/backupUubu/StudioProjects/OneKK/openCV/libcxx_helper
+# Install script for directory: /home/chaneylc/AndroidStudioProjects/OneKK/openCV/libcxx_helper
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -40,5 +40,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/chaneylc/backup/backupUubu/StudioProjects/OneKK/openCV/.externalNativeBuild/cmake/release/armeabi-v7a/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/chaneylc/AndroidStudioProjects/OneKK/openCV/.externalNativeBuild/cmake/release/armeabi-v7a/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

@@ -2,29 +2,19 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="org.wheatgenetics.onekk"
-    android:versionCode="103"
-    android:versionName="1.0.3">
+    android:versionCode="0"
+    android:versionName="2">
 
-    <uses-feature android:name="android.hardware.camera" />
-    <uses-feature
-        android:name="android.hardware.usb.host"
-        android:required="false" />
-    <uses-feature
-        android:name="android.hardware.camera.autofocus"
-        android:required="false" />
-    <uses-feature
-        android:name="android.hardware.bluetooth_le"
-        android:required="true" />
+    <uses-feature android:name="android.hardware.camera.any" />
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <!-- Glide uses READ_EXTERNAL_STORAGE to load files from local folders -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+    <!-- Glide uses WRITE_EXTERNAL_STORAGE to write to sdcards -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <!-- Camera2Basic fragment requires CAMERA permissions -->
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-    <uses-permission android:name="android.permission.BLUETOOTH" />
 
     <application
         android:allowBackup="true"
@@ -33,65 +23,19 @@
         android:largeHeap="true"
         android:theme="@style/AppTheme"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
-        <activity android:name=".ScaleActivity"/>
+
+
         <activity
-            android:name=".MainActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize|keyboard"
-            android:label="@string/app_name"
-            android:launchMode="singleTask"
-            android:screenOrientation="sensorPortrait"
-            android:windowSoftInputMode="stateHidden">
+            android:name=".activities.MainActivity"
+            android:label="@string/app_name">
 
             <intent-filter>
-                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".SettingsActivity"
-            android:label="Settings">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="org.wheatgenetics.onekk.MainActivity" />
-        </activity>
-        <activity
-            android:name=".ViewDataActivity"
-            android:label="@string/view_data_activity"
-            android:theme="@style/AppTheme">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="org.wheatgenetics.onekk.MainActivity" />
-        </activity>
-        <activity
-            android:name=".ChoosePhotoActivity"
-            android:label="Choose Photo Activity"
-            android:theme="@style/AppTheme">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="org.wheatgenetics.onekk.MainActivity" />
-        </activity>
-        <activity
-            android:name=".CoinDataActivity"
-            android:label="@string/coin_data_activity"
-            android:theme="@style/AppTheme">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="org.wheatgenetics.onekk.SettingsActivity" />
-        </activity>
-        <activity
-            android:name=".RecordWeightActivity"
-            android:label="RecordWeight Activity"
-            android:theme="@style/AppTheme">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="org.wheatgenetics.onekk.MainActivity" />
-        </activity>
 
-        <service
-            android:name=".BluetoothLeService"
-            android:enabled="true" />
     </application>
 
 </manifest>

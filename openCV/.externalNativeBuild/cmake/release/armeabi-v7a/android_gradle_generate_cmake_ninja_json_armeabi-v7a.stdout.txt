@@ -12,4 +12,4 @@
 -- Detecting CXX compile features - done
 -- Configuring done
 -- Generating done
--- Build files have been written to: /home/chaneylc/backup/backupUubu/StudioProjects/OneKK/openCV/.externalNativeBuild/cmake/release/armeabi-v7a
+-- Build files have been written to: /home/chaneylc/AndroidStudioProjects/OneKK/openCV/.externalNativeBuild/cmake/release/armeabi-v7a

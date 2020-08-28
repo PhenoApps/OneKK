@@ -2,7 +2,7 @@ package org.wheatgenetics.imageprocess;
 
 import android.graphics.Bitmap;
 import android.os.Environment;
-import android.support.v4.util.Pair;
+import androidx.core.util.Pair;
 import android.util.Log;
 
 import org.opencv.android.Utils;
@@ -15,14 +15,10 @@ import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
-import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 

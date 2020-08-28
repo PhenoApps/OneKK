@@ -42,7 +42,7 @@ rule CXX_STATIC_LIBRARY_LINKER__opencv_jni_shared
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = /home/chaneylc/Android/Sdk/cmake/3.6.4111459/bin/cmake -H/home/chaneylc/backup/backupUubu/StudioProjects/OneKK/openCV/libcxx_helper -B/home/chaneylc/backup/backupUubu/StudioProjects/OneKK/openCV/.externalNativeBuild/cmake/release/armeabi-v7a
+  command = /home/chaneylc/Android/Sdk/cmake/3.6.4111459/bin/cmake -H/home/chaneylc/AndroidStudioProjects/OneKK/openCV/libcxx_helper -B/home/chaneylc/AndroidStudioProjects/OneKK/openCV/.externalNativeBuild/cmake/release/armeabi-v7a
   description = Re-running CMake...
   generator = 1
 

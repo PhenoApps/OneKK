@@ -2,7 +2,7 @@ package org.wheatgenetics.imageprocess;
 
 import android.graphics.Bitmap;
 import android.os.Environment;
-import android.support.v4.util.Pair;
+import androidx.core.util.Pair;
 import android.util.Log;
 
 import org.opencv.android.Utils;
@@ -14,7 +14,6 @@ import org.opencv.core.MatOfInt4;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
-import org.opencv.core.Rect;
 import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
@@ -25,10 +24,7 @@ import org.opencv.imgproc.Moments;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 /**
@@ -282,7 +278,6 @@ public class EnhancedWatershed {
         }
         return (float)(sum/values.length);
     }
-
 
     private Pair<Double, Double> quartileRange(ArrayList<Double> values){
         int size = values.size();

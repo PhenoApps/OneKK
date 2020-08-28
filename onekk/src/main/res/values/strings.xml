@@ -256,4 +256,10 @@
     <string name="intro_body_1">Intro Body 1</string>
     <string name="intro_body_2">Intro Body 2</string>
     <string name="intro_body_3">Intro Body 3</string>
+    <string name="nav_label_settings">Settings Fragment</string>
+    <string name="nav_label_camera_preview">Camera Preview Fragment</string>
+    <string name="double_back_press">Double press back button to exit.</string>
+    <string name="ask_coin_recognition_ok">Check coin recognition.</string>
+    <string name="decline">Decline</string>
+    <string name="accept">Accept</string>
 </resources>

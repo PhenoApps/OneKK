@@ -15,7 +15,7 @@
         android:paddingBottom="10dp"
         android:paddingLeft="10dp"
         android:text="@string/versiontitle"
-        android:textColor="@color/main_colorAccent"
+        android:textColor="@color/colorAccent"
         android:textSize="@dimen/text_size_small"
         android:clickable="true"
         android:textStyle="bold" />
@@ -27,7 +27,7 @@
         android:paddingBottom="10dp"
         android:paddingLeft="10dp"
         android:text="@string/otherapps"
-        android:textColor="@color/main_colorAccent"
+        android:textColor="@color/colorAccent"
         android:textSize="@dimen/text_size_small"
         android:clickable="true"
         android:textStyle="bold" />
@@ -117,7 +117,7 @@
     <View
         android:layout_width="fill_parent"
         android:layout_height="1dip"
-        android:background="@color/main_colorAccent" />
+        android:background="@color/colorAccent" />
 
     <TextView
         android:id="@+id/invMsg"

@@ -1,1 +1,2 @@
+include ':PhenoIcons'
 include ':onekk', ':openCV'

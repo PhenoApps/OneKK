@@ -3,7 +3,7 @@ package org.wheatgenetics.imageprocess;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
-import android.support.test.filters.SmallTest;
+import androidx.test.filters.SmallTest;
 import android.util.Log;
 
 import org.junit.Before;

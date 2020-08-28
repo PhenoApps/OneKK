@@ -1,24 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-
+<androidx.appcompat.widget.LinearLayoutCompat
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="160dp"
-    android:background="@color/main_primary"
+    android:layout_height="175dp"
+    android:background="@color/colorPrimaryDark"
     android:gravity="center_vertical"
-    android:orientation="horizontal"
-    android:padding="16dp"
-    android:theme="@style/ThemeOverlay.AppCompat">
-    <ImageView
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:src="@drawable/ic_account_white"/>
+    android:orientation="vertical"
+    android:padding="10dp">
 
-    <TextView
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/nameLabel"
-        android:paddingLeft="15dp"
-        android:textSize="@dimen/text_size_large"
-        android:textStyle="bold"
-        android:textColor="@android:color/white" />
-</LinearLayout>
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/navHeaderText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:textSize="30sp"
+            android:textColor="@android:color/white"
+            android:textStyle="bold" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+
+</androidx.appcompat.widget.LinearLayoutCompat>
