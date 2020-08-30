@@ -5,6 +5,7 @@ apply plugin: 'kotlin-kapt'
 apply plugin: "androidx.navigation.safeargs.kotlin"
 
 android {
+
     compileSdkVersion 29
 
     defaultConfig {
@@ -13,6 +14,8 @@ android {
         targetSdkVersion 29
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         multiDexEnabled true
+        renderscriptTargetApi 24
+        renderscriptSupportModeEnabled false
     }
 
     buildFeatures {
@@ -52,7 +55,6 @@ android {
 dependencies {
 
     implementation project(path: ':PhenoIcons')
-
     implementation project(':openCV')
     implementation files('libs/ffmpeg.jar')
     implementation files('libs/javacpp.jar')

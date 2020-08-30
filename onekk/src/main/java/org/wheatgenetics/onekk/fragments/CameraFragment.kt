@@ -20,7 +20,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.LifecycleOwner
 import kotlinx.coroutines.*
 import org.wheatgenetics.imageprocess.Blur
+import org.wheatgenetics.imageprocess.DrawContours
 import org.wheatgenetics.imageprocess.EnhancedWatershed
+import org.wheatgenetics.imageprocess.renderscript.ExampleRenderScript
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.analyzers.CoinAnalyzer
 import org.wheatgenetics.onekk.databinding.FragmentCameraBinding
@@ -35,7 +37,7 @@ import java.util.concurrent.Executors
 
 class CameraFragment : Fragment(), CoroutineScope by MainScope() {
 
-    private var mCoinRecognitionResultBitmap: Bitmap? = null
+    private lateinit var mCoinRecognitionResultBitmap: Bitmap
 
     private var imageCapture: ImageCapture? = null
 
@@ -68,7 +70,7 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
 
-        mBinding = DataBindingUtil.inflate<FragmentCameraBinding>(inflater, R.layout.fragment_camera, container, false)
+        mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_camera, container, false)
 
         checkCamPermissions.launch(android.Manifest.permission.CAMERA)
 
@@ -128,7 +130,6 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
                         }
 
                 val imageAnalyzer = ImageAnalysis.Builder()
-                        //.setTargetResolution(Size(1280, 720))
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .build()
                         .also {
@@ -158,8 +159,10 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
                     cameraProvider.unbindAll()
 
                     // Bind use cases to camera
-                    cameraProvider.bindToLifecycle(this as LifecycleOwner,
+                    val cam = cameraProvider.bindToLifecycle(this as LifecycleOwner,
                             cameraSelector, preview, imageAnalyzer)
+
+                    //cam.cameraControl.enableTorch(true)
 
 
                 } catch (exc: Exception) {
@@ -172,10 +175,38 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
 
     private suspend fun coinRecognition(startTime: Long, src: Bitmap) = withContext(Dispatchers.IO) {
 
-        val detect = Blur()
 
-        mCoinRecognitionResultBitmap = detect.process(src)
+        mCoinRecognitionResultBitmap = src.copy(src.config, true)
 
+        //mCoinRecognitionResultBitmap = ExampleRenderScript().yuvToRgb(mCoinRecognitionResultBitmap, requireContext())!!
+
+        //ExampleRenderScript().resizeScript(mCoinRecognitionResultBitmap, requireContext())
+
+        //ExampleRenderScript().testScript(mCoinRecognitionResultBitmap, requireContext())!!
+
+        //mCoinRecognitionResultBitmap = ExampleRenderScript().mandelbrotBitmap(mCoinRecognitionResultBitmap, requireContext())!!
+
+        context?.let { ctx ->
+
+            with(ExampleRenderScript(requireContext())) {
+
+                blur(mCoinRecognitionResultBitmap, 1f)
+
+                convolveLaplaceBitmap(mCoinRecognitionResultBitmap)
+
+                Blur().process(mCoinRecognitionResultBitmap)
+
+                DrawContours().process(mCoinRecognitionResultBitmap)
+
+            }
+
+        }
+
+
+//        val detect = Blur()
+//
+//        detect.process(mCoinRecognitionResultBitmap)
+//
         Log.d(TAG, "Time: ${System.currentTimeMillis()-startTime}")
 
     }
@@ -240,13 +271,13 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
                     coinRecResult -> Boolean from Dialogs acceptance
                     bmp -> result image of coin recognition
                      */
-                    mCoinRecognitionResultBitmap?.let {
+                    if (::mCoinRecognitionResultBitmap.isInitialized) {
 
                         Dialogs.askAcceptableCoinRecognition(
                                 activity,
                                 AlertDialog.Builder(activity),
                                 getString(R.string.ask_coin_recognition_ok),
-                                it) { bmp ->
+                                mCoinRecognitionResultBitmap) { bmp ->
 
 
                         }

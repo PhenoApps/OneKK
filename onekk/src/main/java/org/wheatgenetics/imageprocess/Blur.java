@@ -505,44 +505,51 @@ public class Blur {
 
         long start = System.currentTimeMillis();
 
-        Mat copy = src.clone();
+        //Mat copy = src.clone();
 
-        Imgproc.cvtColor(copy, copy, Imgproc.COLOR_BGR2GRAY);
-        Imgproc.GaussianBlur(copy, copy, new Size(3, 3), 5);
-        Imgproc.threshold(copy, copy, 0, 255, Imgproc.THRESH_BINARY_INV + Imgproc.THRESH_OTSU);
+        Imgproc.cvtColor(src, src, Imgproc.COLOR_BGR2GRAY);
+        //Imgproc.GaussianBlur(copy, copy, new Size(3, 3), 5);
 
-        Mat mask = Mat.zeros(copy.size(), CvType.CV_8U);
-
-        List<MatOfPoint> contours = new ArrayList<>();
-        Mat hierarchy = new Mat();
+        Imgproc.adaptiveThreshold(src, src, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 35, 8);
+        //Imgproc.threshold(src, src, 0, 255, Imgproc.THRESH_BINARY_INV + Imgproc.THRESH_OTSU);
+       // Imgproc.threshold(src, src, 0, 128, Imgproc.THRESH_BINARY_INV);
 
 
-        Imgproc.findContours(copy, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
-        MatOfInt hull = new MatOfInt();
-        for(int i = 0; i < contours.size(); i++){
+//        Mat mask = Mat.zeros(copy.size(), CvType.CV_8U);
+//
+//        List<MatOfPoint> contours = new ArrayList<>();
+//        Mat hierarchy = new Mat();
+//
+//
+//        Imgproc.findContours(copy, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+//        MatOfInt hull = new MatOfInt();
+//        for(int i = 0; i < contours.size(); i++){
+//
+//            Imgproc.convexHull(contours.get(i), hull);
+//
+//            //ToDo: Verify that the rows()  is what needs to be used.
+//            if(contours.get(i).rows()/ hull.rows() <= 3){
+//                Imgproc.drawContours(src, contours, i, new Scalar(128, 128, 128, 255), 1);
+//            }
+//
+//        }
 
-            //Imgproc.convexHull(contours.get(i), hull);
+        //Imgproc.medianBlur(mask, mask, 9);
 
-            Imgproc.drawContours(mask, contours, i, new Scalar(128, 128, 128, 255), -1);
-
-        }
-
-        Imgproc.medianBlur(mask, mask, 9);
-
-        Imgproc.Canny(mask, mask, 200, 255);
+        //Imgproc.Canny(mask, mask, 200, 255);
 
         //writeFile("canny", mask);
 
-        Imgproc.findContours(mask, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
-
-        //Imgproc.cvtColor(gray, gray, Imgproc.COLOR_BGR2GRAY);
-
-        for (int i = 0; i < contours.size(); i++) {
-
-            Imgproc.drawContours(src, contours, i, new Scalar(255, 255, 255), -1);
-
-        }
+//        Imgproc.findContours(mask, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
 //
+//        //Imgproc.cvtColor(gray, gray, Imgproc.COLOR_BGR2GRAY);
+//
+//        for (int i = 0; i < contours.size(); i++) {
+//
+//            Imgproc.drawContours(src, contours, i, new Scalar(255, 255, 255), -1);
+//
+//        }
+////
 //        return gray;
 
         //Imgproc.cvtColor(mask, mask, Imgproc.COLOR_GRAY2BGR);
@@ -550,18 +557,15 @@ public class Blur {
         return src;
     }
 
-    public Bitmap process(Bitmap inputBitmap) {
+    public void process(Bitmap inputBitmap) {
 
         Mat frame = new Mat();
 
         Utils.bitmapToMat(inputBitmap, frame);
 
-        Mat output = process(frame);
+        process(frame);
 
-        Bitmap out = inputBitmap.copy(inputBitmap.getConfig(), true);
+        Utils.matToBitmap(frame, inputBitmap);
 
-        Utils.matToBitmap(output, out);
-
-        return out;
     }
 }
