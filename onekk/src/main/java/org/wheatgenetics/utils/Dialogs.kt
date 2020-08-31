@@ -124,7 +124,7 @@ class Dialogs {
             builder.show()
         }
 
-        fun askAcceptableCoinRecognition(activity: Activity, builder: AlertDialog.Builder, title: String, srcBitmap: Bitmap, function: (Bitmap?) -> Unit) {
+        fun askAcceptableCoinRecognition(activity: Activity, builder: AlertDialog.Builder, title: String, srcBitmap: Bitmap?, function: (Bitmap?) -> Unit) {
 
             val binding = DataBindingUtil.inflate<DialogCoinRecognitionBinding>(activity.layoutInflater, R.layout.dialog_coin_recognition, null, false)
 

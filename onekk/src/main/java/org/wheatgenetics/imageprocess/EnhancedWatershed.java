@@ -834,12 +834,13 @@ public class EnhancedWatershed {
 //
 //        ArrayList<Seed> seedMetrics = new ArrayList<Seed>();
 //
-//        MatOfPoint2f approxCurve = new MatOfPoint2f();
 //
 //        for (int i = 0; i < contours.size(); i++) {
 //
 //            if (hierarchy.get(0, i)[2] == -1) {
 //                //Imgproc.convexHull(contours.get(i), hull);
+        //        MatOfPoint2f approxCurve = new MatOfPoint2f();
+
 //                Imgproc.approxPolyDP(new MatOfPoint2f(contours.get(i).toArray()), approxCurve, 0.01, true);
 //                if (approxCurve.height() * approxCurve.width() > 25) {
 //                    count += 1;

@@ -25,6 +25,7 @@ import kotlinx.coroutines.MainScope
 import org.opencv.android.BaseLoaderCallback
 import org.opencv.android.LoaderCallbackInterface
 import org.opencv.android.OpenCVLoader
+import org.wheatgenetics.imageprocess.DetectRectangles
 import org.wheatgenetics.onekk.BuildConfig
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.databinding.ActivityMainBinding
@@ -32,7 +33,7 @@ import org.wheatgenetics.utils.SnackbarQueue
 import java.io.File
 
 typealias LumaListener = (luma: Double) -> Unit
-typealias BitmapListener = (bmp: Bitmap?) -> Unit
+typealias BitmapListener = (bmp: Bitmap?, detections: ArrayList<DetectRectangles.Detections>) -> Unit
 class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
 //    private val mFirebaseAnalytics by lazy {

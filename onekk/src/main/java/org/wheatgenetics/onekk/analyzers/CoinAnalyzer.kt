@@ -1,16 +1,25 @@
 package org.wheatgenetics.onekk.analyzers
 
+import android.content.Context
 import android.graphics.*
 import android.media.Image
+import android.util.Log
+import android.util.Size
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
+import androidx.core.graphics.scale
+import kotlinx.coroutines.*
+import org.wheatgenetics.imageprocess.DetectRectangles
+import org.wheatgenetics.imageprocess.Thresh
 import org.wheatgenetics.imageprocess.renderscript.ExampleRenderScript
 import org.wheatgenetics.onekk.activities.BitmapListener
 import org.wheatgenetics.onekk.activities.LumaListener
+import org.wheatgenetics.onekk.fragments.CameraFragment
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
+import java.util.ArrayList
 
-class CoinAnalyzer(private val listener: BitmapListener) : ImageAnalysis.Analyzer {
+class CoinAnalyzer(private val context: Context, private var metrics: Size? = null, private var width: Int = 1080, private var height: Int = 1920, private val listener: BitmapListener) : ImageAnalysis.Analyzer, CoroutineScope by MainScope() {
 
     private fun ByteBuffer.toByteArray(): ByteArray {
         rewind()    // Rewind the buffer to zero
@@ -19,6 +28,57 @@ class CoinAnalyzer(private val listener: BitmapListener) : ImageAnalysis.Analyze
         return data // Return the byte array
     }
 
+
+//    private suspend fun coinRecognition(startTime: Long, src: Bitmap): Deferred<ArrayList<DetectRectangles.Detections>?> = withContext(Dispatchers.IO) {
+//
+//
+//        val imageProcessingJob = async {
+//
+//           // mCoinRecognitionResultBitmap = src.copy(src.config, true)
+//
+//            //mCoinRecognitionResultBitmap = ExampleRenderScript().yuvToRgb(mCoinRecognitionResultBitmap, requireContext())!!
+//
+//            //ExampleRenderScript().resizeScript(mCoinRecognitionResultBitmap, requireContext())
+//
+//            //ExampleRenderScript().testScript(mCoinRecognitionResultBitmap, requireContext())!!
+//
+//            //mCoinRecognitionResultBitmap = ExampleRenderScript().mandelbrotBitmap(mCoinRecognitionResultBitmap, requireContext())!!
+//
+////            context?.let { ctx ->
+////
+////                with(ExampleRenderScript(requireContext())) {
+////
+////                    histogramEqualization(mCoinRecognitionResultBitmap)
+////
+////                    blur(mCoinRecognitionResultBitmap, 5f)
+////
+////                    convolveLaplaceBitmap(mCoinRecognitionResultBitmap)
+////
+////                    Blur().process(mCoinRecognitionResultBitmap)
+//////
+//////                    blur(mCoinRecognitionResultBitmap, 1f)
+//////
+//////                    convolveLaplaceBitmap(mCoinRecognitionResultBitmap)
+////
+////                    return@async arrayListOf<DetectRectangles.Detections>() //DetectRectangles().process(mCoinRecognitionResultBitmap)
+////
+////                }
+////
+//            }
+//
+//        }
+//        Log.d(CameraFragment.TAG, "Time: ${System.currentTimeMillis()-startTime}")
+//
+//        return@withContext imageProcessingJob
+//
+//
+////        val detect = Blur()
+////
+////        detect.process(mCoinRecognitionResultBitmap)
+////
+//
+//    }
+
     override fun analyze(proxy: ImageProxy) {
 
 //        val buffer = image.planes[0].buffer
@@ -26,9 +86,61 @@ class CoinAnalyzer(private val listener: BitmapListener) : ImageAnalysis.Analyze
 //        val pixels = data.map { it.toInt() and 0xFF }
 //        val luma = pixels.average()
 
-        listener(proxy.toBitmap())
+        val rotationDegrees = proxy.imageInfo.rotationDegrees
+
+        proxy.toBitmap()
+                //.scale(width, height)
+                .let { src ->
+
+//            launch {
+//
+//                coinRecognition(System.currentTimeMillis(), src)
+//
+//                    .await()?.let { detections ->
+//
+//
+//                    }
+//            }
+
+
+            val startTime = System.currentTimeMillis()
+
+            val rectangles = with(ExampleRenderScript(context)) {
+
+                //histogramEqualization(src)
+
+                //blur(src, 1f)
+
+                //convolveLaplaceBitmap(src)
+
+                //resize(src)
+
+                //Thresh().process(src)
+
+                //blur(src, 1f)
+
+                //convolveLaplaceBitmap(src)
+
+                //val boxes = arrayListOf<DetectRectangles.Detections>()//DetectRectangles().process(src)
+                val boxes = DetectRectangles().process(src)
+
+
+                Log.d(CameraFragment.TAG, "RenderScript: ${boxes.size} objects ${src.width}x${src.height}")
+
+                return@with boxes
+
+            }
+
+            Log.d(CameraFragment.TAG, "RenderScriptT: ${System.currentTimeMillis()-startTime}")
+
+            listener(src, rectangles)
+
+            //?src.recycle()
+
+        }
 
         proxy.close()
+
     }
 
     private fun ImageProxy.toBitmap(): Bitmap {
