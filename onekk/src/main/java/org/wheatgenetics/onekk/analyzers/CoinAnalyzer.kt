@@ -21,6 +21,9 @@ import java.util.ArrayList
 
 class CoinAnalyzer(private val context: Context, private var metrics: Size? = null, private var width: Int = 1080, private var height: Int = 1920, private val listener: BitmapListener) : ImageAnalysis.Analyzer, CoroutineScope by MainScope() {
 
+    private var frames = 0.0
+    private var startAnalysisTime = System.currentTimeMillis()
+
     private fun ByteBuffer.toByteArray(): ByteArray {
         rewind()    // Rewind the buffer to zero
         val data = ByteArray(remaining())
@@ -79,6 +82,8 @@ class CoinAnalyzer(private val context: Context, private var metrics: Size? = nu
 //
 //    }
 
+    val detector = DetectRectangles()
+    val renderContext = ExampleRenderScript(context)
     override fun analyze(proxy: ImageProxy) {
 
 //        val buffer = image.planes[0].buffer
@@ -86,7 +91,7 @@ class CoinAnalyzer(private val context: Context, private var metrics: Size? = nu
 //        val pixels = data.map { it.toInt() and 0xFF }
 //        val luma = pixels.average()
 
-        val rotationDegrees = proxy.imageInfo.rotationDegrees
+//        val rotationDegrees = proxy.imageInfo.rotationDegrees
 
         proxy.toBitmap()
                 //.scale(width, height)
@@ -105,7 +110,7 @@ class CoinAnalyzer(private val context: Context, private var metrics: Size? = nu
 
             val startTime = System.currentTimeMillis()
 
-            val rectangles = with(ExampleRenderScript(context)) {
+            val rectangles = with(renderContext) {
 
                 //histogramEqualization(src)
 
@@ -122,10 +127,12 @@ class CoinAnalyzer(private val context: Context, private var metrics: Size? = nu
                 //convolveLaplaceBitmap(src)
 
                 //val boxes = arrayListOf<DetectRectangles.Detections>()//DetectRectangles().process(src)
-                val boxes = DetectRectangles().process(src)
+                var boxes = arrayListOf<DetectRectangles.Detections>()
+
+                boxes = detector.process(src)
 
 
-                Log.d(CameraFragment.TAG, "RenderScript: ${boxes.size} objects ${src.width}x${src.height}")
+//                Log.d(CameraFragment.TAG, "RenderScript: ${boxes.size} objects ${src.width}x${src.height}")
 
                 return@with boxes
 
@@ -134,8 +141,6 @@ class CoinAnalyzer(private val context: Context, private var metrics: Size? = nu
             Log.d(CameraFragment.TAG, "RenderScriptT: ${System.currentTimeMillis()-startTime}")
 
             listener(src, rectangles)
-
-            //?src.recycle()
 
         }
 

@@ -35,65 +35,65 @@ class DetectRectangles {
         val hierarchy = Mat()
         val rectangles = ArrayList<Detections>()
 
-        rectangles.add(Detections(Rect(0, 0, src.width(), src.height()), 0.0))
+//        rectangles.add(Detections(Rect(0, 0, src.width(), src.height()), 0.0))
         Imgproc.cvtColor(src, src, Imgproc.COLOR_BGR2GRAY)
         //Imgproc.GaussianBlur(src, src,  Size(3.0, 3.0), 9.0);
         Imgproc.adaptiveThreshold(src, src, 255.0, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 15, 10.0)
        // Imgproc.GaussianBlur(src, src, Size(3.0, 3.0), 3.0);
 
 
-        Imgproc.findContours(src, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE)
+        //CHAIN_APPROX_NONE will give more contour points, uses more memory
+        Imgproc.findContours(src, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_NONE)
         val hull = MatOfInt()
 
-        Log.d("DrawContours", "${src.width()}x${src.height()} ${contours.size}")
+//        Log.d("DrawContours", "${src.width()}x${src.height()} ${contours.size}")
 
         for (i in contours.indices) {
-            val area = Imgproc.contourArea(contours[i])
+            var contour = contours[i]
+            val area = Imgproc.contourArea(contour)
             val approxCurve = MatOfPoint2f();
 
-            Log.d("Area", "${area}")
+//            Log.d("Area", "${area}")
 
-            if (area > 500) {
+            if (area > 1000) {
 
-                Imgproc.approxPolyDP(MatOfPoint2f(*contours[i].toArray()), approxCurve, 0.1, true);
+                Imgproc.approxPolyDP(MatOfPoint2f(*contour.toArray()), approxCurve, 0.9, true);
                 val peri = Imgproc.arcLength(approxCurve, true)
-
                 val circ = calcCircularity(area, peri)
-                Log.d("Circularity", "${circ}")
+//                Log.d("Circularity", "${circ}")
 
-                if (circ >= 0.8) {
+                if (circ >= 0.9) {
 
                     //Imgproc.convexHull(contours[i], hull);
 
-                    val rect = Imgproc.boundingRect(contours[i])
+                    val rect = Imgproc.boundingRect(contour)
                     //RotatedRect rect = Imgproc.minAreaRect(new MatOfPoint2f(contours.get(i)));
 
-                    var topLeft = Point(rect.x.toDouble(), rect.y.toDouble())
-                    var botRight = Point((rect.x + rect.width).toDouble(), (rect.y + rect.height).toDouble())
+//                    var topLeft = Point(rect.x.toDouble(), rect.y.toDouble())
+//                    var botRight = Point((rect.x + rect.width).toDouble(), (rect.y + rect.height).toDouble())
 
                     rectangles.add(Detections(rect, circ))
 
-                    Imgproc.rectangle(src, topLeft, botRight, RECTANGLE_COLOR, 2)
+//                    Imgproc.rectangle(src, topLeft, botRight, RECTANGLE_COLOR, 2)
 
-                    Imgproc.putText(src,
-                            "Circularity $circ",
-                            Point(rect.x.toDouble(), rect.y.toDouble()),
-                            Imgproc.FONT_HERSHEY_SIMPLEX, 4.0, TEXT_COLOR, 3);
+//                    Imgproc.putText(src,
+//                            "Circularity $circ",
+//                            Point(rect.x.toDouble(), rect.y.toDouble()),
+//                            Imgproc.FONT_HERSHEY_SIMPLEX, 4.0, TEXT_COLOR, 3);
                 }
             }
+
+            if (rectangles.size == 4) break
+
         }
 
-            //if (i == 100) break
-
-            //ToDo: Verify that the rows()  is what needs to be used.
-       // }
         return rectangles
     }
 
     fun process(inputBitmap: Bitmap?): ArrayList<Detections> {
         val frame = Mat()
-        val copy = inputBitmap?.copy(inputBitmap.config, true)
-        Utils.bitmapToMat(copy, frame)
+        //val copy = inputBitmap?.copy(inputBitmap.config, true)
+        Utils.bitmapToMat(inputBitmap, frame)
         val boxes = process(frame)
         //Utils.matToBitmap(frame, inputBitmap)
         return boxes

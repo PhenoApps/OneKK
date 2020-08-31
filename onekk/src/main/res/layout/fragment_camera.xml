@@ -21,16 +21,50 @@
             android:elevation="2dp" />
 
         <androidx.camera.view.PreviewView
-            android:visibility="gone"
+            android:visibility="visible"
             android:id="@+id/viewFinder"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
 
         <ImageView
+            android:id="@+id/coin1"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:src="@drawable/ic_barcode_scan"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/coin2"/>
+        <ImageView
+            android:id="@+id/coin2"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:src="@drawable/ic_barcode_scan"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/coin1"
+            app:layout_constraintEnd_toStartOf="@id/coin3"/>
+        <ImageView
+            android:id="@+id/coin3"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:src="@drawable/ic_barcode_scan"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/coin2"
+            app:layout_constraintEnd_toStartOf="@id/coin4"/>
+        <ImageView
+            android:id="@+id/coin4"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:src="@drawable/ic_barcode_scan"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/coin3"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <ImageView
+            android:visibility="gone"
             android:id="@+id/canvasImageView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

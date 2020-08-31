@@ -64,6 +64,23 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
         // pull the metrics from our TextureView
         // textuewView size : height=match_parent, width=match_parent
         val metrics = DisplayMetrics().also { mBinding?.viewFinder?.display?.getRealMetrics(it) }
+
+//        var m: DisplayMetrics = DisplayMetrics()
+//        var rm = DisplayMetrics()
+//        var real = Point()
+//        var r = Rect()
+//        var s = Point()
+//        var smallest = Point()
+//        var largest = Point()
+//        mBinding?.viewFinder?.display?.getCurrentSizeRange(largest, smallest)
+//
+//        mBinding?.viewFinder?.display?.getMetrics(m)
+//        mBinding?.viewFinder?.display?.getRealMetrics(rm)
+//        mBinding?.viewFinder?.display?.getRealSize(real)
+//        mBinding?.viewFinder?.display?.getRectSize(r)
+//        mBinding?.viewFinder?.display?.getSize(s)
+
+
         // define the screen size
         val screenSize = Size(metrics.widthPixels, metrics.heightPixels)
         val ratio = Rational(metrics.widthPixels, metrics.heightPixels)
@@ -111,6 +128,13 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
         screenSize
     }
 
+    private val sScreenScale by lazy {
+        var smallest = Point()
+        var largest = Point()
+        mBinding?.viewFinder?.display?.getCurrentSizeRange(smallest, largest)
+        largest
+    }
+
     companion object {
 
         final val TAG = "Onekk.CameraFragment"
@@ -125,20 +149,13 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
 
             val bitmap = bmp!!//.copy(bmp.config, false)
 
-            mBinding?.cameraCaptureButton?.setOnClickListener {
-
-                callCoinRecognitionDialog(bitmap)
-
-            }
-
 //            Log.d("Metrics", "${bmp?.width}x${bmp?.height}")
 
             //val overlay = Bitmap.createBitmap(metrics.x, metrics.y, Bitmap.Config.ARGB_8888)
 
-
             val overlay = bitmap.copy(bitmap.config, true)//Bitmap.createBitmap(bmp!!.width, bmp.height, bmp.config)
 
-            //overlay.scale(2500, 2000)
+            //overlay.scale(sScreenScale.x, sScreenScale.y)
 
             requireActivity().runOnUiThread {
                 mBinding?.canvasImageView?.setImageBitmap(overlay)
@@ -178,16 +195,25 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
                             paint
                     )
 
-                    val circText = if (b.circ.toString().isNotBlank() && b.circ.toString().length > 3) {
-                        b.circ.toString().substring(0,3)
+                    val circText = if (b.circ.toString().isNotBlank() && b.circ.toString().length > 5) {
+                        b.circ.toString().substring(0,5)
                     } else ""
 
                     canvas.drawText("circularity: $circText", rect.x.toFloat(), rect.y - 50f, textPaint)
 
                     //canvas.rotate(-90f)
+                    //canvas.scale(3.0f, 3f)
+
+                }
+
+                mBinding?.cameraCaptureButton?.setOnClickListener {
+
+                    callCoinRecognitionDialog(overlay)
 
                 }
             }
+
+
         }
     }
 
@@ -217,6 +243,10 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
 
         with(mBinding) {
 
+            this?.coin1?.visibility = View.GONE
+            this?.coin2?.visibility = View.GONE
+            this?.coin3?.visibility = View.GONE
+            this?.coin4?.visibility = View.GONE
 
 //            Timer().scheduleAtFixedRate(object : TimerTask() {
 //
@@ -303,7 +333,7 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
 
                     // Bind use cases to camera
                     val cam = cameraProvider.bindToLifecycle(this as LifecycleOwner,
-                            cameraSelector, imageAnalyzer)
+                            cameraSelector, preview, imageAnalyzer)
 
                     //cam.cameraControl.enableTorch(true)
 
