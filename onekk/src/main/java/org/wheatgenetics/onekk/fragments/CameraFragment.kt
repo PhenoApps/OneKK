@@ -25,19 +25,34 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.scale
 import androidx.core.hardware.display.DisplayManagerCompat
+import androidx.core.net.toUri
 import androidx.core.util.Pair
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.LifecycleOwner
+import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.*
 import org.wheatgenetics.imageprocess.*
 import org.wheatgenetics.imageprocess.renderscript.ExampleRenderScript
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.analyzers.CoinAnalyzer
+import org.wheatgenetics.onekk.database.OnekkDatabase
+import org.wheatgenetics.onekk.database.OnekkRepository
+import org.wheatgenetics.onekk.database.models.AnalysisEntity
+import org.wheatgenetics.onekk.database.models.ExperimentEntity
+import org.wheatgenetics.onekk.database.models.ImageEntity
+import org.wheatgenetics.onekk.database.models.embedded.Experiment
+import org.wheatgenetics.onekk.database.models.embedded.Image
+import org.wheatgenetics.onekk.database.viewmodels.AnalysisViewModel
+import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
+import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentCameraBinding
 import org.wheatgenetics.onekk.views.CanvasView
+import org.wheatgenetics.utils.DateUtil
 import org.wheatgenetics.utils.Dialogs
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import java.lang.Runnable
 import java.text.SimpleDateFormat
@@ -48,7 +63,13 @@ import kotlin.random.asKotlinRandom
 
 class CameraFragment : Fragment(), CoroutineScope by MainScope() {
 
-    private lateinit var mCoinRecognitionResultBitmap: Bitmap
+    private val db by lazy {
+        OnekkDatabase.getInstance(requireContext())
+    }
+
+    private val viewModel by viewModels<ExperimentViewModel> {
+        OnekkViewModelFactory(OnekkRepository.getInstance(db.dao(), db.coinDao()))
+    }
 
     private var imageCapture: ImageCapture? = null
 
@@ -135,6 +156,10 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
         largest
     }
 
+    private fun measureArea(groundTruthPixel: Double, groundTruthmm: Double, kernelPx: Double): Double {
+        return kernelPx * groundTruthmm / groundTruthPixel
+    }
+
     companion object {
 
         final val TAG = "Onekk.CameraFragment"
@@ -145,7 +170,13 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
     private var mBinding: FragmentCameraBinding? = null
 
     private val sAnalyzer by lazy {
-        CoinAnalyzer(requireContext()) { bmp, boxes ->
+        CoinAnalyzer(requireContext()) { result ->
+
+            val boxes = result.detections
+
+            updateCoinUi(boxes)
+
+            val bmp = result.images.last()
 
             val bitmap = bmp!!//.copy(bmp.config, false)
 
@@ -182,12 +213,15 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
 
                 var canvas = Canvas(overlay)
 
-
                 canvas.drawRect(Rect(0, 0, bmp.width, bmp.height), paint)
+
+                var penny = boxes.minByOrNull { it.rect.width }!!
 
                 for (b in boxes) {
 
                     var rect = b.rect
+
+                    val diameter = measureArea(penny.rect.width.toDouble(), 19.05, rect.width.toDouble())
 
                     canvas.drawRect(Rect(rect.x, rect.y,
                             rect.x + rect.width,
@@ -199,21 +233,60 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
                         b.circ.toString().substring(0,5)
                     } else ""
 
-                    canvas.drawText("circularity: $circText", rect.x.toFloat(), rect.y - 50f, textPaint)
+                    //canvas.drawText("circularity: $circText", rect.x.toFloat(), rect.y - 50f, textPaint)
+                    canvas.drawText("diameter: $diameter", rect.x.toFloat(), rect.y - 50f, textPaint)
 
                     //canvas.rotate(-90f)
                     //canvas.scale(3.0f, 3f)
 
                 }
 
-                mBinding?.cameraCaptureButton?.setOnClickListener {
 
-                    callCoinRecognitionDialog(overlay)
-
-                }
             }
 
+            mBinding?.cameraCaptureButton?.setOnClickListener {
 
+                callCoinRecognitionDialog(result)
+
+            }
+        }
+    }
+
+    private fun updateCoinUi(boxes: ArrayList<DetectRectangles.Detections>) {
+        requireActivity().runOnUiThread {
+            when (val size = boxes.size) {
+                1 -> {
+                    mBinding?.coin1?.visibility = View.VISIBLE
+                    mBinding?.coin2?.visibility = View.GONE
+                    mBinding?.coin3?.visibility = View.GONE
+                    mBinding?.coin4?.visibility = View.GONE
+
+                }
+                2 -> {
+                    mBinding?.coin1?.visibility = View.VISIBLE
+                    mBinding?.coin2?.visibility = View.VISIBLE
+                    mBinding?.coin3?.visibility = View.GONE
+                    mBinding?.coin4?.visibility = View.GONE
+                }
+                3 -> {
+                    mBinding?.coin1?.visibility = View.VISIBLE
+                    mBinding?.coin2?.visibility = View.VISIBLE
+                    mBinding?.coin3?.visibility = View.VISIBLE
+                    mBinding?.coin4?.visibility = View.GONE
+                }
+                4 -> {
+                    mBinding?.coin1?.visibility = View.VISIBLE
+                    mBinding?.coin2?.visibility = View.VISIBLE
+                    mBinding?.coin3?.visibility = View.VISIBLE
+                    mBinding?.coin4?.visibility = View.VISIBLE
+                }
+                else -> {
+                    mBinding?.coin1?.visibility = View.GONE
+                    mBinding?.coin2?.visibility = View.GONE
+                    mBinding?.coin3?.visibility = View.GONE
+                    mBinding?.coin4?.visibility = View.GONE
+                }
+            }
         }
     }
 
@@ -234,6 +307,10 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
 
+        viewModel.deleteAll()
+        viewModel.dropAll()
+        //analysisViewModel.dropAll()
+
         mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_camera, container, false)
 //
 //        val cv = CanvasView(requireContext(), mCoinRecognitionResultBitmap)
@@ -248,25 +325,18 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
             this?.coin3?.visibility = View.GONE
             this?.coin4?.visibility = View.GONE
 
-//            Timer().scheduleAtFixedRate(object : TimerTask() {
-//
-//                override fun run() {
-//
-//                    requireActivity().runOnUiThread {
-//
-//                        if (::mCoinRecognitionResultBitmap.isInitialized) {
-//                            with(mCoinRecognitionResultBitmap) {
-////                                mBinding?.surfaceView?.bitmap = this.copy(config, false)
-////                                mBinding?.surfaceView?.invalidate()
-//                                //cv.invalidate()
-//                            }
-//                        }
-//                    }
-//                }
-//
-//            }, 0L, 1L)
+            Timer().scheduleAtFixedRate(object : TimerTask() {
 
+                override fun run() {
 
+                    requireActivity().runOnUiThread {
+
+                        updateCoinUi(arrayListOf())
+
+                    }
+                }
+
+            }, 0L, 2000L)
 
             getOutputDirectory()?.let { output ->
 
@@ -276,6 +346,43 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
 
             cameraExecutor = Executors.newSingleThreadExecutor()
 
+//            //viewModel.insert(ExperimentEntity(Experiment("test"), 1))
+//            Dialogs.askAcceptableCoinRecognition(
+//                    activity,
+//                    AlertDialog.Builder(activity),
+//                    getString(R.string.ask_coin_recognition_ok),
+//                    bmp) { bmp ->
+//
+//                analysis.images.forEach {
+//
+//                    var url = try {
+//
+//                        val file = File(outputDirectory.path.toString(), "test.png")
+//
+//                        FileOutputStream(file).use { stream ->
+//
+//                            bmp!!.compress(Bitmap.CompressFormat.PNG, 100, stream)
+//
+//                        }
+//
+//                        file.toUri()
+//
+//                    } catch (e: IOException) {
+//
+//                        e.printStackTrace()
+//
+//                        null
+//                    }
+//
+//                    url?.let {
+//
+//                        val row = AnalysisEntity(
+//                                Image(it.toString()), 1, 1)
+//                                .insert(row)
+//
+//                    }
+//
+//                }
         }
 
         return mBinding?.root
@@ -383,8 +490,6 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
 
                     Log.d(TAG, msg)
 
-                    //callCoinRecognitionDialog(savedUri)
-
                 }
             })
         }
@@ -394,7 +499,7 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
      * Creates a Dialog that asks the user to accept or decline the image.
      * In this case, if the coin recognition step is accepted, the watershed algorithm begins.
      */
-    private fun callCoinRecognitionDialog(bmp: Bitmap?) {
+    private fun callCoinRecognitionDialog(result: DetectRectangles.AnalysisResult) {
 
         mBinding?.let { ui ->
 
@@ -402,6 +507,7 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
 
                 this@CameraFragment.activity?.let { activity ->
 
+                    val bmp = result.images.last()
                     /*
                     coinRecResult -> Boolean from Dialogs acceptance
                     bmp -> result image of coin recognition
@@ -413,7 +519,24 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
                             getString(R.string.ask_coin_recognition_ok),
                             bmp) { bmp ->
 
+                        viewModel.dropAll()
+                        viewModel.deleteAll()
+                        viewModel.insert(ExperimentEntity(Experiment("Test", DateUtil().getTime()), 1))
+                        viewModel.insert(AnalysisEntity(1, 1))
 
+                        result.images.forEachIndexed { index, image ->
+                            val file = File(outputDirectory.path.toString(), "${UUID.randomUUID()}.png")
+
+                            FileOutputStream(file).use { stream ->
+
+                                image.compress(Bitmap.CompressFormat.PNG, 100, stream)
+
+                            }
+
+                            viewModel.insert(ImageEntity(Image(Uri.fromFile(file).path.toString(), DateUtil().getTime()), 1, 1))
+                        }
+
+                        findNavController().navigate(CameraFragmentDirections.actionToAnalysis(1))
                     }
 
                 }
@@ -424,64 +547,5 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
 
             }
         }
-    }
-
-    private fun startCamera() {
-
-        this@CameraFragment.context?.let { ctx ->
-
-            val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
-
-            cameraProviderFuture.addListener(Runnable {
-                // Used to bind the lifecycle of cameras to the lifecycle owner
-                val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
-
-//                // Preview
-//                val preview = Preview.Builder()
-//                        .build()
-//                        .also {
-//                            it.setSurfaceProvider(mBinding?.viewFinder?.createSurfaceProvider())
-//                        }
-
-                imageCapture = ImageCapture.Builder()
-                        .build()
-
-                // Select back camera as a default
-                val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
-                try {
-                    // Unbind use cases before rebinding
-                    cameraProvider.unbindAll()
-
-                    // Bind use cases to camera
-                    cameraProvider.bindToLifecycle(
-                            this, cameraSelector, imageCapture)
-
-                } catch (exc: Exception) {
-                    Log.e(TAG, "Use case binding failed", exc)
-                }
-
-            }, ContextCompat.getMainExecutor(ctx))
-        }
-    }
-
-    private fun draw(canvas: Canvas) {
-
-        if (::mCoinRecognitionResultBitmap.isInitialized) {
-            val random = Random()
-            canvas.drawRGB(random.nextInt(255), random.nextInt(255), random.nextInt(255))
-            canvas.drawBitmap(mCoinRecognitionResultBitmap, 1080f, 1920f, Paint().also {
-                it.color = Color.BLACK
-                it.isAntiAlias = true
-                it.isDither = true
-            })
-            canvas.drawText("Coin Recognition", 100f, 200f, Paint().also {
-                it.color = Color.BLACK
-                it.isAntiAlias = true
-                it.isDither = true
-                it.isLinearText = true
-            })
-        }
-
     }
 }

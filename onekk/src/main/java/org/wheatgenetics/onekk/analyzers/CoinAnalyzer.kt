@@ -2,24 +2,21 @@ package org.wheatgenetics.onekk.analyzers
 
 import android.content.Context
 import android.graphics.*
-import android.media.Image
 import android.util.Log
 import android.util.Size
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
-import androidx.core.graphics.scale
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
 import org.wheatgenetics.imageprocess.DetectRectangles
-import org.wheatgenetics.imageprocess.Thresh
 import org.wheatgenetics.imageprocess.renderscript.ExampleRenderScript
+import org.wheatgenetics.onekk.activities.AnalysisListener
 import org.wheatgenetics.onekk.activities.BitmapListener
-import org.wheatgenetics.onekk.activities.LumaListener
 import org.wheatgenetics.onekk.fragments.CameraFragment
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
-import java.util.ArrayList
 
-class CoinAnalyzer(private val context: Context, private var metrics: Size? = null, private var width: Int = 1080, private var height: Int = 1920, private val listener: BitmapListener) : ImageAnalysis.Analyzer, CoroutineScope by MainScope() {
+class CoinAnalyzer(private val context: Context, private var metrics: Size? = null, private var width: Int = 1080, private var height: Int = 1920, private val listener: AnalysisListener) : ImageAnalysis.Analyzer, CoroutineScope by MainScope() {
 
     private var frames = 0.0
     private var startAnalysisTime = System.currentTimeMillis()
@@ -82,6 +79,7 @@ class CoinAnalyzer(private val context: Context, private var metrics: Size? = nu
 //
 //    }
 
+
     val detector = DetectRectangles()
     val renderContext = ExampleRenderScript(context)
     override fun analyze(proxy: ImageProxy) {
@@ -110,7 +108,7 @@ class CoinAnalyzer(private val context: Context, private var metrics: Size? = nu
 
             val startTime = System.currentTimeMillis()
 
-            val rectangles = with(renderContext) {
+            val result = with(renderContext) {
 
                 //histogramEqualization(src)
 
@@ -129,18 +127,17 @@ class CoinAnalyzer(private val context: Context, private var metrics: Size? = nu
                 //val boxes = arrayListOf<DetectRectangles.Detections>()//DetectRectangles().process(src)
                 var boxes = arrayListOf<DetectRectangles.Detections>()
 
-                boxes = detector.process(src)
-
+                var result = detector.process(src)
 
 //                Log.d(CameraFragment.TAG, "RenderScript: ${boxes.size} objects ${src.width}x${src.height}")
 
-                return@with boxes
+                return@with result
 
             }
 
-            Log.d(CameraFragment.TAG, "RenderScriptT: ${System.currentTimeMillis()-startTime}")
+            Log.d(CameraFragment.TAG, "RenderScriptT: ${System.currentTimeMillis() - startTime}")
 
-            listener(src, rectangles)
+            listener(result)
 
         }
 

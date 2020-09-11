@@ -10,7 +10,7 @@ import org.wheatgenetics.onekk.database.models.embedded.Experiment
 import org.wheatgenetics.onekk.database.models.embedded.Image
 
 @Keep
-@Entity(tableName = "coins")
+@Entity(tableName = "coin")
 data class CoinEntity(
 
         @Embedded

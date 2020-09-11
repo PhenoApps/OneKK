@@ -34,6 +34,8 @@ import java.io.File
 
 typealias LumaListener = (luma: Double) -> Unit
 typealias BitmapListener = (bmp: Bitmap?, detections: ArrayList<DetectRectangles.Detections>) -> Unit
+typealias AnalysisListener = (analysis: DetectRectangles.AnalysisResult) -> Unit
+
 class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
 //    private val mFirebaseAnalytics by lazy {

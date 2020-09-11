@@ -8,12 +8,12 @@ import androidx.room.PrimaryKey
 import org.wheatgenetics.onekk.database.models.embedded.Experiment
 
 @Keep
-@Entity(tableName = "experiments")
+@Entity(tableName = "experiment")
 data class ExperimentEntity(
 
         @Embedded
         var experiment: Experiment?,
 
         @ColumnInfo(name = "eid")
-        @PrimaryKey
+        @PrimaryKey(autoGenerate = true)
         var eid: Int)

@@ -9,13 +9,14 @@ import androidx.room.RoomDatabase
 import org.wheatgenetics.onekk.DB_NAME
 import org.wheatgenetics.onekk.database.dao.CoinDao
 import org.wheatgenetics.onekk.database.dao.OnekkDao
+import org.wheatgenetics.onekk.database.models.AnalysisEntity
 import org.wheatgenetics.onekk.database.models.CoinEntity
 import org.wheatgenetics.onekk.database.models.ExperimentEntity
 import org.wheatgenetics.onekk.database.models.ImageEntity
 import java.io.File
 
 
-@Database(entities = [ExperimentEntity::class, ImageEntity::class, CoinEntity::class],
+@Database(entities = [ExperimentEntity::class, AnalysisEntity::class, ImageEntity::class, CoinEntity::class],
         views = [], version = 1)
 abstract class OnekkDatabase : RoomDatabase() {
 

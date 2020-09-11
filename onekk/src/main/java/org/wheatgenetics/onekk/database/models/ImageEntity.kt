@@ -1,10 +1,7 @@
 package org.wheatgenetics.onekk.database.models
 
 import androidx.annotation.Keep
-import androidx.room.ColumnInfo
-import androidx.room.Embedded
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+import androidx.room.*
 import org.wheatgenetics.onekk.database.models.embedded.Experiment
 import org.wheatgenetics.onekk.database.models.embedded.Image
 
@@ -13,7 +10,9 @@ import org.wheatgenetics.onekk.database.models.embedded.Image
  */
 
 @Keep
-@Entity(tableName = "images")
+@Entity(tableName = "image",
+        foreignKeys = [ForeignKey(entity = AnalysisEntity::class,
+                parentColumns = ["eid", "aid"], childColumns = ["eid", "aid"], onDelete = ForeignKey.CASCADE)])
 data class ImageEntity(
 
         /**
@@ -22,6 +21,12 @@ data class ImageEntity(
         @Embedded
         var image: Image?,
 
+        @ColumnInfo(name = "eid")
+        var eid: Int,
+
+        @ColumnInfo(name = "aid")
+        var aid: Int,
+
         @ColumnInfo(name = "iid")
-        @PrimaryKey
-        var iid: Int)
+        @PrimaryKey(autoGenerate = true)
+        var iid: Int? = null)

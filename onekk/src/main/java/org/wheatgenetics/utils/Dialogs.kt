@@ -128,16 +128,6 @@ class Dialogs {
 
             val binding = DataBindingUtil.inflate<DialogCoinRecognitionBinding>(activity.layoutInflater, R.layout.dialog_coin_recognition, null, false)
 
-//            val bitmap = activity.contentResolver?.openInputStream(savedUri)?.let { stream ->
-//
-//                val bitmap: Bitmap? = BitmapFactory.decodeStream(stream)
-//
-//                stream.close()
-//
-//                bitmap
-//
-//            }
-
             binding.visible = true
 
             binding.resultView.rotation = 90f
@@ -150,25 +140,11 @@ class Dialogs {
 
                 srcBitmap?.let { src ->
 
-//                    val detect = EnhancedWatershed(EnhancedWatershed.DetectSeedsParams(5000))
-//
-//                    val result = detect.process(src)
-//
-//                    val src = result.first
+                    function(src)
 
-                    val dst = Bitmap.createBitmap(src.width, src.height, src.config)
-
-//                    ExampleRenderScript().testScript(activity, src)
-//
-//                    binding.resultView.setImageBitmap(dst)
-
-                    function(dst)
-
-                    dst
+                    src
 
                 }
-
-                //dialog.dismiss()
 
             }
 

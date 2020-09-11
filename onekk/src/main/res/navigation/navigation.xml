@@ -7,6 +7,15 @@
     app:startDestination="@+id/camera_preview_fragment">
 
     <fragment
+        android:id="@+id/analysis_fragment"
+        android:name="org.wheatgenetics.onekk.fragments.AnalysisFragment"
+        android:label="@string/analysis_fragment_label">
+        <argument android:name="experiment"
+            android:defaultValue="-1"
+            app:argType="integer"/>
+    </fragment>
+
+    <fragment
         android:id="@+id/settings_fragment"
         android:name="org.wheatgenetics.onekk.fragments.SettingsFragment"
         android:label="@string/nav_label_settings"/>
@@ -15,6 +24,9 @@
         android:id="@+id/camera_preview_fragment"
         android:name="org.wheatgenetics.onekk.fragments.CameraFragment"
         android:label="@string/nav_label_camera_preview">
+
+        <action android:id="@+id/action_to_analysis"
+            app:destination="@id/analysis_fragment"/>
 
     </fragment>
 
