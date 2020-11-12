@@ -1,6 +1,8 @@
 package org.wheatgenetics.utils
 
 import android.app.Activity
+import android.bluetooth.BluetoothDevice
+import android.content.Context
 import android.content.DialogInterface
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -12,10 +14,38 @@ import org.wheatgenetics.imageprocess.EnhancedWatershed
 import org.wheatgenetics.imageprocess.renderscript.ExampleRenderScript
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.databinding.DialogCoinRecognitionBinding
+import org.wheatgenetics.onekk.interfaces.DeviceDiscoveredListener
+import java.util.*
 
 class Dialogs {
 
     companion object {
+
+        fun chooseBleDevice(builder: AlertDialog.Builder, title: String, devices: Array<BluetoothDevice>, function: (String) -> Unit) {
+
+            if (devices.isNotEmpty()) {
+
+                builder.setTitle(title)
+
+                //bluetooth devices might have a null name
+                builder.setSingleChoiceItems(devices.map { it.name }.toTypedArray(), -1) { dialog, choice ->
+
+                    if (choice > -1) {
+
+                        function(devices[choice].address)
+
+                    }
+
+                    dialog.dismiss()
+
+                }
+
+                builder.create()
+
+                builder.show()
+            }
+
+        }
 
         /***
          * Generic dialog to run a function if the OK/Neutral button are pressed.
@@ -124,7 +154,7 @@ class Dialogs {
             builder.show()
         }
 
-        fun askAcceptableCoinRecognition(activity: Activity, builder: AlertDialog.Builder, title: String, srcBitmap: Bitmap?, function: (Bitmap?) -> Unit) {
+        fun askAcceptableImage(activity: Activity, builder: AlertDialog.Builder, title: String, srcBitmap: Bitmap?, dstBitmap: Bitmap?, function: (Bitmap?) -> Unit, onDecline: () -> Unit) {
 
             val binding = DataBindingUtil.inflate<DialogCoinRecognitionBinding>(activity.layoutInflater, R.layout.dialog_coin_recognition, null, false)
 
@@ -132,7 +162,7 @@ class Dialogs {
 
             binding.resultView.rotation = 90f
 
-            binding.resultView.setImageBitmap(srcBitmap)
+            binding.resultView.setImageBitmap(dstBitmap)
 
             builder.setTitle(title)
 
@@ -142,15 +172,14 @@ class Dialogs {
 
                     function(src)
 
-                    src
-
+                    dialog.dismiss()
                 }
 
             }
 
             builder.setNegativeButton(R.string.decline) { dialog, which ->
 
-                function(srcBitmap)
+                onDecline()
 
                 dialog.dismiss()
 

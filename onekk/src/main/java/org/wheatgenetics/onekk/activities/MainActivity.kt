@@ -26,16 +26,24 @@ import org.opencv.android.BaseLoaderCallback
 import org.opencv.android.LoaderCallbackInterface
 import org.opencv.android.OpenCVLoader
 import org.wheatgenetics.imageprocess.DetectRectangles
+import org.wheatgenetics.imageprocess.DetectSmallObjects
 import org.wheatgenetics.onekk.BuildConfig
+import org.wheatgenetics.onekk.CameraPreviewFragment
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.databinding.ActivityMainBinding
+import org.wheatgenetics.onekk.fragments.CameraFragmentDirections
+import org.wheatgenetics.utils.ImageProcessingUtil
 import org.wheatgenetics.utils.SnackbarQueue
 import java.io.File
 
 typealias LumaListener = (luma: Double) -> Unit
-typealias BitmapListener = (bmp: Bitmap?, detections: ArrayList<DetectRectangles.Detections>) -> Unit
-typealias AnalysisListener = (analysis: DetectRectangles.AnalysisResult) -> Unit
+//typealias BitmapListener = (bmp: Bitmap?, detections: ImageProcessingUtil.Companion.Detections>) -> Unit
+typealias CoinAnalysisListener = (analysis: ImageProcessingUtil.Companion.AnalysisResult) -> Unit
+typealias SeedAnalysisListener = (analysis: ImageProcessingUtil.Companion.AnalysisResult) -> Unit
 
+/**
+ * Basic main activity class that holds the navigation drawer view and all other fragments.
+ */
 class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
 //    private val mFirebaseAnalytics by lazy {
@@ -233,10 +241,11 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 //                    askExport()
 //
 //                }
-//                R.id.action_nav_settings -> {
-//
-//                    mNavController.navigate(ExperimentListFragmentDirections.actionToSettings())
-//                }
+                R.id.action_nav_settings -> {
+
+                    mNavController.navigate(CameraFragmentDirections.actionToSettings())
+
+                }
 //                R.id.action_nav_about -> {
 //
 //                    //mNavController.navigate(ExperimentListFragmentDirections.actionToAbout())

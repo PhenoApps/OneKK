@@ -1,66 +1,74 @@
 package org.wheatgenetics.onekk.fragments
 
+import android.annotation.SuppressLint
+import android.bluetooth.BluetoothGattCharacteristic
+import android.bluetooth.BluetoothGattCharacteristic.FORMAT_SFLOAT
+import android.bluetooth.BluetoothGattCharacteristic.FORMAT_UINT16
+import android.bluetooth.BluetoothGattDescriptor
 import android.graphics.*
-import android.hardware.display.DisplayManager
 import android.net.Uri
-import android.opengl.GLSurfaceView
 import android.os.Bundle
-import android.os.Handler
-import android.os.HandlerThread
+import android.os.ParcelUuid
 import android.util.DisplayMetrics
 import android.util.Log
 import android.util.Rational
 import android.util.Size
-import android.view.LayoutInflater
-import android.view.SurfaceHolder
-import android.view.View
-import android.view.ViewGroup
-import android.widget.ImageView
+import android.view.*
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.camera.core.*
-import androidx.camera.core.impl.ImageAnalysisConfig
+import androidx.camera.core.Camera
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.scale
-import androidx.core.hardware.display.DisplayManagerCompat
-import androidx.core.net.toUri
-import androidx.core.util.Pair
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.fragment.findNavController
+import com.polidea.rxandroidble2.NotificationSetupMode
+import com.polidea.rxandroidble2.RxBleClient
+import com.polidea.rxandroidble2.RxBleConnection
+import com.polidea.rxandroidble2.RxBleDevice
+import com.polidea.rxandroidble2.helpers.ValueInterpreter
+import com.polidea.rxandroidble2.scan.ScanFilter
+import com.polidea.rxandroidble2.scan.ScanSettings
+import com.polidea.rxandroidble2.utils.StandardUUIDsParser
+import io.reactivex.Flowable.combineLatest
+import io.reactivex.Observable
+import io.reactivex.Observable.combineLatest
+import io.reactivex.disposables.Disposable
 import kotlinx.coroutines.*
-import org.wheatgenetics.imageprocess.*
-import org.wheatgenetics.imageprocess.renderscript.ExampleRenderScript
+import org.wheatgenetics.imageprocess.DetectRectangles
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.analyzers.CoinAnalyzer
+import org.wheatgenetics.onekk.analyzers.NoopAnalyzer
+import org.wheatgenetics.onekk.analyzers.SeedAnalyzer
 import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
-import org.wheatgenetics.onekk.database.models.AnalysisEntity
-import org.wheatgenetics.onekk.database.models.ExperimentEntity
-import org.wheatgenetics.onekk.database.models.ImageEntity
-import org.wheatgenetics.onekk.database.models.embedded.Experiment
-import org.wheatgenetics.onekk.database.models.embedded.Image
-import org.wheatgenetics.onekk.database.viewmodels.AnalysisViewModel
 import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
 import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentCameraBinding
-import org.wheatgenetics.onekk.views.CanvasView
-import org.wheatgenetics.utils.DateUtil
 import org.wheatgenetics.utils.Dialogs
+import org.wheatgenetics.utils.ImageProcessingUtil
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.lang.Runnable
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import kotlin.random.asKotlinRandom
+import java.util.concurrent.TimeUnit
 
+/**
+ * This fragment uses the CameraX analysis API. Two different analyzers, Coin and Seed, are used
+ * for recognizing and counting/measuring coins respectively.
+ *
+ * Analysis:
+ * The coin analyzer is a quick adaptiveThresholding approach which, when four coins are recognized,
+ * will enable the camera capture button. The camera capture button switches the analysis to the
+ * Seed Analyzer, which requires the source image of the coin recognition task.
+ */
 class CameraFragment : Fragment(), CoroutineScope by MainScope() {
 
     private val db by lazy {
@@ -71,93 +79,37 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
         OnekkViewModelFactory(OnekkRepository.getInstance(db.dao(), db.coinDao()))
     }
 
-    private var imageCapture: ImageCapture? = null
+    private var mChosenResult: ImageProcessingUtil.Companion.AnalysisResult? = null
 
     private lateinit var outputDirectory: File
     private lateinit var cameraExecutor: ExecutorService
 
-    private val screenAspectRatio by lazy {
+    private var mBinding: FragmentCameraBinding? = null
 
-        var rect: Rect = Rect()
+    private var isShowingDialog: Boolean = false
 
-        var point: Point = Point()
-
-        // pull the metrics from our TextureView
-        // textuewView size : height=match_parent, width=match_parent
-        val metrics = DisplayMetrics().also { mBinding?.viewFinder?.display?.getRealMetrics(it) }
-
-//        var m: DisplayMetrics = DisplayMetrics()
-//        var rm = DisplayMetrics()
-//        var real = Point()
-//        var r = Rect()
-//        var s = Point()
-//        var smallest = Point()
-//        var largest = Point()
-//        mBinding?.viewFinder?.display?.getCurrentSizeRange(largest, smallest)
-//
-//        mBinding?.viewFinder?.display?.getMetrics(m)
-//        mBinding?.viewFinder?.display?.getRealMetrics(rm)
-//        mBinding?.viewFinder?.display?.getRealSize(real)
-//        mBinding?.viewFinder?.display?.getRectSize(r)
-//        mBinding?.viewFinder?.display?.getSize(s)
-
-
-        // define the screen size
-        val screenSize = Size(metrics.widthPixels, metrics.heightPixels)
-        val ratio = Rational(metrics.widthPixels, metrics.heightPixels)
-
-//        DisplayManagerCompat.getInstance(requireContext())
-//
-//
-//                .displays.first()?.let { display ->
-//
-//                    display.getRealSize(point)
-//                    display.getRectSize(rect)
-//
-//                }
-//
-//        //rect
-//        point
-        ratio
-    }
-
+    //query the relative screen size
     private val metrics by lazy {
 
-        var rect: Rect = Rect()
-
-        var point: Point = Point()
-
-        // pull the metrics from our TextureView
-        // textuewView size : height=match_parent, width=match_parent
         val metrics = DisplayMetrics().also { mBinding?.viewFinder?.display?.getRealMetrics(it) }
-        // define the screen size
-        val screenSize = Size(metrics.widthPixels, metrics.heightPixels)
-        val screenAspectRatio = Rational(metrics.widthPixels, metrics.heightPixels)
 
-//        DisplayManagerCompat.getInstance(requireContext())
-//
-//
-//                .displays.first()?.let { display ->
-//
-//                    display.getRealSize(point)
-//                    display.getRectSize(rect)
-//
-//                }
-//
-//        //rect
-//        point
+        val screenSize = Size(metrics.widthPixels, metrics.heightPixels)
+
+        //val screenAspectRatio = Rational(metrics.widthPixels, metrics.heightPixels)
+
         screenSize
     }
 
-    private val sScreenScale by lazy {
-        var smallest = Point()
-        var largest = Point()
-        mBinding?.viewFinder?.display?.getCurrentSizeRange(smallest, largest)
-        largest
-    }
+    private val checkCamPermissions by lazy {
 
-    private fun measureArea(groundTruthPixel: Double, groundTruthmm: Double, kernelPx: Double): Double {
-        return kernelPx * groundTruthmm / groundTruthPixel
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+
+            if (granted) {
+
+                startCameraAnalysis(sCoinAnalyzer)
+
+            }
+        }
     }
 
     companion object {
@@ -167,176 +119,171 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
     }
 
-    private var mBinding: FragmentCameraBinding? = null
+    val sCanvasPaint = Paint().apply {
+        isAntiAlias = true
+        style = Paint.Style.STROKE
+        color = Color.GREEN
+        strokeWidth = 5f
+    }
 
-    private val sAnalyzer by lazy {
-        CoinAnalyzer(requireContext()) { result ->
+    val sCanvasTextPaint = Paint().apply {
+        isAntiAlias = true
+        style = Paint.Style.FILL
+        textSize = 36f
+        color = Color.GREEN
+        isLinearText = true
+        strokeWidth = 1f
+    }
+
+    //the no-operation analyzer that's used in-between coin recognition and seed phenotyping
+    private val sNoopAnalysis by lazy { NoopAnalyzer() }
+
+    /**
+     * This is the first analysis that runs when the app begins. Images are constantly
+     * processed in the background from the camera. Coin Analyzer is required to return a result that includes:
+     * the pipeline array of images, the transformations between each image, and the detections array which includes
+     * contours, contour areas, contour centers, and contour bounding boxes.
+     *
+     * If four coins are detected, the analysis switches to the Seed Analysis. The Seed Analysis is slightly different, as
+     * it does not continuously process new images, but runs the Onekk algorithm on the source image of the coin recognition result.
+     *
+     */
+    private val sCoinAnalyzer by lazy {
+        CoinAnalyzer { result ->
 
             val boxes = result.detections
-
-            updateCoinUi(boxes)
 
             val bmp = result.images.last()
 
             val bitmap = bmp!!//.copy(bmp.config, false)
 
-//            Log.d("Metrics", "${bmp?.width}x${bmp?.height}")
-
-            //val overlay = Bitmap.createBitmap(metrics.x, metrics.y, Bitmap.Config.ARGB_8888)
+//            println("Rectangles: ${boxes.size}")
 
             val overlay = bitmap.copy(bitmap.config, true)//Bitmap.createBitmap(bmp!!.width, bmp.height, bmp.config)
-
-            //overlay.scale(sScreenScale.x, sScreenScale.y)
 
             requireActivity().runOnUiThread {
                 mBinding?.canvasImageView?.setImageBitmap(overlay)
                 mBinding?.canvasImageView?.rotation = 90f
             }
 
+            /**
+             * Draw bounding boxes of the accepted coins.
+             */
             if (boxes.isNotEmpty()) {
-
-                val paint = Paint().apply {
-                    isAntiAlias = true
-                    style = Paint.Style.STROKE
-                    color = Color.GREEN
-                    strokeWidth = 5f
-                }
-
-                val textPaint = Paint().apply {
-                    isAntiAlias = true
-                    style = Paint.Style.FILL
-                    textSize = 36f
-                    color = Color.GREEN
-                    isLinearText = true
-                    strokeWidth = 1f
-                }
 
                 var canvas = Canvas(overlay)
 
-                canvas.drawRect(Rect(0, 0, bmp.width, bmp.height), paint)
+                canvas.rotate(-90f)
+                canvas.drawText("${boxes.size} ${requireContext().getString(R.string.frag_camera_coins_maybe_plural)}", 1000f, 500f, sCanvasTextPaint)
+                canvas.rotate(90f)
 
-                var penny = boxes.minByOrNull { it.rect.width }!!
+                canvas.drawRect(Rect(0, 0, bmp.width, bmp.height), sCanvasPaint)
 
                 for (b in boxes) {
 
                     var rect = b.rect
 
-                    val diameter = measureArea(penny.rect.width.toDouble(), 19.05, rect.width.toDouble())
+                    canvas.drawText("${b.circ}", rect.x.toFloat(), rect.y.toFloat(), sCanvasTextPaint)
 
                     canvas.drawRect(Rect(rect.x, rect.y,
                             rect.x + rect.width,
                             rect.y + rect.height),
-                            paint
+                            sCanvasPaint
                     )
-
-                    val circText = if (b.circ.toString().isNotBlank() && b.circ.toString().length > 5) {
-                        b.circ.toString().substring(0,5)
-                    } else ""
-
-                    //canvas.drawText("circularity: $circText", rect.x.toFloat(), rect.y - 50f, textPaint)
-                    canvas.drawText("diameter: $diameter", rect.x.toFloat(), rect.y - 50f, textPaint)
-
-                    //canvas.rotate(-90f)
-                    //canvas.scale(3.0f, 3f)
-
                 }
-
-
             }
 
-            mBinding?.cameraCaptureButton?.setOnClickListener {
+            updateCurrentAnalysisResult(result)
 
-                callCoinRecognitionDialog(result)
+        }
+    }
 
+    /**
+     * Runs a UI update of the camera capture button. When this button is enabled, the user can capture
+     * a picture. When a picture is captured, a dialog asks the user if the result of the coin detection
+     * is acceptable.
+     */
+    private fun updateCurrentAnalysisResult(result: ImageProcessingUtil.Companion.AnalysisResult) = requireActivity().runOnUiThread {
+
+        if (result.isCompleted && result.detections.size == DetectRectangles.EXPECTED_NUMBER_OF_COINS) {
+
+            if (!isShowingDialog) {
+
+                mChosenResult = result
+
+                callCoinRecognitionDialog()
             }
         }
     }
 
-    private fun updateCoinUi(boxes: ArrayList<DetectRectangles.Detections>) {
+    /**
+     * Setup the image analysis listener for seed phenotyping. This analyzer takes an input image
+     * and runs the algorithm within SeedAnalyzer.
+     */
+    private fun seedAnalyzer(src: Bitmap) = SeedAnalyzer(src) { result ->
+
+        //on the first result, switch to the noop analyzer
+        startCameraAnalysis(NoopAnalyzer())
+
+        val boxes = result.detections
+
+        val bmp = result.images.last()
+
+        val bitmap = bmp!!//.copy(bmp.config, false)
+
+        val overlay = bitmap.copy(bitmap.config, true)//Bitmap.createBitmap(bmp!!.width, bmp.height, bmp.config)
+
         requireActivity().runOnUiThread {
-            when (val size = boxes.size) {
-                1 -> {
-                    mBinding?.coin1?.visibility = View.VISIBLE
-                    mBinding?.coin2?.visibility = View.GONE
-                    mBinding?.coin3?.visibility = View.GONE
-                    mBinding?.coin4?.visibility = View.GONE
-
-                }
-                2 -> {
-                    mBinding?.coin1?.visibility = View.VISIBLE
-                    mBinding?.coin2?.visibility = View.VISIBLE
-                    mBinding?.coin3?.visibility = View.GONE
-                    mBinding?.coin4?.visibility = View.GONE
-                }
-                3 -> {
-                    mBinding?.coin1?.visibility = View.VISIBLE
-                    mBinding?.coin2?.visibility = View.VISIBLE
-                    mBinding?.coin3?.visibility = View.VISIBLE
-                    mBinding?.coin4?.visibility = View.GONE
-                }
-                4 -> {
-                    mBinding?.coin1?.visibility = View.VISIBLE
-                    mBinding?.coin2?.visibility = View.VISIBLE
-                    mBinding?.coin3?.visibility = View.VISIBLE
-                    mBinding?.coin4?.visibility = View.VISIBLE
-                }
-                else -> {
-                    mBinding?.coin1?.visibility = View.GONE
-                    mBinding?.coin2?.visibility = View.GONE
-                    mBinding?.coin3?.visibility = View.GONE
-                    mBinding?.coin4?.visibility = View.GONE
-                }
-            }
+            mBinding?.canvasImageView?.setImageBitmap(overlay)
+            mBinding?.canvasImageView?.rotation = 90f
         }
-    }
 
-    private val checkCamPermissions by lazy {
+        if (boxes.isNotEmpty()) {
 
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            var canvas = Canvas(overlay)
 
-            if (granted) {
+            canvas.drawRect(Rect(0, 0, bmp.width, bmp.height), sCanvasPaint)
 
-                startCameraAnalysis()
+            //var penny = boxes.minByOrNull { it.rect.width }!!
 
-                //startCamera()
+            for (b in boxes) {
+
+                var rect = b.rect
+
+                //val diameter = ImageProcessingUtil.measureArea(penny.rect.width.toDouble(), 19.05, rect.width.toDouble())
+
+                canvas.drawRect(Rect(rect.x, rect.y,
+                        rect.x + rect.width,
+                        rect.y + rect.height),
+                        sCanvasTextPaint
+                )
+
+//                    val circText = if (b.circ.toString().isNotBlank() && b.circ.toString().length > 5) {
+//                        b.circ.toString().substring(0, 5)
+//                    } else ""
+//
+//                    //canvas.drawText("circularity: $circText", rect.x.toFloat(), rect.y - 50f, textPaint)
+//                    canvas.drawText("diameter: $diameter", rect.x.toFloat(), rect.y - 50f, textPaint)
 
             }
+
+            callSeedCountDialog(src, result)
         }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
 
+        //TODO: add experiment fragment
         viewModel.deleteAll()
         viewModel.dropAll()
         //analysisViewModel.dropAll()
 
         mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_camera, container, false)
-//
-//        val cv = CanvasView(requireContext(), mCoinRecognitionResultBitmap)
-//        mBinding?.group?.addView(cv)
 
         checkCamPermissions.launch(android.Manifest.permission.CAMERA)
 
         with(mBinding) {
-
-            this?.coin1?.visibility = View.GONE
-            this?.coin2?.visibility = View.GONE
-            this?.coin3?.visibility = View.GONE
-            this?.coin4?.visibility = View.GONE
-
-            Timer().scheduleAtFixedRate(object : TimerTask() {
-
-                override fun run() {
-
-                    requireActivity().runOnUiThread {
-
-                        updateCoinUi(arrayListOf())
-
-                    }
-                }
-
-            }, 0L, 2000L)
 
             getOutputDirectory()?.let { output ->
 
@@ -344,50 +291,29 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
 
             }
 
+            //starts camera thread executor, which must be destroyed/stopped in onDestroy
             cameraExecutor = Executors.newSingleThreadExecutor()
 
 //            //viewModel.insert(ExperimentEntity(Experiment("test"), 1))
-//            Dialogs.askAcceptableCoinRecognition(
-//                    activity,
-//                    AlertDialog.Builder(activity),
-//                    getString(R.string.ask_coin_recognition_ok),
-//                    bmp) { bmp ->
-//
-//                analysis.images.forEach {
-//
-//                    var url = try {
-//
-//                        val file = File(outputDirectory.path.toString(), "test.png")
-//
-//                        FileOutputStream(file).use { stream ->
-//
-//                            bmp!!.compress(Bitmap.CompressFormat.PNG, 100, stream)
-//
-//                        }
-//
-//                        file.toUri()
-//
-//                    } catch (e: IOException) {
-//
-//                        e.printStackTrace()
-//
-//                        null
-//                    }
-//
-//                    url?.let {
-//
-//                        val row = AnalysisEntity(
-//                                Image(it.toString()), 1, 1)
-//                                .insert(row)
-//
-//                    }
-//
-//                }
+
+            this?.cameraCaptureButton?.setOnClickListener {
+
+                if (mChosenResult?.isCompleted == true && !isShowingDialog) {
+
+                    callCoinRecognitionDialog()
+
+                } else Toast.makeText(requireContext(), R.string.frag_camera_not_enough_coins_found, Toast.LENGTH_LONG).show()
+
+            }
+
+
+
         }
 
         return mBinding?.root
     }
 
+    //externalMediaDirs pictures are located in /storage/primary/Android/media/org.wheatgenetics.onekk/OneKK
     private fun getOutputDirectory(): File? {
 
         val mediaDir = context?.externalMediaDirs?.firstOrNull()?.let {
@@ -401,21 +327,35 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
 
         super.onDestroy()
 
+        stopCameraAnalysis()
+
+    }
+
+    private fun stopCameraAnalysis() {
+
         cameraExecutor.shutdown()
 
     }
 
-    private fun startCameraAnalysis() {
+    /**
+     * Basic CameraX initialization. This hooks together the image preview and the background
+     * running camera analysis. Various camera configurations can happen here s.a torch light enabled.
+     *
+     * Calling this function with an analyzer will stop the previous analyzer.
+     */
+    //reference https://developer.android.com/training/camerax/analyze
+    private fun startCameraAnalysis(analyzer: ImageAnalysis.Analyzer) {
 
         this@CameraFragment.context?.let { ctx ->
 
             val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
 
             cameraProviderFuture.addListener({
+
                 // Used to bind the lifecycle of cameras to the lifecycle owner
                 val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
-                 //Preview
+                //Preview
                 val preview = Preview.Builder()
                         .setTargetResolution(metrics)
                         .build()
@@ -428,7 +368,7 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .build()
                         .also {
-                            it.setAnalyzer(cameraExecutor, sAnalyzer)
+                            it.setAnalyzer(cameraExecutor, analyzer)
                         }
 
                 // Select back camera as a default
@@ -442,7 +382,7 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
                     val cam = cameraProvider.bindToLifecycle(this as LifecycleOwner,
                             cameraSelector, preview, imageAnalyzer)
 
-                    //cam.cameraControl.enableTorch(true)
+                    setupCamera(cam)
 
 
                 } catch (exc: Exception) {
@@ -453,53 +393,97 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
         }
     }
 
-    private fun takePhoto() {
+    @SuppressLint("ClickableViewAccessibility")
+    private fun enableOneTapFocus(cam: Camera) {
 
-        with(mBinding) {
+        mBinding?.viewFinder?.afterMeasured {
 
-            // Get a stable reference of the modifiable image capture use case
-            val imageCapture = imageCapture ?: return
-
-            // Create time-stamped output file to hold the image
-            val photoFile = File(
-                    outputDirectory,
-                    SimpleDateFormat(FILENAME_FORMAT, Locale.US
-                    ).format(System.currentTimeMillis()) + ".jpg")
-
-            // Create output options object which contains file + metadata
-            val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-
-            // Set up image capture listener, which is triggered after photo has
-            // been taken
-            imageCapture.takePicture(
-                    outputOptions, ContextCompat.getMainExecutor(this@CameraFragment.context), object : ImageCapture.OnImageSavedCallback {
-
-                override fun onError(exc: ImageCaptureException) {
-
-                    Log.e(TAG, "Photo capture failed: ${exc.message}", exc)
-
+            mBinding?.viewFinder?.let { preview ->
+                preview.setOnTouchListener { _, event ->
+                    return@setOnTouchListener when (event.action) {
+                        MotionEvent.ACTION_DOWN -> {
+                            true
+                        }
+                        MotionEvent.ACTION_UP -> {
+                            val factory: MeteringPointFactory = SurfaceOrientedMeteringPointFactory(
+                                    preview.width.toFloat(), preview.height.toFloat()
+                            )
+                            val autoFocusPoint = factory.createPoint(event.x, event.y)
+                            try {
+                                cam.cameraControl.startFocusAndMetering(
+                                        FocusMeteringAction.Builder(
+                                                autoFocusPoint,
+                                                FocusMeteringAction.FLAG_AF
+                                        ).apply {
+                                            //focus only when the user tap the preview
+                                            disableAutoCancel()
+                                        }.build()
+                                )
+                            } catch (e: CameraInfoUnavailableException) {
+                                Log.d("ERROR", "cannot access camera", e)
+                            }
+                            true
+                        }
+                        else -> false // Unhandled event.
+                    }
                 }
+            }
+        }
+    }
 
-                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+    private fun enableAutoFocus(cam: Camera) {
 
-                    val savedUri = Uri.fromFile(photoFile)
-
-                    val msg = "Photo capture succeeded: $savedUri"
-
-                    Toast.makeText(this@CameraFragment.context, msg, Toast.LENGTH_SHORT).show()
-
-                    Log.d(TAG, msg)
-
+        mBinding?.viewFinder?.let { preview ->
+            preview.afterMeasured {
+                val factory: MeteringPointFactory = SurfaceOrientedMeteringPointFactory(
+                        preview.width.toFloat(), preview.height.toFloat())
+                val centerWidth = preview.width.toFloat() / 2
+                val centerHeight = preview.height.toFloat() / 2
+                //create a point on the center of the view
+                val autoFocusPoint = factory.createPoint(centerWidth, centerHeight)
+                try {
+                    cam.cameraControl.startFocusAndMetering(
+                            FocusMeteringAction.Builder(
+                                    autoFocusPoint,
+                                    FocusMeteringAction.FLAG_AF
+                            ).apply {
+                                //auto-focus every 1 seconds
+                                setAutoCancelDuration(1, TimeUnit.SECONDS)
+                            }.build()
+                    )
+                } catch (e: CameraInfoUnavailableException) {
+                    Log.d("ERROR", "cannot access camera", e)
                 }
-            })
+            }
         }
     }
 
     /**
-     * Creates a Dialog that asks the user to accept or decline the image.
-     * In this case, if the coin recognition step is accepted, the watershed algorithm begins.
+     * Sets up auto focus and tap-to-focus functionality for the current camera instance.
+     * https://stackoverflow.com/questions/58159891/how-to-auto-focus-with-android-camerax
      */
-    private fun callCoinRecognitionDialog(result: DetectRectangles.AnalysisResult) {
+    private fun setupCamera(cam: Camera) {
+
+        requireActivity().runOnUiThread {
+
+            mBinding?.cameraTorchButton?.setOnClickListener {
+
+                cam.cameraControl.enableTorch(cam.cameraInfo.torchState.value == 0)
+
+            }
+        }
+
+        enableOneTapFocus(cam)
+
+        enableAutoFocus(cam)
+
+    }
+
+    private fun callSeedCountDialog(src: Bitmap, result: ImageProcessingUtil.Companion.AnalysisResult) {
+
+        isShowingDialog = true
+
+        startCameraAnalysis(sNoopAnalysis)
 
         mBinding?.let { ui ->
 
@@ -507,36 +491,30 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
 
                 this@CameraFragment.activity?.let { activity ->
 
-                    val bmp = result.images.last()
-                    /*
-                    coinRecResult -> Boolean from Dialogs acceptance
-                    bmp -> result image of coin recognition
-                     */
+                    activity.runOnUiThread {
 
-                    Dialogs.askAcceptableCoinRecognition(
-                            activity,
-                            AlertDialog.Builder(activity),
-                            getString(R.string.ask_coin_recognition_ok),
-                            bmp) { bmp ->
+                        Dialogs.askAcceptableImage(
+                                activity,
+                                AlertDialog.Builder(activity),
+                                getString(R.string.ask_coin_recognition_ok),
+                                srcBitmap = src, dstBitmap = result.images.last(), { success ->
 
-                        viewModel.dropAll()
-                        viewModel.deleteAll()
-                        viewModel.insert(ExperimentEntity(Experiment("Test", DateUtil().getTime()), 1))
-                        viewModel.insert(AnalysisEntity(1, 1))
+//                        savePipelineToDatabase(result)
+//
+//                        findNavController().navigate(CameraFragmentDirections.actionToScale(1))
 
-                        result.images.forEachIndexed { index, image ->
-                            val file = File(outputDirectory.path.toString(), "${UUID.randomUUID()}.png")
+                            isShowingDialog = false
 
-                            FileOutputStream(file).use { stream ->
+                            startCameraAnalysis(sCoinAnalyzer)
 
-                                image.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                        }) {
 
-                            }
+                            isShowingDialog = false
 
-                            viewModel.insert(ImageEntity(Image(Uri.fromFile(file).path.toString(), DateUtil().getTime()), 1, 1))
-                        }
+                            startCameraAnalysis(sCoinAnalyzer)
 
-                        findNavController().navigate(CameraFragmentDirections.actionToAnalysis(1))
+                        } //restart coin analyzer on decline
+
                     }
 
                 }
@@ -546,6 +524,101 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
                 e.printStackTrace()
 
             }
+        }
+    }
+
+    /**
+     * Creates a Dialog that asks the user to accept or decline the image.
+     * In this case, if the coin recognition step is accepted, the analyzer switches to the watershed algorithm.
+     */
+    private fun callCoinRecognitionDialog() {
+
+        isShowingDialog = true
+
+        startCameraAnalysis(sNoopAnalysis)
+
+        mBinding?.let { ui ->
+
+            try {
+
+                this@CameraFragment.activity?.let { activity ->
+
+                    val source = mChosenResult!!.images.first()
+                    val result = mChosenResult!!.images.last()
+
+                    Dialogs.askAcceptableImage(
+                            activity,
+                            AlertDialog.Builder(activity),
+                            getString(R.string.ask_coin_recognition_ok),
+                            srcBitmap = source, dstBitmap = result, { success ->
+
+//                        savePipelineToDatabase(result)
+//
+//                        findNavController().navigate(CameraFragmentDirections.actionToScale(1))
+
+                        isShowingDialog = false
+
+                        /**
+                         * begin the seed analyzer on the first image of the pipeline,
+                         * TODO: send a modified image with coins masked out or use the result data as a coin detection heuristic
+                         */
+                        startCameraAnalysis(seedAnalyzer(source))
+
+                    }) {
+
+                        isShowingDialog = false
+
+                        startCameraAnalysis(sCoinAnalyzer)
+
+                    } //restart coin analyzer on decline
+
+                }
+
+            } catch (e: IOException) {
+
+                e.printStackTrace()
+
+            }
+        }
+    }
+
+    inline fun View.afterMeasured(crossinline block: () -> Unit) {
+        viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+            override fun onGlobalLayout() {
+                if (measuredWidth > 0 && measuredHeight > 0) {
+                    viewTreeObserver.removeOnGlobalLayoutListener(this)
+                    block()
+                }
+            }
+        })
+    }
+
+    /**
+     * TODO: for development, currently images are not saved
+     */
+    private fun savePipelineToDatabase(result: ImageProcessingUtil.Companion.AnalysisResult) {
+
+        /**
+         * When the coin recognition is accepted, the idea is to save all the pipeline images
+         * as an analysis row. Images are saved in the externalMedia directory, but their uri's are
+         * stored in the local database.
+         */
+//        viewModel.dropAll()
+//        viewModel.deleteAll()
+//        viewModel.insert(ExperimentEntity(Experiment("Test", DateUtil().getTime()), 1))
+//        viewModel.insert(AnalysisEntity(1, 1))
+
+        result.images.forEachIndexed { index, image ->
+
+            val file = File(outputDirectory.path.toString(), "${UUID.randomUUID()}.png")
+
+            FileOutputStream(file).use { stream ->
+
+                image.compress(Bitmap.CompressFormat.PNG, 100, stream)
+
+            }
+
+            //viewModel.insert(ImageEntity(Image(Uri.fromFile(file).path.toString(), DateUtil().getTime()), 1, 1))
         }
     }
 }

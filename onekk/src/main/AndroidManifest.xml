@@ -8,7 +8,12 @@
     <uses-feature android:name="android.hardware.camera.any" />
 
     <!-- Glide uses READ_EXTERNAL_STORAGE to load files from local folders -->
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 
     <!-- Glide uses WRITE_EXTERNAL_STORAGE to write to sdcards -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />

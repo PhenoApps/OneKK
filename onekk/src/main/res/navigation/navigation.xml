@@ -7,6 +7,15 @@
     app:startDestination="@+id/camera_preview_fragment">
 
     <fragment
+        android:id="@+id/scale_fragment"
+        android:name="org.wheatgenetics.onekk.fragments.ScaleFragment"
+        android:label="@string/scale_fragment_label">
+        <argument android:name="experiment"
+            android:defaultValue="-1"
+            app:argType="integer"/>
+    </fragment>
+
+    <fragment
         android:id="@+id/analysis_fragment"
         android:name="org.wheatgenetics.onekk.fragments.AnalysisFragment"
         android:label="@string/analysis_fragment_label">
@@ -28,6 +37,8 @@
         <action android:id="@+id/action_to_analysis"
             app:destination="@id/analysis_fragment"/>
 
+        <action android:id="@+id/action_to_scale"
+            app:destination="@id/scale_fragment"/>
     </fragment>
 
     <action

@@ -1,173 +1,166 @@
 package org.wheatgenetics.imageprocess
 
 import android.graphics.Bitmap
-import android.os.Environment
 import android.util.Log
-import com.bumptech.glide.request.transition.BitmapContainerTransitionFactory
 import org.opencv.android.Utils
 import org.opencv.core.*
-import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
+import org.wheatgenetics.utils.ImageProcessingUtil
 import kotlin.math.pow
+import kotlin.math.sqrt
+import org.wheatgenetics.utils.ImageProcessingUtil.Companion.AnalysisResult
+import org.wheatgenetics.utils.ImageProcessingUtil.Companion.Detections
+import org.wheatgenetics.utils.ImageProcessingUtil.Companion.PipelineFunction
+import org.wheatgenetics.utils.ImageProcessingUtil.Companion.Identity
+import org.wheatgenetics.utils.ImageProcessingUtil.Companion.ConvertGrey
+import org.wheatgenetics.utils.ImageProcessingUtil.Companion.AdaptiveThreshold
+import org.wheatgenetics.utils.ImageProcessingUtil.Companion.Dilate
+import org.wheatgenetics.utils.ImageProcessingUtil.Companion.GaussianBlur
+import org.wheatgenetics.utils.ImageProcessingUtil.Companion.Erode
+import org.wheatgenetics.utils.ImageProcessingUtil.Companion.similarAreasCheck
+import org.wheatgenetics.utils.ImageProcessingUtil.Companion.toBitmap
+import org.wheatgenetics.utils.ImageProcessingUtil.Companion.toMatOfPoint2f
 
-/**
- * Created by chaneylc and venkat on 1/16/2020.
- */
 class DetectRectangles {
-    /**
-     * Scalar colors require an alpha channel to be opaque
-     * Fourth parameter is the alpha channel
-     * Not required for Android version < 9
-     */
-    private val CONTOUR_COLOR = Scalar(255.0, 0.0, 0.0, 255.0)
-    private val RECTANGLE_COLOR = Scalar(0.0, 255.0, 0.0, 255.0)
-    private val TEXT_COLOR = Scalar(0.0, 0.0, 0.0, 255.0)
-    private fun writeFile(name: String, img: Mat) {
-        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().absolutePath + "/OneKK/" + name + ".jpg", img)
+
+    companion object {
+
+        val EXPECTED_NUMBER_OF_COINS = 4
     }
 
-    private fun calcCircularity(area: Double, peri: Double): Double {
-        return 4 * Math.PI * (area / peri.pow(2.0))
-    }
+    private fun process(original: Mat): AnalysisResult? {
 
-    open class PipelineFunction
-    class Identity: PipelineFunction()
-    class ConvertGrey: PipelineFunction()
-    data class AdaptiveThreshold(var maxValue: Double = 255.0,
-                                 var type: Int = Imgproc.ADAPTIVE_THRESH_MEAN_C,
-                                 var threshType: Int = Imgproc.THRESH_BINARY_INV,
-                                 var blockSize: Int = 15,
-                                 var C: Double = 10.0): PipelineFunction()
-
-    data class GaussianBlur(var size: Size = Size(3.0, 3.0), val sigmaX: Double = 9.0): PipelineFunction()
-
-    data class Detections(var rect: Rect, var circ: Double)
-
-    data class AnalysisResult(var images: ArrayList<Bitmap>,
-                              var detections: ArrayList<Detections>,
-                              var pipeline: ArrayList<PipelineFunction>)
-
-    private fun process(src: Mat): AnalysisResult {
+        var epsilon: Double?
 
         val result = AnalysisResult(ArrayList<Bitmap>(), ArrayList<Detections>(), ArrayList<PipelineFunction>())
 
+        val src = original.clone()
         result.images.add(src.clone().toBitmap())
         result.pipeline.add(Identity())
 
+        //calculate the area of the image to estimate the seed min/max thresholds
+        val width = src.width()
+        val height = src.height()
+        val pictureArea = width * height
+
+        val maxCoinAreaThresh = pictureArea*0.025
+
+        //Log.d("MINIMUM COIN THRESH", minCoinAreaThresh.toString())
+       // Log.d("MAX COIN THRESH", maxCoinAreaThresh.toString())
+
         val contours: List<MatOfPoint> = ArrayList()
         val hierarchy = Mat()
-        val rectangles = ArrayList<Detections>()
+        var rectangles = ArrayList<Detections>()
 
-//        Core.bitwise_not(src, src)
-
-//        rectangles.add(Detections(Rect(0, 0, src.width(), src.height()), 0.0))
         Imgproc.cvtColor(src, src, Imgproc.COLOR_BGR2GRAY)
 
         result.images.add(src.clone().toBitmap())
         result.pipeline.add(ConvertGrey())
 
-        Imgproc.GaussianBlur(src, src,  Size(3.0, 3.0), 9.0);
-
-        result.images.add(src.clone().toBitmap())
-        result.pipeline.add(GaussianBlur())
-
-//        var blur = Mat()
-//        Imgproc.GaussianBlur(src, blur, Size(1.0, 1.0), 3.0)
-//        Core.addWeighted(src, 1.5, blur, -0.5, 0.0, src)
-//
-//        result.images.add(src.clone().toBitmap())
-//
-//        Imgproc.GaussianBlur(src, blur, Size(1.0, 1.0), 3.0)
-//        Core.addWeighted(src, 1.5, blur, -0.5, 0.0, src)
-//
-//        result.images.add(src.clone().toBitmap())
-
-//        Imgproc.cvtColor(src, src, Imgproc.COLOR_BGR2Lab)
-//
-//        result.images.add(src.clone().toBitmap())
-//
-//        var mats = mutableListOf<Mat>()
-//
-//        Core.split(src, mats)
-
-//        Imgproc.adaptiveThreshold(mats[0], src, 255.0, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY_INV, 15, 10.0)
-
         Imgproc.adaptiveThreshold(src, src, 255.0, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY_INV, 15, 10.0)
 
         result.images.add(src.clone().toBitmap())
         result.pipeline.add(AdaptiveThreshold())
-        //Core.bitwise_not(src, src)
-
-        //FLOOD FILL
-//        var flood = src.clone()
-//        var size = src.size()
-//        var mask = Mat.zeros(Size(size.width+2, size.height+2), src.type())
-//
-//        Imgproc.floodFill(flood, mask, Point(0.0,0.0), Scalar(255.0,255.0,255.0))
-//
-//        Core.bitwise_not(flood, flood)
-//
-//        Core.bitwise_or(src, flood, src)
-        //FLOOD FILL END
-
-
-
-       // Imgproc.GaussianBlur(src, src, Size(3.0, 3.0), 3.0);
 
         //CHAIN_APPROX_NONE will give more contour points, uses more memory
         Imgproc.findContours(src, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE)
         val hull = MatOfInt()
 
-        Log.d("DrawContours", "${src.width()}x${src.height()} ${contours.size}")
+        //Log.d("DrawContours", "${src.width()}x${src.height()} ${contours.size}")
 
-        for (i in contours.indices) {
+        val color = original.clone()
 
-            var contour = contours[i]
+        val sortedContours = contours.sortedByDescending { Imgproc.contourArea(it) }
+        for (i in sortedContours.indices) {
+
+            var contour = sortedContours[i]
 
             val area = Imgproc.contourArea(contour)
 
             val approxCurve = MatOfPoint2f();
 
-//            Log.d("Area", "${area}")
+            //contour approximation: https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_contours/py_contour_features/py_contour_features.html
+            //Douglas-Peucker algorithm that approximates a contour with a polygon with less vertices
+            //epsilon is the maximum distance from the contour and the approximation
+            val preciseContour = MatOfPoint2f(*contour.toArray())
+            epsilon = 0.009*Imgproc.arcLength(preciseContour, true)
 
-            if (area > 1000) {
+            Imgproc.approxPolyDP(preciseContour, approxCurve, epsilon, true);
+            val peri = Imgproc.arcLength(approxCurve, true)
+            val circ = ImageProcessingUtil.calcCircularity(area, peri)
+            //Log.d("Circularity", "$circ")
 
-                Imgproc.approxPolyDP(MatOfPoint2f(*contour.toArray()), approxCurve, 0.9, true);
-                val peri = Imgproc.arcLength(approxCurve, true)
-                val circ = calcCircularity(area, peri)
-    //                Log.d("Circularity", "${circ}")
+            if (circ >= 0.9 && area > 1000) {
 
-                if (circ >= 0.9) {
+                //Imgproc.convexHull(contours[i], hull);
 
-                    //Imgproc.convexHull(contours[i], hull);
+                val rect = Imgproc.boundingRect(approxCurve)
+                //RotatedRect rect = Imgproc.minAreaRect(new MatOfPoint2f(contours.get(i)));
 
-                    val rect = Imgproc.boundingRect(contour)
-                    //RotatedRect rect = Imgproc.minAreaRect(new MatOfPoint2f(contours.get(i)));
+                //TODO put center point function in ImageProcessingUtils
+                //moment calculation: Cx = M10/M00 and Cy = M01/M00
+                val center = Imgproc.moments(approxCurve)
+                val centerPoint = Point(center.m10/center.m00, center.m01/center.m00)
 
-                    var topLeft = Point(rect.x.toDouble(), rect.y.toDouble())
-                    var botRight = Point((rect.x + rect.width).toDouble(), (rect.y + rect.height).toDouble())
+//                var topLeft = Point(rect.x.toDouble(), rect.y.toDouble())
+//                var botRight = Point((rect.x + rect.width).toDouble(), (rect.y + rect.height).toDouble())
 
-                    rectangles.add(Detections(rect, circ))
+                val otherContours = ImageProcessingUtil.centerDifferentForAllRectangles(approxCurve, rectangles)
 
-//                    Imgproc.rectangle(src, topLeft, botRight, RECTANGLE_COLOR, 2)
-//
-//                    result.images.add(src.clone().toBitmap())
+                val newDetection = Detections(rect, circ, centerPoint, MatOfPoint(*approxCurve.toArray()), area)
 
+                rectangles.add(newDetection)
 
-                    //                    Imgproc.putText(src,
-    //                            "Circularity $circ",
-    //                            Point(rect.x.toDouble(), rect.y.toDouble()),
-    //                            Imgproc.FONT_HERSHEY_SIMPLEX, 4.0, TEXT_COLOR, 3);
+                otherContours?.forEach { other ->
+
+                    val choices = (otherContours + newDetection)
+                    val max = choices.maxByOrNull { other.area }
+
+                    rectangles.removeAll(choices - max)
+
                 }
             }
 
-            if (rectangles.size == 4) break
+            rectangles = ImageProcessingUtil.interquartileReduce(rectangles.toTypedArray())
+
+            val areas = rectangles.map { it.area }
+            
+            if (rectangles.size == EXPECTED_NUMBER_OF_COINS) {
+
+                val dst = color.clone()
+                //draw contours documentation, fill in all detected coins
+                //https://docs.opencv.org/3.4/d6/d6e/group__imgproc__draw.html#ga746c0625f1781f1ffc9056259103edbc
+
+                Imgproc.drawContours(dst, rectangles.map { it.contour }, -1, ImageProcessingUtil.COIN_FILL_COLOR, -1)
+
+                result.images.add(dst.toBitmap())
+
+//                val ellipses = color.clone()
+//
+//                rectangles.map { it.contour }.forEach {
+//                    Imgproc.fitEllipse(MatOfPoint2f(*it.toArray())).also { rotatedRect ->
+//                        Imgproc.circle(ellipses, rotatedRect.center, 5, ImageProcessingUtil.COIN_FILL_COLOR)
+//                    }
+//                }
+//
+//                result.images.add(ellipses.toBitmap())
+                println("epsilon: $epsilon")
+
+                result.isCompleted = true
+
+                result.detections = rectangles
+
+                break
+            }
 
         }
 
-        result.detections = rectangles
+        return if (result.isCompleted) {
 
-        return result
+            result
+
+        } else null
+
     }
 
 //    fun process(inputBitmap: Bitmap?): ArrayList<Detections> {
@@ -179,15 +172,10 @@ class DetectRectangles {
 //        return boxes
 //    }
 
-
-    fun Mat.toBitmap() = Bitmap.createBitmap(this.width(), this.height(), Bitmap.Config.ARGB_8888).also {
-        Utils.matToBitmap(this@toBitmap, it)
-    }
-
     /*
     OpenCV Debug version, output frame is the opencv result.
      */
-    fun process(inputBitmap: Bitmap?): AnalysisResult {
+    fun process(inputBitmap: Bitmap?): AnalysisResult? {
         val frame = Mat()
         val copy = inputBitmap?.copy(inputBitmap.config, true)
         Utils.bitmapToMat(copy, frame)

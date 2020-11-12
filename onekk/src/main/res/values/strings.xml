@@ -137,7 +137,7 @@
     <!-- Person  strings -->
     <string name="first_name">First Name</string>
     <string name="last_name">Last Name</string>
-    <string name="user_name">User Name</string>
+    <string name="collector">Collector</string>
 
     <!-- Toast strings -->
     <string name="coming_soon">Coming soon!</string>
@@ -247,6 +247,9 @@
     <string name="new_message_notification_placeholder_text_template">%1$s
     </string>
 
+    <!-- Scale Fragment -->
+    <string name="scale_fragment_label">Use a scale to correlate images to weight.</string>
+
     <string name="action_cancel">Cancel</string>
     <string name="action_reply">Reply</string>
     <string name="title_activity_report">Report</string>
@@ -263,4 +266,17 @@
     <string name="decline">Decline</string>
     <string name="accept">Accept</string>
     <string name="analysis_fragment_label">Analysis Fragment</string>
+    <string name="bluetooth_le_scanner_unavailable">Bluetooth Le Scanner not found.</string>
+    <string name="print">Connect to a Bluetooth device.</string>
+    <string name="device_recycler_view_header_scale_fragment">Local BLE Devices</string>
+    <string name="loading">Loading...</string>
+    <string name="device_preferences">Device Preferences</string>
+    <string name="enable_bluetooth">Enable Bluetooth</string>
+    <string name="preferences_enable_bluetooth_key">org.wheatgenetics.onekk.BLUETOOTH_ENABLED</string>
+    <string name="devices">devices</string>
+    <string name="onekk_preference_key">ONEKK_PREFERENCES</string>
+    <string name="frag_scale_no_mac_address_found_message">Please choose a BLE device in the Settings.</string>
+    <string name="dialog_choose_ble_device_title">Please choose a BLE device.</string>
+    <string name="frag_camera_not_enough_coins_found">Not enough coins found, please have at least four in the image.</string>
+    <string name="frag_camera_coins_maybe_plural">coin(s)</string>
 </resources>
