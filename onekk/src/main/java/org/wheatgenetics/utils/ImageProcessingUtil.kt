@@ -73,9 +73,9 @@ class ImageProcessingUtil {
 
         data class Detections(var rect: Rect, var circ: Double, var center: Point, var contour: MatOfPoint, var area: Double)
 
-        data class AnalysisResult(var images: ArrayList<Bitmap>,
-                                  var detections: ArrayList<Detections>,
-                                  var pipeline: ArrayList<PipelineFunction>,
+        data class AnalysisResult(var images: ArrayList<Bitmap> = ArrayList(),
+                                  var detections: ArrayList<Detections> = ArrayList(),
+                                  var pipeline: ArrayList<PipelineFunction> = ArrayList(),
                                   var isCompleted: Boolean = false)
         
         fun measureArea(groundTruthPixel: Double, groundTruthmm: Double, kernelPx: Double): Double {

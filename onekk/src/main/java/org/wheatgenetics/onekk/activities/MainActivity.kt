@@ -1,7 +1,6 @@
 package org.wheatgenetics.onekk.activities
 
 import android.content.res.Configuration
-import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
@@ -25,10 +24,7 @@ import kotlinx.coroutines.MainScope
 import org.opencv.android.BaseLoaderCallback
 import org.opencv.android.LoaderCallbackInterface
 import org.opencv.android.OpenCVLoader
-import org.wheatgenetics.imageprocess.DetectRectangles
-import org.wheatgenetics.imageprocess.DetectSmallObjects
 import org.wheatgenetics.onekk.BuildConfig
-import org.wheatgenetics.onekk.CameraPreviewFragment
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.databinding.ActivityMainBinding
 import org.wheatgenetics.onekk.fragments.CameraFragmentDirections

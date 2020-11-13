@@ -39,6 +39,7 @@ import io.reactivex.Observable
 import io.reactivex.Observable.combineLatest
 import io.reactivex.disposables.Disposable
 import kotlinx.coroutines.*
+import org.opencv.core.MatOfPoint
 import org.wheatgenetics.imageprocess.DetectRectangles
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.analyzers.CoinAnalyzer
@@ -220,7 +221,9 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
      * Setup the image analysis listener for seed phenotyping. This analyzer takes an input image
      * and runs the algorithm within SeedAnalyzer.
      */
-    private fun seedAnalyzer(src: Bitmap) = SeedAnalyzer(src) { result ->
+    private fun seedAnalyzer(src: Bitmap, coins: List<MatOfPoint>) = SeedAnalyzer(outputDirectory, src, coins) { result ->
+
+        savePipelineToDatabase(result)
 
         //on the first result, switch to the noop analyzer
         startCameraAnalysis(NoopAnalyzer())
@@ -562,7 +565,7 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
                          * begin the seed analyzer on the first image of the pipeline,
                          * TODO: send a modified image with coins masked out or use the result data as a coin detection heuristic
                          */
-                        startCameraAnalysis(seedAnalyzer(source))
+                        startCameraAnalysis(seedAnalyzer(source, mChosenResult!!.detections.map { it.contour }))
 
                     }) {
 

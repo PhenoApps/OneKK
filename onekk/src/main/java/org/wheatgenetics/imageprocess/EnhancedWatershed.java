@@ -20,7 +20,9 @@ import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.imgproc.Moments;
+import org.wheatgenetics.utils.ImageProcessingUtil;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -115,7 +117,13 @@ public class EnhancedWatershed {
         int getAreaHigh() { return areaHigh; }
     }
 
-    public EnhancedWatershed(DetectSeedsParams params) { mParams = params; }
+    private File outputDirectory = null;
+
+    public EnhancedWatershed(File output) {
+
+        outputDirectory = output;
+
+    }
 
     private double calcCircularity(double area, double peri) {
 
@@ -281,24 +289,29 @@ public class EnhancedWatershed {
 
     private Pair<Double, Double> quartileRange(ArrayList<Double> values){
         int size = values.size();
-        Double[] doubleValues = values.toArray(new Double[] {});
 
-        Arrays.sort(doubleValues);
+        if (size > 1) {
+            Double[] doubleValues = values.toArray(new Double[]{});
 
-        double Q2 = doubleValues[doubleValues.length/2];
+            Arrays.sort(doubleValues);
 
-        Double[] lowerArray = Arrays.copyOfRange(doubleValues, 0, doubleValues.length/ 2);
-        Double[] upperArray = Arrays.copyOfRange(doubleValues, doubleValues.length/ 2, doubleValues.length);
+            double Q2 = doubleValues[doubleValues.length / 2];
 
-        double Q1 = lowerArray[lowerArray.length/2];
-        double Q3 = upperArray[upperArray.length/2];
+            Double[] lowerArray = Arrays.copyOfRange(doubleValues, 0, doubleValues.length / 2);
+            Double[] upperArray = Arrays.copyOfRange(doubleValues, doubleValues.length / 2, doubleValues.length);
 
-        double IQR = Q3 - Q1;
+            double Q1 = lowerArray[lowerArray.length / 2];
+            double Q3 = upperArray[upperArray.length / 2];
 
-        Double firstValue = Q1 - 1.5 * IQR;
-        Double secondValue = Q3 + 1.5 * IQR;
+            double IQR = Q3 - Q1;
 
-        return new Pair<>(firstValue, secondValue);
+            Double firstValue = Q1 - 1.5 * IQR;
+            Double secondValue = Q3 + 1.5 * IQR;
+
+            return new Pair<>(firstValue, secondValue);
+        }
+
+        return new Pair<Double, Double>(-1.0, -1.0);
 
     }
 
@@ -337,7 +350,6 @@ public class EnhancedWatershed {
         List<MatOfPoint> contours = new ArrayList<>();
         Mat hierarchy = new Mat();
 
-
         Imgproc.findContours(img, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
         MatOfInt hull = new MatOfInt();
         for(int i = 0; i < contours.size(); i++){
@@ -357,7 +369,6 @@ public class EnhancedWatershed {
         writeFile("canny", mask);
 
         Imgproc.findContours(mask, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
-
 
         Pair<ArrayList<MatOfPoint>, ArrayList<MatOfPoint>> pair = coinRecognition(contours);
         //Imgproc.drawContours(gtImg, coins, -1, new Scalar(255,0,0), -1);
@@ -399,7 +410,9 @@ public class EnhancedWatershed {
         }
 
 //
-        //Imgproc.drawContours(gtImg, groundTruths, -1, new Scalar(0, 255, 0, 0), -1);
+        Imgproc.drawContours(gtImg, groundTruths, -1, new Scalar(0, 255, 0, 0), -1);
+
+        writeFile("gt", gtImg);
 
         List<Integer> defectVals = new ArrayList<>();
 
@@ -493,41 +506,70 @@ public class EnhancedWatershed {
     }
 
     private void writeFile(String name, Mat img) {
-        Imgcodecs.imwrite(Environment.getExternalStorageDirectory().getAbsolutePath()+"/OneKK/"+name+".jpg", img);
+        Imgcodecs.imwrite(outputDirectory.getAbsolutePath()+"/"+name+".bmp", img);
     }
 
-    private Pair<Mat, ArrayList<Seed>> process(Mat src) {
+    private Bitmap toBitmap(Mat src) {
+        Bitmap bmp = Bitmap.createBitmap(src.width(), src.height(), Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(src, bmp);
+        return bmp;
+    }
+
+    private ImageProcessingUtil.Companion.AnalysisResult process(Mat src, List<MatOfPoint> gts) {
+
+        writeFile("source", src);
+
+        ImageProcessingUtil.Companion.AnalysisResult result = new ImageProcessingUtil.Companion.AnalysisResult();
+
+        result.getImages().add(toBitmap(src.clone()));
 
         long start = System.currentTimeMillis();
 
-        GroundTruths gts = findGroundTruths(src.clone());
-
         Mat gray = src.clone();
 
-        Double[] areas = new Double[gts.contours.size()];
-
-        for (int i = 0; i < gts.contours.size(); i++) {
-            areas[i] = Imgproc.contourArea(gts.contours.get(i));
-        }
-
-        double gtAvgArea = Mean(areas);
+//        GroundTruths gts = findGroundTruths(src.clone());
+//
+//
+//        Double[] areas = new Double[gts.contours.size()];
+//
+//        for (int i = 0; i < gts.contours.size(); i++) {
+//            areas[i] = Imgproc.contourArea(gts.contours.get(i));
+//        }
+//
+//        double gtAvgArea = Mean(areas);
 
         Mat kernel = new Mat(3, 3, CvType.CV_8U);
 
         Imgproc.cvtColor(gray, gray, Imgproc.COLOR_BGR2GRAY);
 
+        Imgproc.GaussianBlur(gray, gray, new Size(3.0, 3.0), 15.0);
+
         Mat grayPolygonTest = gray.clone();
 
-
-        Imgproc.threshold(gray, gray, 0, 255, Imgproc.THRESH_BINARY_INV+Imgproc.THRESH_OTSU);
+        Imgproc.adaptiveThreshold(gray, gray, 255.0, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY_INV, 15, 10.0);
+        //Imgproc.threshold(gray, gray, 0, 255, Imgproc.THRESH_BINARY_INV+Imgproc.THRESH_OTSU);
 
         writeFile("thresh", gray);
 
-        Imgproc.erode(gray, gray, kernel, new Point(-1,-1), 4);
+        Imgproc.GaussianBlur(gray, gray, new Size(3.0, 3.0), 1.0);
+
+        Imgproc.erode(gray, gray, kernel, new Point(-1,-1), 1);
+
+        List<MatOfPoint> fillContours = new ArrayList();
+        Mat fillHierarchy = new Mat();
+
+        //Imgproc.findContours(gray, fillContours, fillHierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
+
+        for (MatOfPoint contour : gts) {
+            Imgproc.drawContours(gray, gts, gts.indexOf(contour), new Scalar(0, 0, 0), 5);
+            Imgproc.drawContours(gray, gts, gts.indexOf(contour), new Scalar(0, 0, 0), -1);
+        }
+
+        writeFile("blur_erode", gray);
 
         Mat sure_bg = new Mat();
 
-        Imgproc.dilate(gray, sure_bg, kernel, new Point(-1,-1), 5);
+        Imgproc.dilate(gray, sure_bg, kernel, new Point(-1,-1), 2);
 
         writeFile("sure_bg", sure_bg);
 
@@ -589,10 +631,18 @@ public class EnhancedWatershed {
 
         markers = matSwap(markers, 255, 0, true, null);
 
+        Imgproc.GaussianBlur(markers, markers, new Size(3,3), 5);
+
         writeFile("markersC", markers);
+
+
 
         List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
         Mat hierarchy = new Mat();
+
+//        Imgproc.dilate(markers, markers, kernel, new Point(-1, -1), 3);
+//
+//        writeFile("markersDilated", markers);
 
         Imgproc.findContours(markers, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
 
@@ -617,42 +667,42 @@ public class EnhancedWatershed {
 
                     int parentIndex = (int) hier.get(0, 0)[3];
 
-                    if (parentIndex == i) {
-
-                        MatOfPoint child = contours.get(j);
-
-                        double childArea = Imgproc.contourArea(child);
-
-                        if (childArea > gtAvgArea * .25) {
-
-                            boolean within = false;
-
-                            for (MatOfPoint coin : gts.coins) {
-
-                                if (!within) {
-                                    RotatedRect rect = Imgproc.minAreaRect(new MatOfPoint2f(child.toArray()));
-
-                                    int minX = (int) (rect.center.x - rect.size.width / 2);
-                                    int minY = (int) (rect.center.y - rect.size.height / 2);
-                                    int maxX = (int) (rect.center.x + rect.size.width / 2);
-                                    int maxY = (int) (rect.center.y + rect.size.height / 2);
-
-                                    for (int x = minX; x < maxX; x += 4) {
-                                        if (!within) {
-                                            for (int y = minY; y < maxY; y += 4) {
-                                                if (Imgproc.pointPolygonTest(new MatOfPoint2f(coin.toArray()), new Point(x, y), false) > 0) {
-                                                    within = true;
-                                                    break;
-                                                }
-                                            }
-                                        } else break;
-                                    }
-                                }
-                            }
-
-                            if (!within) measuredContours.add(child);
-                        }
-                    }
+//                    if (parentIndex == i) {
+//
+//                        MatOfPoint child = contours.get(j);
+//
+//                        double childArea = Imgproc.contourArea(child);
+//
+//                        if (childArea > gtAvgArea * .25) {
+//
+//                            boolean within = false;
+//
+//                            for (MatOfPoint coin : gts.coins) {
+//
+//                                if (!within) {
+//                                    RotatedRect rect = Imgproc.minAreaRect(new MatOfPoint2f(child.toArray()));
+//
+//                                    int minX = (int) (rect.center.x - rect.size.width / 2);
+//                                    int minY = (int) (rect.center.y - rect.size.height / 2);
+//                                    int maxX = (int) (rect.center.x + rect.size.width / 2);
+//                                    int maxY = (int) (rect.center.y + rect.size.height / 2);
+//
+//                                    for (int x = minX; x < maxX; x += 4) {
+//                                        if (!within) {
+//                                            for (int y = minY; y < maxY; y += 4) {
+//                                                if (Imgproc.pointPolygonTest(new MatOfPoint2f(coin.toArray()), new Point(x, y), false) > 0) {
+//                                                    within = true;
+//                                                    break;
+//                                                }
+//                                            }
+//                                        } else break;
+//                                    }
+//                                }
+//                            }
+//
+//                            if (!within) measuredContours.add(child);
+//                        }
+//                    }
                 }
             }
         }
@@ -666,8 +716,6 @@ public class EnhancedWatershed {
 //        double childSum = Mean(childAreas);
 
         Random rand = new Random();
-
-
 
         for (int i = 0; i < measuredContours.size(); i++) {
 
@@ -683,7 +731,7 @@ public class EnhancedWatershed {
 
                 Imgproc.convexHull(contour, hull);
 
-                double areaPercent = area/gtAvgArea;
+//                double areaPercent = area/gtAvgArea;
 
                 int minX = (int) (rect.center.x - rect.size.width/2);
                 int minY = (int) (rect.center.y - rect.size.height/2);
@@ -713,15 +761,15 @@ public class EnhancedWatershed {
                             defVals.add(defects.get(d, 0)[3]);
                         }
 
-                        if (Mean(defVals.toArray(new Double[]{})) > gts.defectMean+4*gts.stdev) {
-
-                            roundCount += Math.round(areaPercent);
-                        } else {
-                            roundCount += 1;
-                        }
+//                        if (Mean(defVals.toArray(new Double[]{})) > gts.defectMean+4*gts.stdev) {
+//
+//                            roundCount += Math.round(areaPercent);
+//                        } else {
+//                            roundCount += 1;
+//                        }
                     }
 
-                    areaRoundCount += Math.round(areaPercent);
+                    //areaRoundCount += Math.round(areaPercent);
 
                     floorCount += 1;
 
@@ -732,8 +780,12 @@ public class EnhancedWatershed {
             }
         }
 
+        result.getImages().add(toBitmap(src.clone()));
+
         int maxCount = Math.max(floorCount, roundCount);
         int minCount = Math.min(floorCount, roundCount);
+
+        Log.d("Contours size: ", String.valueOf(contours.size()));
 
         Log.d("Count: ", minCount + "-" + maxCount);
 
@@ -743,7 +795,7 @@ public class EnhancedWatershed {
         Log.d("Area based Count: ", minCount + "-" + maxCount);
 
         Log.d("TIME: ", String.valueOf(System.currentTimeMillis()-start));
-        return new Pair<>(src, new ArrayList<Seed>());
+        return result; //new Pair<>(src, new ArrayList<Seed>());
 
 
 //        Mat threshed = src.clone();
@@ -866,16 +918,19 @@ public class EnhancedWatershed {
 
     }
 
-    public Pair<Bitmap, ArrayList<Seed>> process(Bitmap inputBitmap) {
+    public ImageProcessingUtil.Companion.AnalysisResult process(Bitmap inputBitmap, List<MatOfPoint> gts) {
 
         Mat frame = new Mat();
 
         Utils.bitmapToMat(inputBitmap, frame);
 
-        Pair<Mat, ArrayList<Seed>> output = process(frame);
+        //Pair<Mat, ArrayList<Seed>> output = process(frame);
 
-        Utils.matToBitmap(output.first, inputBitmap);
+        ImageProcessingUtil.Companion.AnalysisResult result = process(frame, gts);
 
-        return new Pair<>(inputBitmap, output.second);
+        return result;
+//        Utils.matToBitmap(output.first, inputBitmap);
+//
+//        return new Pair<>(inputBitmap, output.second);
     }
 }
