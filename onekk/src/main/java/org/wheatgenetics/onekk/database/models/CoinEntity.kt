@@ -16,6 +16,6 @@ data class CoinEntity(
         @Embedded
         var coin: Coin?,
 
-        @ColumnInfo(name = "iid")
-        @PrimaryKey
-        var cid: Int)
+        @ColumnInfo(name = "cid")
+        @PrimaryKey(autoGenerate = true)
+        var cid: Int? = null)

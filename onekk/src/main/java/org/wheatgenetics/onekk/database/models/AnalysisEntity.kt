@@ -9,12 +9,12 @@ import org.wheatgenetics.onekk.database.models.embedded.Image
 @Entity(tableName = "analysis",
         foreignKeys = [ForeignKey(entity = ExperimentEntity::class,
                         parentColumns = ["eid"], childColumns = ["eid"],
-                onDelete = ForeignKey.CASCADE)],
-        primaryKeys = ["aid", "eid"])
+                onDelete = ForeignKey.CASCADE)])
 data class AnalysisEntity(
 
         @ColumnInfo(name = "eid")
         var eid: Int,
 
         @ColumnInfo(name = "aid")
-        var aid: Int)
+        @PrimaryKey(autoGenerate = true)
+        var aid: Int? = null)

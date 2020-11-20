@@ -13,4 +13,6 @@
     <dimen name="text_margin">16dp</dimen>
     <dimen name="appbar_padding_top">8dp</dimen>
 
+    <dimen name="element_padding">10.67dp</dimen>
+    <dimen name="text_size">22sp</dimen>
 </resources>

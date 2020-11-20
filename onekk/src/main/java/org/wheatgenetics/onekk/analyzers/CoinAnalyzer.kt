@@ -15,7 +15,7 @@ class CoinAnalyzer(private val listener: CoinAnalysisListener) : ImageAnalysis.A
     private var frames = 0.0
     private var startAnalysisTime = System.currentTimeMillis()
 
-    val detector = DetectRectangles()
+    val detector = org.wheatgenetics.imageprocess.lightbox.DetectRectangles()
 
     override fun analyze(proxy: ImageProxy) {
 
@@ -23,11 +23,15 @@ class CoinAnalyzer(private val listener: CoinAnalysisListener) : ImageAnalysis.A
 
             val startTime = System.currentTimeMillis()
 
-            detector.process(src)?.let { result ->
+            try {
+                detector.process(src)?.let { result ->
 
-                Log.d(CameraFragment.TAG, "CoinAnalyzer: ${System.currentTimeMillis() - startTime}")
+                    Log.d(CameraFragment.TAG, "CoinAnalyzer: ${System.currentTimeMillis() - startTime}")
 
-                listener(result)
+                    listener(result)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
 

@@ -279,4 +279,13 @@
     <string name="dialog_choose_ble_device_title">Please choose a BLE device.</string>
     <string name="frag_camera_not_enough_coins_found">Not enough coins found, please have at least four in the image.</string>
     <string name="frag_camera_coins_maybe_plural">coin(s)</string>
+    <string name="nav_label_experiment_list">Experiment Fragment</string>
+    <string name="frag_exp_list_new_exp_must_enter_name">Please enter an experiment name.</string>
+    <string name="frag_exp_list_new_experiment_prefix">"New experiment: "</string>
+    <string name="ask_delete_experiment">Delete experiment?</string>
+    <string name="add_experiment">Add Experiment</string>
+    <string name="experiment_name">Experiment Name</string>
+    <string name="experiment_id">Experiment Id</string>
+    <string name="contour_header">Contours</string>
+    <string name="contour_fragment_label">Contour List Fragment</string>
 </resources>

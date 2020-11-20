@@ -16,4 +16,4 @@ data class ExperimentEntity(
 
         @ColumnInfo(name = "eid")
         @PrimaryKey(autoGenerate = true)
-        var eid: Int)
+        var eid: Int? = null)

@@ -35,7 +35,7 @@ import java.io.File
 typealias LumaListener = (luma: Double) -> Unit
 //typealias BitmapListener = (bmp: Bitmap?, detections: ImageProcessingUtil.Companion.Detections>) -> Unit
 typealias CoinAnalysisListener = (analysis: ImageProcessingUtil.Companion.AnalysisResult) -> Unit
-typealias SeedAnalysisListener = (analysis: ImageProcessingUtil.Companion.AnalysisResult) -> Unit
+typealias SeedAnalysisListener = (analysis: ImageProcessingUtil.Companion.ContourResult) -> Unit
 
 /**
  * Basic main activity class that holds the navigation drawer view and all other fragments.

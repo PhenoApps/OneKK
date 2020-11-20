@@ -20,7 +20,7 @@ class SeedAnalyzer(private val outputDirectory: File, private val src: Bitmap, p
     private var startAnalysisTime = System.currentTimeMillis()
 
     //val detector = DetectSmallObjects(src)
-    val detector = EnhancedWatershed(outputDirectory)
+    val detector = org.wheatgenetics.imageprocess.lightbox.EnhancedWatershed(outputDirectory)
 
     /**
      * Skips the image proxy and runs the analysis on the source image.

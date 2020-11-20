@@ -47,6 +47,9 @@ import org.wheatgenetics.onekk.analyzers.NoopAnalyzer
 import org.wheatgenetics.onekk.analyzers.SeedAnalyzer
 import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
+import org.wheatgenetics.onekk.database.models.AnalysisEntity
+import org.wheatgenetics.onekk.database.models.ContourEntity
+import org.wheatgenetics.onekk.database.models.embedded.Contour
 import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
 import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentCameraBinding
@@ -79,6 +82,8 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
     private val viewModel by viewModels<ExperimentViewModel> {
         OnekkViewModelFactory(OnekkRepository.getInstance(db.dao(), db.coinDao()))
     }
+
+    private var mExperimentId: Int = -1
 
     private var mChosenResult: ImageProcessingUtil.Companion.AnalysisResult? = null
 
@@ -136,7 +141,7 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
         strokeWidth = 1f
     }
 
-    //the no-operation analyzer that's used in-between coin recognition and seed phenotyping
+    //the no-operation analyzer that's used between coin recognition and seed phenotyping
     private val sNoopAnalysis by lazy { NoopAnalyzer() }
 
     /**
@@ -223,7 +228,7 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
      */
     private fun seedAnalyzer(src: Bitmap, coins: List<MatOfPoint>) = SeedAnalyzer(outputDirectory, src, coins) { result ->
 
-        savePipelineToDatabase(result)
+        //savePipelineToDatabase(result)
 
         //on the first result, switch to the noop analyzer
         startCameraAnalysis(NoopAnalyzer())
@@ -249,38 +254,37 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
 
             //var penny = boxes.minByOrNull { it.rect.width }!!
 
-            for (b in boxes) {
-
-                var rect = b.rect
-
-                //val diameter = ImageProcessingUtil.measureArea(penny.rect.width.toDouble(), 19.05, rect.width.toDouble())
-
-                canvas.drawRect(Rect(rect.x, rect.y,
-                        rect.x + rect.width,
-                        rect.y + rect.height),
-                        sCanvasTextPaint
-                )
-
-//                    val circText = if (b.circ.toString().isNotBlank() && b.circ.toString().length > 5) {
-//                        b.circ.toString().substring(0, 5)
-//                    } else ""
+//            for (b in boxes) {
 //
-//                    //canvas.drawText("circularity: $circText", rect.x.toFloat(), rect.y - 50f, textPaint)
-//                    canvas.drawText("diameter: $diameter", rect.x.toFloat(), rect.y - 50f, textPaint)
+//                var rect = b.rect
+//
+//                //val diameter = ImageProcessingUtil.measureArea(penny.rect.width.toDouble(), 19.05, rect.width.toDouble())
+//
+//                canvas.drawRect(Rect(rect.x, rect.y,
+//                        rect.x + rect.width,
+//                        rect.y + rect.height),
+//                        sCanvasTextPaint
+//                )
+//
+////                    val circText = if (b.circ.toString().isNotBlank() && b.circ.toString().length > 5) {
+////                        b.circ.toString().substring(0, 5)
+////                    } else ""
+////
+////                    //canvas.drawText("circularity: $circText", rect.x.toFloat(), rect.y - 50f, textPaint)
+////                    canvas.drawText("diameter: $diameter", rect.x.toFloat(), rect.y - 50f, textPaint)
+//
+//            }
 
+            if (isShowingDialog == false) {
+                callSeedCountDialog(src, result)
             }
-
-            callSeedCountDialog(src, result)
         }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
 
-        //TODO: add experiment fragment
-        viewModel.deleteAll()
-        viewModel.dropAll()
-        //analysisViewModel.dropAll()
+        mExperimentId = requireArguments().getInt("experiment", -1)
 
         mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_camera, container, false)
 
@@ -308,8 +312,6 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
                 } else Toast.makeText(requireContext(), R.string.frag_camera_not_enough_coins_found, Toast.LENGTH_LONG).show()
 
             }
-
-
 
         }
 
@@ -482,7 +484,7 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
 
     }
 
-    private fun callSeedCountDialog(src: Bitmap, result: ImageProcessingUtil.Companion.AnalysisResult) {
+    private fun callSeedCountDialog(src: Bitmap, result: ImageProcessingUtil.Companion.ContourResult) {
 
         isShowingDialog = true
 
@@ -502,10 +504,8 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
                                 getString(R.string.ask_coin_recognition_ok),
                                 srcBitmap = src, dstBitmap = result.images.last(), { success ->
 
-//                        savePipelineToDatabase(result)
-//
-//                        findNavController().navigate(CameraFragmentDirections.actionToScale(1))
-
+                            savePipelineToDatabase(result)
+    //
                             isShowingDialog = false
 
                             startCameraAnalysis(sCoinAnalyzer)
@@ -599,17 +599,30 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
     /**
      * TODO: for development, currently images are not saved
      */
-    private fun savePipelineToDatabase(result: ImageProcessingUtil.Companion.AnalysisResult) {
+    private fun savePipelineToDatabase(result: ImageProcessingUtil.Companion.ContourResult) {
 
         /**
          * When the coin recognition is accepted, the idea is to save all the pipeline images
          * as an analysis row. Images are saved in the externalMedia directory, but their uri's are
          * stored in the local database.
          */
-//        viewModel.dropAll()
-//        viewModel.deleteAll()
-//        viewModel.insert(ExperimentEntity(Experiment("Test", DateUtil().getTime()), 1))
-//        viewModel.insert(AnalysisEntity(1, 1))
+
+        with(viewModel) {
+
+            insert(AnalysisEntity(mExperimentId)).observeForever { rowid ->
+
+                result.detections.forEach { contour ->
+
+                    insert(ContourEntity(
+                            Contour(contour.area, contour.minAxis.toDouble(), contour.maxAxis.toDouble()),
+                            rowid))
+                }
+
+                findNavController().navigate(CameraFragmentDirections.actionToContours(mExperimentId, rowid))
+
+            }
+        }
+
 
         result.images.forEachIndexed { index, image ->
 

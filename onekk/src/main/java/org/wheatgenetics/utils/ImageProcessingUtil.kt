@@ -6,6 +6,7 @@ import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
 import org.wheatgenetics.imageprocess.DetectRectangles
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
@@ -25,6 +26,10 @@ class ImageProcessingUtil {
         private val RECTANGLE_COLOR = Scalar(0.0, 255.0, 0.0, 255.0)
         private val TEXT_COLOR = Scalar(0.0, 0.0, 0.0, 255.0)
 
+
+        var seedContours = ArrayList<MatOfPoint?>()
+
+
         private fun quartileRange(values: Array<Double>): Pair<Double, Double> {
             val size = values.size
             Arrays.sort(values)
@@ -37,6 +42,26 @@ class ImageProcessingUtil {
             val firstValue = Q1 - 1.5 * IQR
             val secondValue = Q3 + 1.5 * IQR
             return Pair(firstValue, secondValue)
+        }
+
+        /**
+         * Computes the circularity of an object using the area and perimeter.
+         */
+        fun calcCircularity(area: Double, peri: Double):Double {
+            return 4.0 * (Math.PI) * (area / (Math.pow(peri, 2.0)))
+        }
+
+        fun ComputeMaxContour(contours: ArrayList<MatOfPoint?>): Int{
+            var maxArea = 0.0
+            var maxContour = 0
+            for(i in contours.indices){
+                var area = Imgproc.contourArea(contours.get(i))
+                if(maxArea < area){
+                    maxArea = area
+                    maxContour = i
+                }
+            }
+            return maxContour
         }
 
         fun interquartileReduce(pairs: Array<Detections>): ArrayList<Detections> {
@@ -52,10 +77,6 @@ class ImageProcessingUtil {
             } else return ArrayList(pairs.toList())
         }
 
-        fun calcCircularity(area: Double, peri: Double): Double {
-            return 4 * Math.PI * (area / peri.pow(2.0))
-        }
-
         open class PipelineFunction
         class Identity: PipelineFunction()
         class ConvertGrey: PipelineFunction()
@@ -65,19 +86,44 @@ class ImageProcessingUtil {
                                      var blockSize: Int = 15,
                                      var C: Double = 10.0): PipelineFunction()
 
+        data class Threshold(var c: Double = 0.0,
+                             var maxValue: Double = 255.0,
+                             var type: Int = Imgproc.THRESH_BINARY_INV + Imgproc.THRESH_OTSU
+        ): PipelineFunction()
+
+        data class DrawContours(var color: Scalar = Scalar(200.0, 200.0, 0.0, 255.0),
+                                var thickness: Int = 4
+        ): PipelineFunction()
+
+        data class MedianBlur(var ksize: Int = 9): PipelineFunction()
+
         data class Canny(var maxThresh: Double = 255.0, var minThresh: Double = 255 / 3.0): PipelineFunction()
         data class Dilate(var iterations: Int = 1): PipelineFunction()
         data class Erode(var iterations: Int = 1): PipelineFunction()
+        data class DistanceTransform(var distanceType: Int = Imgproc.DIST_L2, var maskSize: Int = Imgproc.DIST_MASK_5): PipelineFunction()
 
         data class GaussianBlur(var size: Size = Size(3.0, 3.0), val sigmaX: Double = 9.0): PipelineFunction()
 
         data class Detections(var rect: Rect, var circ: Double, var center: Point, var contour: MatOfPoint, var area: Double)
 
+        data class ContourStats(var area: Double, var minAxis: Int, var maxAxis: Int)
+
         data class AnalysisResult(var images: ArrayList<Bitmap> = ArrayList(),
                                   var detections: ArrayList<Detections> = ArrayList(),
                                   var pipeline: ArrayList<PipelineFunction> = ArrayList(),
                                   var isCompleted: Boolean = false)
-        
+
+        data class ContourResult(var images: ArrayList<Bitmap> = ArrayList(),
+                                  var detections: ArrayList<ContourStats> = ArrayList(),
+                                  var pipeline: ArrayList<PipelineFunction> = ArrayList(),
+                                  var isCompleted: Boolean = false)
+
+        data class UserTunableParams(var circThreshold: Double = 0.8,
+                                     var areaThreshold: Double = 8000.0,
+                                     var maxContourSizeThreshold: Int = 500000
+        )
+
+
         fun measureArea(groundTruthPixel: Double, groundTruthmm: Double, kernelPx: Double): Double {
             return kernelPx * groundTruthmm / groundTruthPixel
         }
@@ -106,7 +152,7 @@ class ImageProcessingUtil {
         }
 
         //moment calculation: Cx = M10/M00 and Cy = M01/M00
-        private fun calculateMomentCenter(contour: Mat): Point = with(Imgproc.moments(contour)) {
+        fun calculateMomentCenter(contour: Mat): Point = with(Imgproc.moments(contour)) {
 
             Point(m10 / m00, m01 / m00)
 

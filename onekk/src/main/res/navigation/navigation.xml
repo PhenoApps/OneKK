@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main_graph"
-    app:startDestination="@+id/camera_preview_fragment">
+    app:startDestination="@+id/experiment_list_fragment">
 
     <fragment
         android:id="@+id/scale_fragment"
@@ -25,6 +25,18 @@
     </fragment>
 
     <fragment
+        android:id="@+id/contour_fragment"
+        android:name="org.wheatgenetics.onekk.fragments.ContourFragment"
+        android:label="@string/contour_fragment_label">
+        <argument android:name="experiment"
+            android:defaultValue="-1"
+            app:argType="integer"/>
+        <argument android:name="analysis"
+            android:defaultValue="-1"
+            app:argType="integer"/>
+    </fragment>
+
+    <fragment
         android:id="@+id/settings_fragment"
         android:name="org.wheatgenetics.onekk.fragments.SettingsFragment"
         android:label="@string/nav_label_settings"/>
@@ -34,11 +46,38 @@
         android:name="org.wheatgenetics.onekk.fragments.CameraFragment"
         android:label="@string/nav_label_camera_preview">
 
+        <argument android:name="experiment"
+            android:defaultValue="-1"
+            app:argType="integer"/>
+
+        <action android:id="@+id/action_to_contours"
+            app:destination="@id/contour_fragment"/>
+
         <action android:id="@+id/action_to_analysis"
             app:destination="@id/analysis_fragment"/>
 
         <action android:id="@+id/action_to_scale"
             app:destination="@id/scale_fragment"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/experiment_list_fragment"
+        android:name="org.wheatgenetics.onekk.fragments.ExperimentFragment"
+        android:label="@string/nav_label_experiment_list"
+        tools:layout="@layout/fragment_experiment_list">
+
+        <action
+            android:id="@+id/action_to_settings"
+            app:destination="@id/settings_fragment"
+            app:popUpTo="@id/experiment_list_fragment">
+        </action>
+
+        <action
+            android:id="@+id/action_to_camera"
+            app:destination="@+id/camera_preview_fragment"
+            app:popUpTo="@id/experiment_list_fragment">
+        </action>
+
     </fragment>
 
     <action
