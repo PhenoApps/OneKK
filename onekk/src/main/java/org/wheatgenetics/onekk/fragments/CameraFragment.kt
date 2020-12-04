@@ -49,10 +49,13 @@ import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
 import org.wheatgenetics.onekk.database.models.AnalysisEntity
 import org.wheatgenetics.onekk.database.models.ContourEntity
+import org.wheatgenetics.onekk.database.models.ImageEntity
 import org.wheatgenetics.onekk.database.models.embedded.Contour
+import org.wheatgenetics.onekk.database.models.embedded.Image
 import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
 import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentCameraBinding
+import org.wheatgenetics.utils.DateUtil
 import org.wheatgenetics.utils.Dialogs
 import org.wheatgenetics.utils.ImageProcessingUtil
 import java.io.File
@@ -614,27 +617,31 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
                 result.detections.forEach { contour ->
 
                     insert(ContourEntity(
-                            Contour(contour.area, contour.minAxis.toDouble(), contour.maxAxis.toDouble()),
+                            Contour(contour.x,
+                                    contour.y,
+                                    contour.area,
+                                    contour.minAxis.toDouble(),
+                                    contour.maxAxis.toDouble(),
+                                    contour.isCluster),
                             rowid))
+                }
+
+                result.images.first().let { image ->
+
+                    val file = File(outputDirectory.path.toString(), "${UUID.randomUUID()}.png")
+
+                    FileOutputStream(file).use { stream ->
+
+                        image.compress(Bitmap.CompressFormat.PNG, 100, stream)
+
+                    }
+
+                    viewModel.insert(ImageEntity(Image(Uri.fromFile(file).path.toString(), DateUtil().getTime()), rowid.toInt()))
                 }
 
                 findNavController().navigate(CameraFragmentDirections.actionToContours(mExperimentId, rowid))
 
             }
-        }
-
-
-        result.images.forEachIndexed { index, image ->
-
-            val file = File(outputDirectory.path.toString(), "${UUID.randomUUID()}.png")
-
-            FileOutputStream(file).use { stream ->
-
-                image.compress(Bitmap.CompressFormat.PNG, 100, stream)
-
-            }
-
-            //viewModel.insert(ImageEntity(Image(Uri.fromFile(file).path.toString(), DateUtil().getTime()), 1, 1))
         }
     }
 }

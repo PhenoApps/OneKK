@@ -56,6 +56,8 @@ class ExperimentViewModel(
 
     }
 
+    fun getSourceImage(aid: Int) = repo.selectSourceImage(aid)
+
     fun analysis(exp: ExperimentEntity) = liveData<List<Bitmap>> {
 
 //        val result = repo.selectAllAnalysis(exp)

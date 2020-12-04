@@ -14,6 +14,9 @@ interface OnekkDao {
     @Query("SELECT * FROM experiment")
     fun selectAllExperiment(): LiveData<List<ExperimentEntity>>
 
+    @Query("SELECT url FROM image WHERE aid = :aid LIMIT 1")
+    fun selectSourceImage(aid: Int): LiveData<String>
+
     @Query("SELECT * FROM image WHERE aid = :aid")
     suspend fun selectAllAnalysis(aid: Int): List<ImageEntity>
 

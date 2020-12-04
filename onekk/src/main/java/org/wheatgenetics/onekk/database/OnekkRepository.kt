@@ -19,6 +19,8 @@ class OnekkRepository
 
     fun selectAllExperiment() = dao.selectAllExperiment()
 
+    fun selectSourceImage(aid: Int) = dao.selectSourceImage(aid)
+
     suspend fun selectAllContours(aid: Int): List<ContourEntity> {
 
         return selectAllContoursAsync(aid).await()

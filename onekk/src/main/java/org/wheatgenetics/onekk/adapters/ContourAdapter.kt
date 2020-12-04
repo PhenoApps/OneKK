@@ -15,8 +15,10 @@ import org.wheatgenetics.onekk.database.models.ExperimentEntity
 import org.wheatgenetics.onekk.databinding.ListItemContourBinding
 import org.wheatgenetics.onekk.databinding.ListItemExperimentBinding
 import org.wheatgenetics.onekk.fragments.ExperimentFragmentDirections
+import org.wheatgenetics.onekk.interfaces.ContourOnTouchListener
 
 class ContourAdapter(
+        private val listener: ContourOnTouchListener,
         val context: Context
 ) : ListAdapter<ContourEntity, ContourAdapter.ViewHolder>(DiffCallbacks.Companion.ContourDiffCallback()) {
 
@@ -42,7 +44,7 @@ class ContourAdapter(
         }
     }
 
-    class ViewHolder(private val binding: ListItemContourBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class ViewHolder(private val binding: ListItemContourBinding) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(contour: ContourEntity) {
 
@@ -50,6 +52,14 @@ class ContourAdapter(
 
                 clickListener = View.OnClickListener {
 
+                    with(contour.contour) {
+
+                        this?.let {
+
+                            listener.onTouch(x, y, minAxis, maxAxis)
+
+                        }
+                    }
                 }
 
                 this.model = contour

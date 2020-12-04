@@ -185,7 +185,7 @@ public class EnhancedWatershed {
 
         Double coinDiameterpx = EstimateCircleDiameterpx(coinAreapx);
 
-        for(MatOfPoint contour: kernelContours){
+        for(MatOfPoint contour: kernelContours) {
             RotatedRect rect = Imgproc.minAreaRect(new MatOfPoint2f(contour.toArray()));
             Double height = measureArea(coinDiameterpx, coinDiametermm, rect.size.height);
             Double width =  measureArea(coinDiameterpx, coinDiametermm, rect.size.width);
@@ -776,7 +776,6 @@ public class EnhancedWatershed {
 
         result.getImages().add(toBitmap(src.clone()));
 
-
         int maxCount = Math.max(seedCounts.floorCount, seedCounts.roundCount);
 
         int minCount = Math.min(seedCounts.floorCount, seedCounts.roundCount);
@@ -792,19 +791,30 @@ public class EnhancedWatershed {
 
         ArrayList<Pair<MatOfPoint, Double>> contourAreas = EstimateSeedArea(groundTruths.contours, 284.87, new ArrayList<>(gts));
         ArrayList<Pair<MatOfPoint, Pair<Double, Double>>> estimations = EstimateSeedHeightWidth(groundTruths.contours, 19.05, new ArrayList<>(gts));
-        for(Pair<MatOfPoint, Double> contourArea: contourAreas){
-            RotatedRect rotatedRect = Imgproc.minAreaRect(ImageProcessingUtil.Companion.toMatOfPoint2f(contourArea.first));
-            Double area = Imgproc.contourArea(contourArea.first);
-            Log.d("Contour Area: ", String.valueOf(contourArea.second));
-            Point centroid = ImageProcessingUtil.Companion.calculateMomentCenter(contourArea.first);
-            Imgproc.putText(src, String.format("%.2f", contourArea.second), centroid, 3, 1, new Scalar(255, 255, 0));
+//        for(Pair<MatOfPoint, Double> contourArea: contourAreas){
+//            RotatedRect rotatedRect = Imgproc.minAreaRect(ImageProcessingUtil.Companion.toMatOfPoint2f(contourArea.first));
+//            Double area = Imgproc.contourArea(contourArea.first);
+//            Log.d("Contour Area: ", String.valueOf(contourArea.second));
+//            Point centroid = ImageProcessingUtil.Companion.calculateMomentCenter(contourArea.first);
+//            Imgproc.putText(src, String.format("%.2f", contourArea.second), centroid, 3, 1, new Scalar(255, 255, 0));
+//
+////            data class Detections(var rect: Rect, var circ: Double, var center: Point, var contour: MatOfPoint, var area: Double, var minAxis: Double, var maxAxis: Double)
+//
+//            int maxAxis = Math.max(rotatedRect.boundingRect().height, rotatedRect.boundingRect().width);
+//            int minAxis = Math.min(rotatedRect.boundingRect().height, rotatedRect.boundingRect().width);
+//
+//            result.getDetections().add(new ContourStats(centroid.x, centroid.y, area, minAxis, maxAxis, area > gtAvgArea));
+//        }
 
-//            data class Detections(var rect: Rect, var circ: Double, var center: Point, var contour: MatOfPoint, var area: Double, var minAxis: Double, var maxAxis: Double)
+        for(MatOfPoint contour: seedContours){
+            RotatedRect rotatedRect = Imgproc.minAreaRect(ImageProcessingUtil.Companion.toMatOfPoint2f(contour));
+            Double area = Imgproc.contourArea(contour);
+            Point centroid = ImageProcessingUtil.Companion.calculateMomentCenter(contour);
 
             int maxAxis = Math.max(rotatedRect.boundingRect().height, rotatedRect.boundingRect().width);
             int minAxis = Math.min(rotatedRect.boundingRect().height, rotatedRect.boundingRect().width);
 
-            result.getDetections().add(new ContourStats(area, minAxis, maxAxis));
+            result.getDetections().add(new ContourStats(centroid.x, centroid.y, area, minAxis, maxAxis, area > gtAvgArea * 2));
         }
 
         //        for(Pair<MatOfPoint, Pair<Double, Double>> estimate: estimations){

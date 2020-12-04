@@ -286,6 +286,7 @@
     <string name="add_experiment">Add Experiment</string>
     <string name="experiment_name">Experiment Name</string>
     <string name="experiment_id">Experiment Id</string>
-    <string name="contour_header">Contours</string>
+    <string name="contour_header">Seed(s)</string>
     <string name="contour_fragment_label">Contour List Fragment</string>
+    <string name="contour_cluster_header">Cluster(s)</string>
 </resources>
