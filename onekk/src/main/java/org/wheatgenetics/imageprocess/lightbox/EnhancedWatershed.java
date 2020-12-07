@@ -814,7 +814,7 @@ public class EnhancedWatershed {
             int maxAxis = Math.max(rotatedRect.boundingRect().height, rotatedRect.boundingRect().width);
             int minAxis = Math.min(rotatedRect.boundingRect().height, rotatedRect.boundingRect().width);
 
-            result.getDetections().add(new ContourStats(centroid.x, centroid.y, area, minAxis, maxAxis, area > gtAvgArea * 2));
+            result.getDetections().add(new ContourStats(centroid.x, centroid.y, (int) (area / gtAvgArea), area, minAxis, maxAxis, area > gtAvgArea * 2));
         }
 
         //        for(Pair<MatOfPoint, Pair<Double, Double>> estimate: estimations){
@@ -822,6 +822,11 @@ public class EnhancedWatershed {
         //            Point centroid = ImageProcessingUtil.Companion.calculateMomentCenter(estimate.first);
         //            Imgproc.putText(src, String.format("%.2f %.2f", estimate.second.first, estimate.second.second), centroid, 3, 1, new Scalar(255, 255, 0));
         //        }
+
+//        Mat draw = src.clone();
+//        Imgproc.drawContours(draw, seedContours, -1, new Scalar(255, 0, 255), 3);
+//
+//        result.getImages().add(toBitmap(draw));
 
         writeFile("finalImg", src);
 

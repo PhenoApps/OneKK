@@ -1,8 +1,8 @@
 package org.wheatgenetics.onekk.database.dao
 
 import androidx.lifecycle.LiveData
-import androidx.room.Dao
-import androidx.room.Query
+import androidx.room.*
+import org.wheatgenetics.onekk.database.models.CoinEntity
 
 @Dao
 interface CoinDao {
@@ -10,10 +10,23 @@ interface CoinDao {
     /** View queries **/
 
     /** Select queries **/
+    @Query("SELECT DISTINCT country FROM coin")
+    suspend fun selectAllCountries(): List<String>
+
+    @Query("SELECT name FROM coin WHERE country = :country")
+    suspend fun selectAllCoins(country: String): List<String>
+
+    @Query("SELECT * FROM coin WHERE country = :country")
+    suspend fun selectAllCoinModels(country: String): List<CoinEntity>
 
     /**
      * Inserts
      */
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun updateCoinValue(model: CoinEntity)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insert(coin: CoinEntity): Long
 
     /**
      * Deletes

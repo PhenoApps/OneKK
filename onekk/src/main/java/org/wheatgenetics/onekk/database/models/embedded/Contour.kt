@@ -5,6 +5,7 @@ import org.wheatgenetics.utils.DateUtil
 data class Contour(
         var x: Double,
         var y: Double,
+        var count: Int,
         var area: Double?,
         var minAxis: Double,
         var maxAxis: Double,

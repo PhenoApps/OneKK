@@ -18,7 +18,10 @@ data class ContourEntity(
          * Image column is an embedded object contains a String encoded url and a date.
          */
         @Embedded
-        var contour: Contour?,
+        var contour: Contour? = null,
+
+        @ColumnInfo(name = "selected")
+        var selected: Boolean = true,
 
         @ColumnInfo(name = "aid")
         var aid: Int,

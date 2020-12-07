@@ -8,6 +8,7 @@ import androidx.appcompat.app.ActionBar
 import com.polidea.rxandroidble2.RxBleClient
 import com.polidea.rxandroidble2.RxBleConnection
 import com.polidea.rxandroidble2.RxBleDevice
+import com.polidea.rxandroidble2.exceptions.BleScanException
 import com.polidea.rxandroidble2.helpers.ValueInterpreter
 import com.polidea.rxandroidble2.scan.ScanFilter
 import com.polidea.rxandroidble2.scan.ScanSettings
@@ -119,10 +120,14 @@ class BluetoothUtil(private val context: Context) {
 
         stateDisposable?.dispose()
 
-        stateDisposable = client.scanBleDevices(ScanSettings.Builder().build(), ScanFilter.empty())
-                .subscribe {
-                    listener.onDiscovered(it.bleDevice.bluetoothDevice)
-                }
+        try {
+            stateDisposable = client.scanBleDevices(ScanSettings.Builder().build(), ScanFilter.empty())
+                    .subscribe({
+                        listener.onDiscovered(it.bleDevice.bluetoothDevice)
+                    }) { error -> error.printStackTrace() }
+        } catch (ble: BleScanException) {
+            ble.printStackTrace()
+        }
     }
 
 

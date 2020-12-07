@@ -3,6 +3,8 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <data>
+        <import type="android.view.View"/>
+
         <variable
             name="clickListener"
             type="android.view.View.OnClickListener"/>
@@ -14,43 +16,43 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="@{clickListener}"
-        android:layout_marginBottom="8dp"
-        android:layout_marginTop="8dp"
-        android:background="@drawable/cell">
+        android:onClick="@{clickListener}">
+
+        <CheckBox
+            android:id="@+id/checkbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="@={model.selected}"
+            android:clickable="false"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
 
         <TextView style="@style/Text.ExperimentTitle"
             android:id="@+id/areaTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:text="@{model.contour.area.toString()}"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:text="@{String.valueOf(model.contour.area) + @string/contour_list_area_suffix}"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/minAxisTextView"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@id/checkbox"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView style="@style/Text.ExperimentTitle"
             android:id="@+id/minAxisTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:text="@{String.valueOf(model.contour.minAxis)}"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:text='@{!model.contour.isCluster() ? String.valueOf(model.contour.minAxis) + "x" + String.valueOf(model.contour.maxAxis) : String.valueOf(model.contour.count)}'
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/maxAxisTextView"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/areaTextView"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView style="@style/Text.ExperimentTitle"
-            android:id="@+id/maxAxisTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:text="@{String.valueOf(model.contour.maxAxis)}"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/minAxisTextView"
-            app:layout_constraintTop_toTopOf="parent" />
+        <View
+            android:background="#FF000000"
+            android:layout_height="2dp"
+            android:layout_width="match_parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/checkbox"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

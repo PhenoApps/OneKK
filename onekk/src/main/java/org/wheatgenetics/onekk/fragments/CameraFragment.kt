@@ -619,11 +619,13 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
                     insert(ContourEntity(
                             Contour(contour.x,
                                     contour.y,
+                                    contour.count,
                                     contour.area,
                                     contour.minAxis.toDouble(),
                                     contour.maxAxis.toDouble(),
                                     contour.isCluster),
-                            rowid))
+                            selected = true,
+                            aid = rowid))
                 }
 
                 result.images.first().let { image ->

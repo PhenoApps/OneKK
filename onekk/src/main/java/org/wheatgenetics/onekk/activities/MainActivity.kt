@@ -10,11 +10,13 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.preference.PreferenceManager
@@ -26,6 +28,10 @@ import org.opencv.android.LoaderCallbackInterface
 import org.opencv.android.OpenCVLoader
 import org.wheatgenetics.onekk.BuildConfig
 import org.wheatgenetics.onekk.R
+import org.wheatgenetics.onekk.database.OnekkDatabase
+import org.wheatgenetics.onekk.database.OnekkRepository
+import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
+import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.ActivityMainBinding
 import org.wheatgenetics.onekk.fragments.CameraFragmentDirections
 import org.wheatgenetics.utils.ImageProcessingUtil
@@ -45,6 +51,14 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 //    private val mFirebaseAnalytics by lazy {
 //        FirebaseAnalytics.getInstance(this)
 //    }
+
+    private val db by lazy {
+        OnekkDatabase.getInstance(this)
+    }
+
+    private val viewModel by viewModels<ExperimentViewModel> {
+        OnekkViewModelFactory(OnekkRepository.getInstance(db.dao(), db.coinDao()))
+    }
 
     private val mLoaderCallback: BaseLoaderCallback = object : BaseLoaderCallback(this) {
 
@@ -149,6 +163,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
         setupActivity()
 
+        viewModel.loadCoinDatabase(assets.open("coin_database.csv"))
     }
 
     private fun setupActivity() {
@@ -237,6 +252,11 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 //                    askExport()
 //
 //                }
+                R.id.action_coin_manager -> {
+
+                    mNavController.navigate(CameraFragmentDirections.actionToCoinManager())
+
+                }
                 R.id.action_nav_settings -> {
 
                     mNavController.navigate(CameraFragmentDirections.actionToSettings())

@@ -289,4 +289,17 @@
     <string name="contour_header">Seed(s)</string>
     <string name="contour_fragment_label">Contour List Fragment</string>
     <string name="contour_cluster_header">Cluster(s)</string>
+    <string name="coin_country_choice">Coin Country</string>
+    <string name="onekk_country_pref_key">org.wheatgenetics.onekk.COUNTRY_NAME</string>
+    <string name="onekk_coin_pref_key">org.wheatgenetics.onekk.COIN_NAME</string>
+    <string name="frag_coin_manager_list_title">Coin Values</string>
+    <string name="frag_coin_manager_search_hint">Type in a country name</string>
+    <string name="menu_action_to_coin_manager">Coin Manager</string>
+    <string name="nav_label_coin_manager">Coin Manager</string>
+    <string name="frag_contour_list_total">Total:</string>
+    <string name="contour_list_area_suffix">mm²</string>
+    <string name="contour_list_axis_suffix">mm</string>
+    <string name="frag_contour_list_cluster_manual_count_hint">Enter manual count</string>
+    <string name="none">None</string>
+
 </resources>

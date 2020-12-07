@@ -106,7 +106,7 @@ class ImageProcessingUtil {
 
         data class Detections(var rect: Rect, var circ: Double, var center: Point, var contour: MatOfPoint, var area: Double)
 
-        data class ContourStats(var x: Double, var y: Double, var area: Double, var minAxis: Int, var maxAxis: Int, var isCluster: Boolean)
+        data class ContourStats(var x: Double, var y: Double, var count: Int, var area: Double, var minAxis: Int, var maxAxis: Int, var isCluster: Boolean)
 
         data class AnalysisResult(var images: ArrayList<Bitmap> = ArrayList(),
                                   var detections: ArrayList<Detections> = ArrayList(),

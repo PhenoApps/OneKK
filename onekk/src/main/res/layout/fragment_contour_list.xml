@@ -27,14 +27,22 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toTopOf="@id/singleSeedHeader"/>
 
+        <TextView style="@style/Text.ExperimentListHeader"
+            android:id="@+id/singleSeedHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="@string/contour_header"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/imageView"
+            app:layout_constraintBottom_toTopOf="@id/singleSeedListView"/>
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/singleSeedListView"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginBottom="8dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="16dp"
             android:scrollbars="vertical"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             app:layout_constraintBottom_toTopOf="@id/clusterHeader"
@@ -43,43 +51,40 @@
             app:layout_constraintTop_toBottomOf="@+id/singleSeedHeader"
             tools:listitem="@layout/list_item_contour" />
 
+        <TextView style="@style/Text.ExperimentListHeader"
+            android:id="@+id/clusterHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="@string/contour_cluster_header"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/singleSeedListView"
+            app:layout_constraintBottom_toTopOf="@id/clusterListView"/>
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/clusterListView"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginBottom="8dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="16dp"
             android:scrollbars="vertical"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/submitButton"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/clusterHeader"
             tools:listitem="@layout/list_item_contour" />
 
-        <TextView style="@style/Text.ExperimentListHeader"
-            android:id="@+id/singleSeedHeader"
-            android:layout_width="wrap_content"
+        <Button
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:text="@string/contour_header"
+            android:layout_margin="16dp"
+            android:id="@+id/submitButton"
+            android:text="@string/frag_contour_list_total"
+            app:layout_constraintTop_toBottomOf="@id/clusterListView"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/imageView"
-            app:layout_constraintBottom_toTopOf="@id/singleSeedListView"/>
-
-        <TextView style="@style/Text.ExperimentListHeader"
-            android:id="@+id/clusterHeader"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:text="@string/contour_cluster_header"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/singleSeedListView"
-            app:layout_constraintBottom_toTopOf="@id/clusterListView"/>
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

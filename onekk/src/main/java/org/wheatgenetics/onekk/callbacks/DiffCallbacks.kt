@@ -1,6 +1,7 @@
 package org.wheatgenetics.onekk.callbacks
 
 import androidx.recyclerview.widget.DiffUtil
+import org.wheatgenetics.onekk.database.models.CoinEntity
 import org.wheatgenetics.onekk.database.models.ContourEntity
 import org.wheatgenetics.onekk.database.models.ExperimentEntity
 
@@ -32,6 +33,17 @@ class DiffCallbacks {
 
             override fun areContentsTheSame(oldItem: ContourEntity, newItem: ContourEntity): Boolean {
                 return oldItem.aid == newItem.aid && oldItem.cid == newItem.cid
+            }
+        }
+
+        class CoinDiffCallback : DiffUtil.ItemCallback<CoinEntity>() {
+
+            override fun areItemsTheSame(oldItem: CoinEntity, newItem: CoinEntity): Boolean {
+                return oldItem.name == newItem.name && oldItem.country == newItem.country
+            }
+
+            override fun areContentsTheSame(oldItem: CoinEntity, newItem: CoinEntity): Boolean {
+                return oldItem.name == newItem.name && oldItem.country == newItem.country
             }
         }
     }

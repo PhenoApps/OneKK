@@ -23,6 +23,10 @@ interface OnekkDao {
     @Query("SELECT * FROM contour WHERE aid = :aid")
     suspend fun selectAllContours(aid: Int): List<ContourEntity>
 
+    /** Updates **/
+    @Query("UPDATE contour SET selected = :selected WHERE aid = :aid AND cid = :cid")
+    suspend fun switchSelectedContour(aid: Int, cid: Int, selected: Boolean)
+
     /** Inserts **/
 
     @Insert
@@ -33,8 +37,6 @@ interface OnekkDao {
     suspend fun insert(image: ImageEntity): Long
     @Insert
     suspend fun insert(contour: ContourEntity): Long
-    @Insert
-    suspend fun insert(coin: CoinEntity): Long
 
     /**
      * Deletes

@@ -5,17 +5,16 @@ import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import org.wheatgenetics.onekk.database.models.embedded.Coin
-import org.wheatgenetics.onekk.database.models.embedded.Experiment
-import org.wheatgenetics.onekk.database.models.embedded.Image
 
 @Keep
-@Entity(tableName = "coin")
+@Entity(tableName = "coin", primaryKeys = ["country", "name"])
 data class CoinEntity(
 
-        @Embedded
-        var coin: Coin?,
+        @ColumnInfo(name = "country")
+        var country: String,
 
-        @ColumnInfo(name = "cid")
-        @PrimaryKey(autoGenerate = true)
-        var cid: Int? = null)
+        @ColumnInfo(name = "diameter")
+        var diameter: String,
+
+        @ColumnInfo(name = "name")
+        var name: String)

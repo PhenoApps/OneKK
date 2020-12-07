@@ -24,6 +24,7 @@ import org.wheatgenetics.onekk.adapters.ContourAdapter
 import org.wheatgenetics.onekk.adapters.ExperimentAdapter
 import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
+import org.wheatgenetics.onekk.database.models.ContourEntity
 import org.wheatgenetics.onekk.database.models.ExperimentEntity
 import org.wheatgenetics.onekk.database.models.embedded.Experiment
 import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
@@ -68,7 +69,7 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
             ui.setupRecyclerView(aid)
 
-            setupButtons()
+            ui.setupButtons()
 
             updateUi(eid, aid)
 
@@ -82,6 +83,8 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
             return ui.root
 
         }
+
+        updateTotal()
 
         setHasOptionsMenu(true)
 
@@ -109,6 +112,29 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
     }
 
+    private fun updateTotal() = with(requireActivity()) {
+
+        sViewModel.contours(aid).observeForever { contours ->
+
+            runOnUiThread {
+
+                val count = contours.filter { it.selected && !(it.contour?.isCluster ?: false) }.size
+
+                mBinding?.submitButton?.setText(getString(R.string.frag_contour_list_total) + count)
+            }
+        }
+    }
+
+    override fun onChoiceSwapped(id: Int, selected: Boolean) {
+
+        launch {
+
+            sViewModel.switchSelectedContour(aid, id, selected)
+
+            updateTotal()
+        }
+    }
+
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
 
 //        inflater.inflate(R.menu.activity_main_toolbar, menu)
@@ -124,9 +150,12 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
         return super.onOptionsItemSelected(item)
     }
 
-    private fun setupButtons() {
+    private fun FragmentContourListBinding.setupButtons() {
+
+        submitButton.setOnClickListener {
 
 
+        }
     }
 
     private fun FragmentContourListBinding.setupRecyclerView(aid: Int) {

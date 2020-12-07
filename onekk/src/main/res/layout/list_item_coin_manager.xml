@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+        <variable
+            name="clickListener"
+            type="android.view.View.OnClickListener"/>
+        <variable
+            name="model"
+            type="org.wheatgenetics.onekk.database.models.CoinEntity"/>
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="@{clickListener}"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/cell">
+
+        <TextView
+            android:id="@+id/coinNameTextView"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:text="@{model.name}"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/coinValueEditText"/>
+
+        <EditText
+            android:id="@+id/coinValueEditText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@{model.diameter}"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toEndOf="@id/coinNameTextView"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:autofillHints=""
+            android:inputType="numberDecimal" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</layout>

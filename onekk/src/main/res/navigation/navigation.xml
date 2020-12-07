@@ -42,6 +42,11 @@
         android:label="@string/nav_label_settings"/>
 
     <fragment
+        android:id="@+id/coin_manager"
+        android:name="org.wheatgenetics.onekk.fragments.CoinManagerFragment"
+        android:label="@string/nav_label_coin_manager"/>
+
+    <fragment
         android:id="@+id/camera_preview_fragment"
         android:name="org.wheatgenetics.onekk.fragments.CameraFragment"
         android:label="@string/nav_label_camera_preview">
@@ -49,6 +54,9 @@
         <argument android:name="experiment"
             android:defaultValue="-1"
             app:argType="integer"/>
+
+        <action android:id="@+id/action_to_coin_manager"
+            app:destination="@+id/coin_manager"/>
 
         <action android:id="@+id/action_to_contours"
             app:destination="@id/contour_fragment"/>

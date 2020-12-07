@@ -4,6 +4,7 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.ListAdapter
@@ -50,7 +51,13 @@ class ContourAdapter(
 
             with(binding) {
 
+                checkbox.isChecked = contour.selected
+
                 clickListener = View.OnClickListener {
+
+                    checkbox.isChecked = !checkbox.isChecked
+
+                    listener.onChoiceSwapped(contour.cid ?: -1, checkbox.isChecked)
 
                     with(contour.contour) {
 

@@ -27,11 +27,10 @@ class DrawSelectedContour {
 
     private fun process(original: Mat, x: Double, y: Double, minAxis: Double, maxAxis: Double): Bitmap {
 
-
         //original image, center point, radius, perimeter color, perimeter draw thickness
         Imgproc.circle(original, Point(x,y), maxAxis.toInt(), sSelectedColor, 5)
 
-        return Mat(original, Rect(x.toInt()-minAxis.toInt(), y.toInt()-minAxis.toInt(), minAxis.toInt()+minAxis.toInt(), minAxis.toInt()+minAxis.toInt())).toBitmap()
+        return Mat(original, Rect(x.toInt()-minAxis.toInt()*2, y.toInt()-minAxis.toInt()*2, minAxis.toInt()+minAxis.toInt()*2, minAxis.toInt()+minAxis.toInt()*2)).toBitmap()
 
     }
 

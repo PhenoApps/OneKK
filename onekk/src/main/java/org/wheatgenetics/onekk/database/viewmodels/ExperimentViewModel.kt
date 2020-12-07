@@ -15,6 +15,7 @@ import org.wheatgenetics.onekk.database.models.AnalysisEntity
 import org.wheatgenetics.onekk.database.models.ContourEntity
 import org.wheatgenetics.onekk.database.models.ExperimentEntity
 import org.wheatgenetics.onekk.database.models.ImageEntity
+import java.io.InputStream
 
 class ExperimentViewModel(
         private val repo: OnekkRepository): ViewModel() {
@@ -29,6 +30,10 @@ class ExperimentViewModel(
 
     fun insert(img: ImageEntity) = viewModelScope.launch {
         repo.insert(img)
+    }
+
+    fun updateCoinValue(country: String, name: String, value: Double) = viewModelScope.launch {
+        repo.updateCoinValue(country, name, value)
     }
 
     fun clearAll() = viewModelScope.launch {
@@ -48,6 +53,30 @@ class ExperimentViewModel(
 
     val experiments = repo.selectAllExperiment()
 
+    fun countries() = liveData {
+
+        val result = repo.selectAllCountries()
+
+        emit(result)
+
+    }
+
+    fun coins(country: String) = liveData {
+
+        val result = repo.selectAllCoins(country)
+
+        emit(result)
+
+    }
+
+    fun coinModels(country: String) = liveData {
+
+        val result = repo.selectAllCoinModels(country)
+
+        emit(result)
+
+    }
+
     fun contours(aid: Int) = liveData {
 
         val result = repo.selectAllContours(aid)
@@ -55,6 +84,8 @@ class ExperimentViewModel(
         emit(result)
 
     }
+
+    suspend fun switchSelectedContour(aid: Int, id: Int, choice: Boolean) = repo.switchSelectedContour(aid, id, choice)
 
     fun getSourceImage(aid: Int) = repo.selectSourceImage(aid)
 
@@ -80,5 +111,20 @@ class ExperimentViewModel(
 
     fun dropAll() = viewModelScope.launch {
         repo.dropAnalysis()
+    }
+
+    /**
+        lines of the csv file are expected to have 7 values like:
+        UK,Pound,0.01,Penny,1,20.3,1 Penny
+     */
+    fun loadCoinDatabase(csv: InputStream) = viewModelScope.launch {
+
+        csv.reader().readLines().forEach {
+
+            val tokens = it.split(",")
+
+            //country, diameter, and name respectively
+            repo.insert(tokens[0], tokens[5], tokens[6])
+        }
     }
 }
