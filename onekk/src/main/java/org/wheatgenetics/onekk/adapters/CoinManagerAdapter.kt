@@ -4,19 +4,14 @@ import android.content.Context
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
-import androidx.navigation.Navigation
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.callbacks.DiffCallbacks
 import org.wheatgenetics.onekk.database.models.CoinEntity
-import org.wheatgenetics.onekk.database.models.ExperimentEntity
 import org.wheatgenetics.onekk.databinding.ListItemCoinManagerBinding
-import org.wheatgenetics.onekk.databinding.ListItemExperimentBinding
-import org.wheatgenetics.onekk.fragments.ExperimentFragmentDirections
 import org.wheatgenetics.onekk.interfaces.CoinValueChangedListener
 
 class CoinManagerAdapter(

@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import org.opencv.android.Utils
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
-import org.wheatgenetics.imageprocess.DetectRectangles
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.max
@@ -30,7 +29,7 @@ class ImageProcessingUtil {
         var seedContours = ArrayList<MatOfPoint?>()
 
 
-        private fun quartileRange(values: Array<Double>): Pair<Double, Double> {
+        fun quartileRange(values: Array<Double>): Pair<Double, Double> {
             val size = values.size
             Arrays.sort(values)
             val Q2 = values[values.size / 2]
@@ -158,7 +157,7 @@ class ImageProcessingUtil {
 
         }
 
-        private fun euclideanDistance(u: Point, v: Point) =
+        fun euclideanDistance(u: Point, v: Point) =
                 sqrt((u.x - v.x).pow(2) + (u.y - v.y).pow(2))
 
         fun centerDifferentForAllRectangles(contour: Mat, rectangles: List<Detections>): List<Detections>? =

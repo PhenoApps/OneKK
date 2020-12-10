@@ -11,9 +11,6 @@ interface OnekkDao {
 
     /** Select queries **/
 
-    @Query("SELECT * FROM experiment")
-    fun selectAllExperiment(): LiveData<List<ExperimentEntity>>
-
     @Query("SELECT url FROM image WHERE aid = :aid LIMIT 1")
     fun selectSourceImage(aid: Int): LiveData<String>
 
@@ -30,8 +27,6 @@ interface OnekkDao {
     /** Inserts **/
 
     @Insert
-    suspend fun insert(exp: ExperimentEntity): Long
-    @Insert
     suspend fun insert(analysis: AnalysisEntity): Long
     @Insert
     suspend fun insert(image: ImageEntity): Long
@@ -41,8 +36,6 @@ interface OnekkDao {
     /**
      * Deletes
      */
-    @Query("DELETE FROM experiment WHERE eid = :eid")
-    suspend fun deleteExperiment(eid: Int)
 
     @Query("DELETE FROM contour WHERE aid = :aid AND cid = :cid")
     suspend fun deleteContour(aid: Int, cid: Int)
@@ -50,6 +43,4 @@ interface OnekkDao {
     @Query("DELETE FROM analysis")
     suspend fun dropAnalysis()
 
-    @Query("DELETE FROM experiment")
-    suspend fun dropExperiment()
 }

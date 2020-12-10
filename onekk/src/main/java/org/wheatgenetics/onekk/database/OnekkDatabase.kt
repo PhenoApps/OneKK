@@ -13,7 +13,7 @@ import org.wheatgenetics.onekk.database.models.*
 import java.io.File
 
 
-@Database(entities = [ExperimentEntity::class, AnalysisEntity::class, ImageEntity::class,
+@Database(entities = [AnalysisEntity::class, ImageEntity::class,
     CoinEntity::class, ContourEntity::class],
         views = [], version = 1)
 abstract class OnekkDatabase : RoomDatabase() {

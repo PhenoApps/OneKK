@@ -2,37 +2,26 @@ package org.wheatgenetics.onekk.fragments
 
 import android.content.Context
 import android.os.Bundle
-import android.os.Handler
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.*
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
-import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_coin_manager.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.adapters.CoinManagerAdapter
-import org.wheatgenetics.onekk.adapters.ExperimentAdapter
 import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
-import org.wheatgenetics.onekk.database.models.ExperimentEntity
-import org.wheatgenetics.onekk.database.models.embedded.Experiment
 import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
 import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentCoinManagerBinding
-import org.wheatgenetics.onekk.databinding.FragmentExperimentListBinding
 import org.wheatgenetics.onekk.interfaces.CoinValueChangedListener
-import org.wheatgenetics.utils.Dialogs
 
 class CoinManagerFragment : Fragment(), CoinValueChangedListener, CoroutineScope by MainScope() {
 

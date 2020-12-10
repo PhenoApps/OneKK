@@ -3,34 +3,26 @@ package org.wheatgenetics.onekk.fragments
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.os.Handler
 import android.view.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_contour_list.*
 import kotlinx.coroutines.*
-import org.opencv.core.MatOfPoint
+import org.opencv.core.CvException
 import org.wheatgenetics.imageprocess.DrawSelectedContour
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.adapters.ContourAdapter
-import org.wheatgenetics.onekk.adapters.ExperimentAdapter
 import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
-import org.wheatgenetics.onekk.database.models.ContourEntity
-import org.wheatgenetics.onekk.database.models.ExperimentEntity
-import org.wheatgenetics.onekk.database.models.embedded.Experiment
 import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
 import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentContourListBinding
-import org.wheatgenetics.onekk.databinding.FragmentExperimentListBinding
 import org.wheatgenetics.onekk.interfaces.ContourOnTouchListener
 import org.wheatgenetics.utils.Dialogs
 import kotlin.properties.Delegates
@@ -49,14 +41,12 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
     }
 
     private var mSourceBitmap: String? = null
-    private var eid by Delegates.notNull<Int>()
     private var aid by Delegates.notNull<Int>()
 
     private var mBinding: FragmentContourListBinding? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
-        eid = requireArguments().getInt("experiment", -1)
         aid = requireArguments().getInt("analysis", -1)
 
         val contextThemeWrapper = ContextThemeWrapper(activity, R.style.AppTheme)
@@ -71,7 +61,7 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
             ui.setupButtons()
 
-            updateUi(eid, aid)
+            updateUi(aid)
 
             sViewModel.getSourceImage(aid).observeForever { url ->
 
@@ -95,8 +85,18 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
         async {
 
-            DrawSelectedContour().process(BitmapFactory.decodeFile(mSourceBitmap),
-                        x, y, minAxis, maxAxis)
+            val bmp = BitmapFactory.decodeFile(mSourceBitmap)
+
+            try {
+
+                DrawSelectedContour().process(bmp, x, y, minAxis, maxAxis)
+
+            } catch (e: CvException) {
+
+                e.printStackTrace()
+
+                bmp
+            }
         }
     }
 
@@ -118,9 +118,10 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
             runOnUiThread {
 
-                val count = contours.filter { it.selected && !(it.contour?.isCluster ?: false) }.size
+                val count = contours.filter { it.selected }.mapNotNull { it.contour?.count }.reduceRight { x, y ->  y + x }
 
                 mBinding?.submitButton?.setText(getString(R.string.frag_contour_list_total) + count)
+
             }
         }
     }
@@ -133,21 +134,6 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
             updateTotal()
         }
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-
-//        inflater.inflate(R.menu.activity_main_toolbar, menu)
-
-        super.onCreateOptionsMenu(menu, inflater)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-
-//        when(item.itemId) {
-//
-//        }
-        return super.onOptionsItemSelected(item)
     }
 
     private fun FragmentContourListBinding.setupButtons() {
@@ -189,7 +175,7 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
                             sViewModel.deleteContour(aid, cid)
 
-                            updateUi(eid, aid)
+                            updateUi(aid)
                         }
 
                     }
@@ -229,7 +215,7 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
                             sViewModel.deleteContour(aid, cid)
 
-                            updateUi(eid, aid)
+                            updateUi(aid)
                         }
 
                     }
@@ -241,17 +227,19 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
         }).attachToRecyclerView(clusterListView)
     }
 
-    private fun updateUi(eid: Int, aid: Int) {
+    private fun updateUi(aid: Int) {
 
         sViewModel.contours(aid).observeForever {
 
-            val contours = it.partition { it.contour?.isCluster ?: false }
+            val singles = it.filter { it.contour?.count ?: 0 <= 1 }
+
+            val clusters = it.filter { it.contour?.count ?: 0 > 1 }
 
             (mBinding?.singleSeedListView?.adapter as? ContourAdapter)
-                    ?.submitList(contours.second)
+                    ?.submitList(singles)
 
             (mBinding?.clusterListView?.adapter as? ContourAdapter)
-                    ?.submitList(contours.first)
+                    ?.submitList(clusters)
         }
     }
 }

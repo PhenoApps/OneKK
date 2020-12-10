@@ -13,9 +13,6 @@ interface CoinDao {
     @Query("SELECT DISTINCT country FROM coin")
     suspend fun selectAllCountries(): List<String>
 
-    @Query("SELECT name FROM coin WHERE country = :country")
-    suspend fun selectAllCoins(country: String): List<String>
-
     @Query("SELECT * FROM coin WHERE country = :country")
     suspend fun selectAllCoinModels(country: String): List<CoinEntity>
 

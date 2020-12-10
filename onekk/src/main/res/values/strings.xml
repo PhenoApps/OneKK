@@ -298,8 +298,9 @@
     <string name="nav_label_coin_manager">Coin Manager</string>
     <string name="frag_contour_list_total">Total:</string>
     <string name="contour_list_area_suffix">mm²</string>
-    <string name="contour_list_axis_suffix">mm</string>
+    <string name="contour_list_area_prefix">Area: </string>
     <string name="frag_contour_list_cluster_manual_count_hint">Enter manual count</string>
     <string name="none">None</string>
+    <string name="menu_action_to_process_file">Process File</string>
 
 </resources>

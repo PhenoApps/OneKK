@@ -4,33 +4,24 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main_graph"
-    app:startDestination="@+id/experiment_list_fragment">
+    app:startDestination="@+id/camera_preview_fragment">
 
     <fragment
         android:id="@+id/scale_fragment"
         android:name="org.wheatgenetics.onekk.fragments.ScaleFragment"
         android:label="@string/scale_fragment_label">
-        <argument android:name="experiment"
-            android:defaultValue="-1"
-            app:argType="integer"/>
     </fragment>
 
     <fragment
         android:id="@+id/analysis_fragment"
         android:name="org.wheatgenetics.onekk.fragments.AnalysisFragment"
         android:label="@string/analysis_fragment_label">
-        <argument android:name="experiment"
-            android:defaultValue="-1"
-            app:argType="integer"/>
     </fragment>
 
     <fragment
         android:id="@+id/contour_fragment"
         android:name="org.wheatgenetics.onekk.fragments.ContourFragment"
         android:label="@string/contour_fragment_label">
-        <argument android:name="experiment"
-            android:defaultValue="-1"
-            app:argType="integer"/>
         <argument android:name="analysis"
             android:defaultValue="-1"
             app:argType="integer"/>
@@ -51,41 +42,29 @@
         android:name="org.wheatgenetics.onekk.fragments.CameraFragment"
         android:label="@string/nav_label_camera_preview">
 
-        <argument android:name="experiment"
-            android:defaultValue="-1"
-            app:argType="integer"/>
+        <argument android:name="mode"
+            android:defaultValue="default"
+            app:argType="string"/>
+
+        <action android:id="@+id/action_to_process_file"
+            app:popUpTo="@id/camera_preview_fragment"
+            app:destination="@+id/camera_preview_fragment"/>
 
         <action android:id="@+id/action_to_coin_manager"
+            app:popUpTo="@id/camera_preview_fragment"
             app:destination="@+id/coin_manager"/>
 
         <action android:id="@+id/action_to_contours"
+            app:popUpTo="@id/camera_preview_fragment"
             app:destination="@id/contour_fragment"/>
 
         <action android:id="@+id/action_to_analysis"
+            app:popUpTo="@id/camera_preview_fragment"
             app:destination="@id/analysis_fragment"/>
 
         <action android:id="@+id/action_to_scale"
+            app:popUpTo="@id/camera_preview_fragment"
             app:destination="@id/scale_fragment"/>
-    </fragment>
-
-    <fragment
-        android:id="@+id/experiment_list_fragment"
-        android:name="org.wheatgenetics.onekk.fragments.ExperimentFragment"
-        android:label="@string/nav_label_experiment_list"
-        tools:layout="@layout/fragment_experiment_list">
-
-        <action
-            android:id="@+id/action_to_settings"
-            app:destination="@id/settings_fragment"
-            app:popUpTo="@id/experiment_list_fragment">
-        </action>
-
-        <action
-            android:id="@+id/action_to_camera"
-            app:destination="@+id/camera_preview_fragment"
-            app:popUpTo="@id/experiment_list_fragment">
-        </action>
-
     </fragment>
 
     <action

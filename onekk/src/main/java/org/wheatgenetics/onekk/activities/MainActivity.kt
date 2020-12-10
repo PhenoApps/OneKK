@@ -1,6 +1,7 @@
 package org.wheatgenetics.onekk.activities
 
 import android.content.res.Configuration
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
@@ -21,11 +22,11 @@ import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.preference.PreferenceManager
 import com.google.android.material.navigation.NavigationView
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.*
 import org.opencv.android.BaseLoaderCallback
 import org.opencv.android.LoaderCallbackInterface
 import org.opencv.android.OpenCVLoader
+import org.wheatgenetics.imageprocess.DetectWithReferences
 import org.wheatgenetics.onekk.BuildConfig
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.database.OnekkDatabase
@@ -33,14 +34,16 @@ import org.wheatgenetics.onekk.database.OnekkRepository
 import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
 import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.ActivityMainBinding
+import org.wheatgenetics.onekk.fragments.CameraFragment
 import org.wheatgenetics.onekk.fragments.CameraFragmentDirections
 import org.wheatgenetics.utils.ImageProcessingUtil
 import org.wheatgenetics.utils.SnackbarQueue
 import java.io.File
+import java.io.FileOutputStream
 
 typealias LumaListener = (luma: Double) -> Unit
 //typealias BitmapListener = (bmp: Bitmap?, detections: ImageProcessingUtil.Companion.Detections>) -> Unit
-typealias CoinAnalysisListener = (analysis: ImageProcessingUtil.Companion.AnalysisResult) -> Unit
+typealias CoinAnalysisListener = (analysis: DetectWithReferences.Result) -> Unit
 typealias SeedAnalysisListener = (analysis: ImageProcessingUtil.Companion.ContourResult) -> Unit
 
 /**
@@ -114,7 +117,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     private val permissionCheck by lazy {
 
-
         (this as ComponentActivity).registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
 
             setupActivity()
@@ -137,8 +139,10 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     private fun setupDirs() {
 
+        val directory = this.externalMediaDirs[0]
+
         //create separate subdirectory foreach type of import
-        val scans = File(this.externalCacheDir, "Images")
+        val scans = File(directory, "Images")
 
         scans.mkdir()
 

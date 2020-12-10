@@ -1,0 +1,15 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="org.wheatgenetics.onekk.deprecated.ViewDataActivity">
+    <item
+        android:id="@+id/action_flash_enable"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/ic_code_scanner_flash_on"
+        android:title="@string/add"/>
+    <item
+        android:id="@+id/action_import_file"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/ic_nv_import"
+        android:title="@string/add"/>
+</menu>

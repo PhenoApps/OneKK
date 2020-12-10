@@ -9,6 +9,5 @@ data class Contour(
         var area: Double?,
         var minAxis: Double,
         var maxAxis: Double,
-        var isCluster: Boolean?,
         var date: String? = DateUtil().getTime()
 )

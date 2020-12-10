@@ -12,19 +12,12 @@ class OnekkRepository
     private constructor(
             private val dao: OnekkDao, private val coinDao: CoinDao) {
 
-    fun selectAllExperiment() = dao.selectAllExperiment()
-
     fun selectSourceImage(aid: Int) = dao.selectSourceImage(aid)
 
     suspend fun selectAllCountries(): List<String> {
 
         return selectAllCountriesAsync().await()
 
-    }
-
-    suspend fun selectAllCoins(country: String): List<String> {
-
-        return selectAllCoinsAsync(country).await()
     }
 
     suspend fun selectAllCoinModels(country: String): List<CoinEntity> {
@@ -37,16 +30,6 @@ class OnekkRepository
         async {
 
             coinDao.selectAllCoinModels(country)
-
-        }
-
-    }
-
-    private suspend fun selectAllCoinsAsync(country: String): Deferred<List<String>> = withContext(Dispatchers.IO) {
-
-        async {
-
-            coinDao.selectAllCoins(country)
 
         }
 
@@ -100,14 +83,6 @@ class OnekkRepository
         dao.deleteContour(aid, cid)
     }
 
-    suspend fun deleteExperiment(id: Int) = withContext(Dispatchers.IO) {
-        dao.deleteExperiment(id)
-    }
-
-    suspend fun dropExperiment() = withContext(Dispatchers.IO) {
-        dao.dropExperiment()
-    }
-
     suspend fun updateCoinValue(country: String, name: String, value: Double) = withContext(Dispatchers.IO) {
         coinDao.updateCoinValue(CoinEntity(country, value.toString(), name))
     }
@@ -122,10 +97,6 @@ class OnekkRepository
 
     suspend fun insert(country: String, diameter: String, name: String) = withContext(Dispatchers.IO) {
         coinDao.insert(CoinEntity(country, diameter, name))
-    }
-
-    suspend fun insert(exp: ExperimentEntity) = withContext(Dispatchers.IO) {
-        dao.insert(exp)
     }
 
     suspend fun insert(img: ImageEntity) = withContext(Dispatchers.IO) {

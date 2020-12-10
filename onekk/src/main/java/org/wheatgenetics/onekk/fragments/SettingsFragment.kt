@@ -64,15 +64,6 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
-//        /**
-//         * Ensure that the diameter preference is positive and can be represented as a Double.
-//         */
-//        findPreference<EditTextPreference>("org.wheatgenetics.onekk.REFERENCE_DIAMETER")?.setOnPreferenceChangeListener { preference, newValue ->
-//
-//            newValue?.toString()?.toDoubleOrNull()?.absoluteValue != null
-//
-//        }
-
         val countryPreference = findPreference<ListPreference>("org.wheatgenetics.onekk.REFERENCE_COUNTRY")
         val namePreference = findPreference<ListPreference>("org.wheatgenetics.onekk.REFERENCE_NAME")
 
@@ -145,18 +136,21 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
 
         val namePreference = findPreference<ListPreference>("org.wheatgenetics.onekk.REFERENCE_NAME")
 
-        viewModel.coins(name).observeForever { coinNames ->
+        viewModel.coinModels(name).observeForever { coins ->
 
-            namePreference?.entries = coinNames.toTypedArray()
-            namePreference?.entryValues = coinNames.toTypedArray()
+            val names = coins.map { it.name }
+            namePreference?.entries = names.toTypedArray()
+            namePreference?.entryValues = names.toTypedArray()
 
             namePreference?.setOnPreferenceChangeListener { preference, newValue ->
 
-                val coinName = (newValue as? String) ?: "USA"
+                val coinName = (newValue as? String) ?: "25 cents"
 
                 namePreference.summary = coinName
 
-                mPreferences.edit().putString(getString(R.string.onekk_coin_pref_key), coinName).apply()
+                val coinDiameter = coins.find { it.name == coinName }?.diameter ?: "24.26"
+
+                mPreferences.edit().putString(getString(R.string.onekk_coin_pref_key), coinDiameter).apply()
 
                 true
 

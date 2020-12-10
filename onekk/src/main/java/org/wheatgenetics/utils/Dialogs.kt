@@ -2,20 +2,11 @@ package org.wheatgenetics.utils
 
 import android.app.Activity
 import android.bluetooth.BluetoothDevice
-import android.content.Context
-import android.content.DialogInterface
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.net.Uri
-import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
-import org.wheatgenetics.imageprocess.EnhancedWatershed
-import org.wheatgenetics.imageprocess.renderscript.ExampleRenderScript
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.databinding.DialogCoinRecognitionBinding
-import org.wheatgenetics.onekk.interfaces.DeviceDiscoveredListener
-import java.util.*
 
 class Dialogs {
 

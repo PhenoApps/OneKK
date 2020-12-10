@@ -23,14 +23,16 @@ import org.wheatgenetics.utils.ImageProcessingUtil.Companion.toMatOfPoint2f
 
 class DrawSelectedContour {
 
+    private val boundary = 256
+
     private val sSelectedColor = Scalar(0.0, 255.0, 0.0)
 
     private fun process(original: Mat, x: Double, y: Double, minAxis: Double, maxAxis: Double): Bitmap {
 
         //original image, center point, radius, perimeter color, perimeter draw thickness
-        Imgproc.circle(original, Point(x,y), maxAxis.toInt(), sSelectedColor, 5)
+        Imgproc.circle(original, Point(x,y), boundary/2, sSelectedColor, 5)
 
-        return Mat(original, Rect(x.toInt()-minAxis.toInt()*2, y.toInt()-minAxis.toInt()*2, minAxis.toInt()+minAxis.toInt()*2, minAxis.toInt()+minAxis.toInt()*2)).toBitmap()
+        return Mat(original, Rect(x.toInt()-boundary/2, y.toInt()-boundary/2, boundary, boundary)).toBitmap()
 
     }
 

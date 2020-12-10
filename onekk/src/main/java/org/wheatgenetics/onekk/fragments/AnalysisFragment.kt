@@ -7,18 +7,13 @@ import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.adapters.AnalysisAdapter
 import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
-import org.wheatgenetics.onekk.database.models.ExperimentEntity
-import org.wheatgenetics.onekk.database.models.embedded.Experiment
-import org.wheatgenetics.onekk.database.viewmodels.AnalysisViewModel
 import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
 import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentAnalysisBinding
@@ -51,11 +46,11 @@ class AnalysisFragment : Fragment(), CoroutineScope by MainScope() {
             this?.recyclerView?.adapter = adapter
             this?.recyclerView?.layoutManager = LinearLayoutManager(requireContext())
 
-            viewModel.analysis(ExperimentEntity(Experiment("Test"), 1))
-                    .observe(viewLifecycleOwner, {
-
-                        adapter.submitList(it)
-                    })
+//            viewModel.analysis(ExperimentEntity(Experiment("Test"), 1))
+//                    .observe(viewLifecycleOwner, {
+//
+//                        adapter.submitList(it)
+//                    })
         }
 
         return mBinding?.root
