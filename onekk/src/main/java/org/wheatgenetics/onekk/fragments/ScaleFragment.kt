@@ -1,7 +1,10 @@
 package org.wheatgenetics.onekk.fragments
 
 import android.content.Context.MODE_PRIVATE
+import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.*
 import android.widget.TextView
@@ -11,6 +14,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.polidea.rxandroidble2.helpers.ValueInterpreter
+import kotlinx.android.synthetic.main.fragment_contour_list.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import org.wheatgenetics.onekk.R
@@ -21,9 +25,12 @@ import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentScaleBinding
 import org.wheatgenetics.onekk.interfaces.BleNotificationListener
 import org.wheatgenetics.utils.BluetoothUtil
+import java.lang.IllegalStateException
+import java.lang.IndexOutOfBoundsException
 import java.util.*
+import kotlin.properties.Delegates
 
-
+//TODO rework scale message queue / handler
 /**
  * This fragment was developed under the guidance of the following reference:
  * https://developer.android.com/guide/topics/connectivity/bluetooth-le
@@ -39,7 +46,7 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
         }
     }
 
-    private val mScaleQueue = ArrayList<String>()
+    private var aid by Delegates.notNull<Int>()
 
     private val mPreferences by lazy {
         requireContext().getSharedPreferences(getString(R.string.onekk_preference_key), MODE_PRIVATE)
@@ -69,20 +76,29 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
 
     private var mBinding: FragmentScaleBinding? = null
 
+
     /**
      * The interface implementation which is sent to setupDeviceComms
      * This will read any notification that is received from the device.
      */
     override fun onNotification(bytes: ByteArray) {
 
-        startScaleTextUpdaterUi()
-
         val stringResult = ValueInterpreter.getStringValue(bytes, 0)
 
         if (stringResult.isNotBlank()) {
 
-            mScaleQueue.add(stringResult)
+            scaleTextUpdateUi(stringResult)
+
         }
+
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        aid = requireArguments().getInt("analysis", -1)
+
+        startMacAddressSearch()
 
     }
 
@@ -93,14 +109,27 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
 
         with(mBinding) {
 
-//            viewModel.analysis(ExperimentEntity(Experiment("Test"), 1))
-//                    .observe(viewLifecycleOwner, {
-//
-//                        mBinding?.imageView?.setImageBitmap(it.first())
-//
-//                    })
+            this?.scaleCaptureButton?.setOnClickListener {
+
+                viewModel.updateAnalysisWeight(aid, this.scaleEditText.text?.toString()?.toDoubleOrNull())
+
+                findNavController().navigate(ScaleFragmentDirections.actionToCamera())
+            }
+
+            viewModel.getSourceImage(aid).observeForever { url ->
+
+                imageView?.setImageBitmap(BitmapFactory.decodeFile(url))
+
+            }
 
         }
+
+        setHasOptionsMenu(true)
+
+        return mBinding?.root
+    }
+
+    private fun startMacAddressSearch() {
 
         val macAddress = mPreferences.getString(getString(R.string.preferences_enable_bluetooth_key), null)
 
@@ -116,10 +145,6 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
             findNavController().navigate(ScaleFragmentDirections.actionToSettings())
 
         }
-
-        setHasOptionsMenu(true)
-
-        return mBinding?.root
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -139,7 +164,7 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
 
                 R.id.action_print -> {
 
-                    Log.d(TAG, "BluetoothLe scanning initiated.")
+                    startMacAddressSearch()
 
                 }
                 else -> null
@@ -161,37 +186,22 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
 
     /**
      * Function that updates the scale measurement UI which can be called from other threads.
-     *
-     *
      */
     //TODO: use ohaus commands to format the output text to not include newlines.
-    private fun scaleTextUpdateUi(value: String) = with(requireActivity()) {
+    private fun scaleTextUpdateUi(value: String) {
 
-        runOnUiThread {
-            findViewById<TextView>(R.id.scaleEditText)
-                    .text = value.replace("\n", "")
+        activity?.let {
+
+            it.runOnUiThread {
+
+                it.findViewById<TextView>(R.id.scaleEditText)?.text = formatWeightText(value)
+
+            }
         }
     }
 
+    private fun formatWeightText(text: String): String = text.replace("\n", "")
+            .split("g")[0]
+            .replace(" ", "")
 
-    /**
-     * Function that schedules the scale message queue to be consumed and displayed to the UI.
-     */
-    private fun startScaleTextUpdaterUi() {
-
-        Timer().scheduleAtFixedRate(object : TimerTask() {
-
-            override fun run() {
-
-                if (mScaleQueue.isNotEmpty()) {
-
-                    val nextWeightValue = mScaleQueue.removeAt(0)
-
-                    scaleTextUpdateUi(nextWeightValue)
-                }
-
-            }
-
-        }, 0L, 500L)
-    }
 }

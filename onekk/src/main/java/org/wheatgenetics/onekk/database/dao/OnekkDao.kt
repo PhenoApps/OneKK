@@ -14,6 +14,9 @@ interface OnekkDao {
     @Query("SELECT url FROM image WHERE aid = :aid LIMIT 1")
     fun selectSourceImage(aid: Int): LiveData<String>
 
+    @Query("SELECT * FROM analysis WHERE aid = :aid LIMIT 1")
+    fun getAnalysis(aid: Int): LiveData<AnalysisEntity>
+
     @Query("SELECT * FROM image WHERE aid = :aid")
     suspend fun selectAllAnalysis(aid: Int): List<ImageEntity>
 
@@ -24,6 +27,8 @@ interface OnekkDao {
     @Query("UPDATE contour SET selected = :selected WHERE aid = :aid AND cid = :cid")
     suspend fun switchSelectedContour(aid: Int, cid: Int, selected: Boolean)
 
+    @Query("UPDATE analysis SET weight = :weight WHERE aid = :aid")
+    suspend fun updateAnalysisWeight(aid: Int, weight: Double?)
     /** Inserts **/
 
     @Insert
@@ -36,7 +41,6 @@ interface OnekkDao {
     /**
      * Deletes
      */
-
     @Query("DELETE FROM contour WHERE aid = :aid AND cid = :cid")
     suspend fun deleteContour(aid: Int, cid: Int)
 

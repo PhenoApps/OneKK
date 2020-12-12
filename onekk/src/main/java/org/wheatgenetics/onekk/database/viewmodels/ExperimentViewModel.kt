@@ -26,6 +26,10 @@ class ExperimentViewModel(
         repo.updateCoinValue(country, name, value)
     }
 
+    fun updateAnalysisWeight(aid: Int, weight: Double?) = viewModelScope.launch {
+        repo.updateAnalysisWeight(aid, weight)
+    }
+
     fun clearAll() = viewModelScope.launch {
 
     }
@@ -61,6 +65,8 @@ class ExperimentViewModel(
     suspend fun switchSelectedContour(aid: Int, id: Int, choice: Boolean) = repo.switchSelectedContour(aid, id, choice)
 
     fun getSourceImage(aid: Int) = repo.selectSourceImage(aid)
+
+    fun getAnalysis(aid: Int) = repo.getAnalysis(aid)
 
     suspend fun insert(analysis: AnalysisEntity): Long = viewModelScope.async {
         return@async repo.insert(analysis)

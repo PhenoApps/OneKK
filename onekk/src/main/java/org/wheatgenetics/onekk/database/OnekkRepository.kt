@@ -14,6 +14,8 @@ class OnekkRepository
 
     fun selectSourceImage(aid: Int) = dao.selectSourceImage(aid)
 
+    fun getAnalysis(aid: Int) = dao.getAnalysis(aid)
+
     suspend fun selectAllCountries(): List<String> {
 
         return selectAllCountriesAsync().await()
@@ -85,6 +87,10 @@ class OnekkRepository
 
     suspend fun updateCoinValue(country: String, name: String, value: Double) = withContext(Dispatchers.IO) {
         coinDao.updateCoinValue(CoinEntity(country, value.toString(), name))
+    }
+
+    suspend fun updateAnalysisWeight(aid: Int, weight: Double?) = withContext(Dispatchers.IO) {
+        dao.updateAnalysisWeight(aid, weight)
     }
 
     suspend fun insert(contour: ContourEntity) = withContext(Dispatchers.IO) {

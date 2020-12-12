@@ -109,6 +109,24 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
             }
         }
 
+        findPreference<Preference>("org.wheatgenetics.onekk.DISPLAY_ANALYSIS")!!
+                .setOnPreferenceChangeListener { preference, newValue ->
+                    mPreferences.edit().apply {
+                        putBoolean("org.wheatgenetics.onekk.DISPLAY_ANALYSIS", (newValue as? Boolean) ?: true)
+                    }.apply()
+
+                    true
+                }
+
+        findPreference<Preference>("org.wheatgenetics.onekk.SCALE_STEPS")!!
+                .setOnPreferenceChangeListener { preference, newValue ->
+                    mPreferences.edit().apply {
+                        putString("org.wheatgenetics.onekk.SCALE_STEPS", (newValue as? String) ?: "1")
+                    }.apply()
+
+                    true
+                }
+
         //crash if this is called before this preference is created
         findPreference<Preference>(getString(R.string.preferences_enable_bluetooth_key))!!
                 .setOnPreferenceClickListener {

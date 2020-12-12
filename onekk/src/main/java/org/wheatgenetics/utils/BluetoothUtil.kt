@@ -15,8 +15,10 @@ import com.polidea.rxandroidble2.scan.ScanSettings
 import io.reactivex.Observable
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
+import kotlinx.android.synthetic.main.camera_preview_fragment.view.*
 import org.wheatgenetics.onekk.fragments.ScaleFragment
 import org.wheatgenetics.onekk.interfaces.BleNotificationListener
+import org.wheatgenetics.onekk.interfaces.BleStateListener
 import org.wheatgenetics.onekk.interfaces.DeviceDiscoveredListener
 import java.util.*
 
@@ -33,13 +35,22 @@ class BluetoothUtil(private val context: Context) {
 
     private var stateDisposable: Disposable? = null
 
-    init {
+    private var writeDisposable: Disposable? = null
 
-        stateDisposable = client.observeStateChanges()
-                .doOnNext {  }
-                .subscribe {
-                    println("State ${it.name}")
-                }
+    fun deviceStateListener(listener: BleStateListener) {
+
+        try {
+            stateDisposable?.dispose()
+
+            stateDisposable = client.observeStateChanges()
+                    .doOnNext { }
+                    .doOnError { }
+                    .subscribe({
+                        listener.onStateChanged(it)
+                    }) { error -> error.printStackTrace() }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     /**
@@ -58,31 +69,42 @@ class BluetoothUtil(private val context: Context) {
         //ohaus defined GATT characteristic id that has the notify property
         val uuid = UUID.fromString("2456e1b9-26e2-8f83-e744-f34f01e9d703")
 
-        //destroy any previous disposable before recreating
-        notificationDisposable?.dispose()
+        try {
+            //destroy any previous disposable before recreating
+            notificationDisposable?.dispose()
 
-        notificationDisposable = connection.setupNotification(uuid)
-                .doOnNext { _ ->
-                    //println("Notifications setup.")
-                }
-                .flatMap { x -> x }
-                .subscribeOn(Schedulers.newThread())
-                .subscribe({ bytes ->
+            notificationDisposable = connection.setupNotification(uuid)
+                    .doOnNext { _ ->
+                        //println("Notifications setup.")
+                    }
+                    .doOnError {  }
+                    .flatMap { x -> x }
+                    .subscribeOn(Schedulers.newThread())
+                    .doOnError {
 
-                    listener.onNotification(bytes)
+                    }
+                    .subscribe({ bytes ->
 
-                })
-                { error -> error.printStackTrace() }
+                        listener.onNotification(bytes)
 
-        //ohaus commands https://www.novatech-usa.com/pdf/Ohaus%2030296497%20Bluetooth%20Interface%20Manual.pdf
+                    })
+                    { error -> error.printStackTrace() }
 
-        //writes a single characteristic, in this case CP which is continuous print
-        val writeDisposable = connection.writeCharacteristic(uuid, "CP\r\n".toByteArray())
-                .subscribe({ success ->
+            //ohaus commands https://www.novatech-usa.com/pdf/Ohaus%2030296497%20Bluetooth%20Interface%20Manual.pdf
 
-                    //    println("$success")
-                }) { error -> error.printStackTrace() }
 
+            //writes a single characteristic, in this case CP which is continuous print
+            writeDisposable?.dispose()
+
+            writeDisposable = connection.writeCharacteristic(uuid, "CP\r\n".toByteArray())
+                    .doOnError { }
+                    .subscribe({ success ->
+
+                        //    println("$success")
+                    }) { error -> error.printStackTrace() }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
 
     }
 
@@ -95,33 +117,41 @@ class BluetoothUtil(private val context: Context) {
 
         var device: RxBleDevice? = null
 
-        scanDisposable?.dispose()
+        try {
+            scanDisposable?.dispose()
 
-        scanDisposable = client.scanBleDevices(ScanSettings.Builder().build(),
-            ScanFilter.Builder()
-                    .setDeviceAddress(address)
-                    .setServiceUuid(ParcelUuid.fromString(ScaleFragment.OHAUS_BLUETOOTH_GATT_SERVICE_UUID)).build())
-            .switchMap { scan ->
+            scanDisposable = client.scanBleDevices(ScanSettings.Builder().build(),
+                    ScanFilter.Builder()
+                            .setDeviceAddress(address)
+                            .setServiceUuid(ParcelUuid.fromString(ScaleFragment.OHAUS_BLUETOOTH_GATT_SERVICE_UUID)).build())
+                    .doOnError {  }
+                    .switchMap { scan ->
 
-                device = scan?.bleDevice
+                        device = scan?.bleDevice
 
-                scan?.bleDevice?.establishConnection(false)
+                        scan?.bleDevice?.establishConnection(false)
 
-            }
-            .subscribe({ success ->
+                    }
+                    .doOnError { }
+                    .subscribe({ success ->
 
-                setupDeviceComms(listener, device, success)
+                        setupDeviceComms(listener, device, success)
 
-            }) { error -> error.printStackTrace() }
+                    }) { error -> error.printStackTrace() }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
 
     }
 
     fun observeBleDevices(listener: DeviceDiscoveredListener) {
 
-        stateDisposable?.dispose()
-
         try {
+
+            stateDisposable?.dispose()
+
             stateDisposable = client.scanBleDevices(ScanSettings.Builder().build(), ScanFilter.empty())
+                    .doOnError {  }
                     .subscribe({
                         listener.onDiscovered(it.bleDevice.bluetoothDevice)
                     }) { error -> error.printStackTrace() }
@@ -130,7 +160,6 @@ class BluetoothUtil(private val context: Context) {
         }
     }
 
-
     fun dispose() {
 
         scanDisposable?.dispose()
@@ -138,6 +167,8 @@ class BluetoothUtil(private val context: Context) {
         notificationDisposable?.dispose()
 
         stateDisposable?.dispose()
+
+        writeDisposable?.dispose()
 
     }
 }

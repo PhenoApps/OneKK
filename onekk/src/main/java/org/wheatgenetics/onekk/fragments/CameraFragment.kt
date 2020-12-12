@@ -5,10 +5,14 @@ import android.content.Context
 import android.graphics.*
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.DisplayMetrics
 import android.util.Log
 import android.util.Size
 import android.view.*
+import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.camera.core.*
@@ -20,6 +24,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.fragment.findNavController
+import com.polidea.rxandroidble2.RxBleClient
+import com.polidea.rxandroidble2.helpers.ValueInterpreter
 import kotlinx.android.synthetic.main.fragment_image.view.*
 import kotlinx.coroutines.*
 import org.wheatgenetics.imageprocess.DetectWithReferences
@@ -36,11 +42,15 @@ import org.wheatgenetics.onekk.database.models.embedded.Image
 import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
 import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentCameraBinding
+import org.wheatgenetics.onekk.interfaces.BleNotificationListener
+import org.wheatgenetics.onekk.interfaces.BleStateListener
+import org.wheatgenetics.utils.BluetoothUtil
 import org.wheatgenetics.utils.DateUtil
 import org.wheatgenetics.utils.Dialogs
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.lang.IllegalStateException
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -55,7 +65,7 @@ import java.util.concurrent.TimeUnit
  * will enable the camera capture button. The camera capture button switches the analysis to the
  * Seed Analyzer, which requires the source image of the coin recognition task.
  */
-class CameraFragment : Fragment(), CoroutineScope by MainScope() {
+class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, CoroutineScope by MainScope() {
 
     private val db by lazy {
         OnekkDatabase.getInstance(requireContext())
@@ -69,8 +79,16 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
         requireContext().getSharedPreferences(getString(R.string.onekk_preference_key), Context.MODE_PRIVATE)
     }
 
+    private val mBluetoothManager by lazy {
+        BluetoothUtil(requireContext()).also {
+//            it.deviceStateListener(this)
+        }
+    }
+
     private lateinit var outputDirectory: File
     private lateinit var cameraExecutor: ExecutorService
+
+    private var mCamera: Camera? = null
 
     private var mBinding: FragmentCameraBinding? = null
 
@@ -143,6 +161,11 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
 
         with(mBinding) {
 
+            this?.weightEditText?.visibility = when(mPreferences.getString("org.wheatgenetics.onekk.SCALE_STEPS", "1")) {
+                "1" -> View.VISIBLE
+                else -> View.GONE
+            }
+
             getOutputDirectory()?.let { output ->
 
                 outputDirectory = output
@@ -159,9 +182,70 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
             }
         }
 
+        startMacAddressSearch()
+
         setHasOptionsMenu(true)
 
         return mBinding?.root
+    }
+
+    private fun startMacAddressSearch() {
+
+        val macAddress = mPreferences.getString(getString(R.string.preferences_enable_bluetooth_key), null)
+
+        if (macAddress != null) {
+
+            BluetoothUtil(requireContext()).establishConnectionToAddress(this, macAddress)
+
+        } else {
+
+            //TODO: Instead of moving to Settings, the service can be automatically found (if it's available)
+            //Toast.makeText(requireContext(), getString(R.string.frag_scale_no_mac_address_found_message), Toast.LENGTH_LONG).show()
+
+            //findNavController().navigate(ScaleFragmentDirections.actionToSettings())
+
+        }
+    }
+
+    /**
+     * The interface implementation which is sent to setupDeviceComms
+     * This will read any notification that is received from the device.
+     */
+    override fun onNotification(bytes: ByteArray) {
+
+        val stringResult = ValueInterpreter.getStringValue(bytes, 0)
+
+        if (stringResult.isNotBlank()) {
+
+            scaleTextUpdateUi(stringResult)
+
+        }
+    }
+
+    /**
+     * Disposables are destroyed so BLE connections are lost when the app is sent to background.
+     */
+    override fun onPause() {
+        super.onPause()
+
+        mBluetoothManager.dispose()
+
+    }
+
+    /**
+     * Function that updates the scale measurement UI which can be called from other threads.
+     */
+    //TODO: use ohaus commands to format the output text to not include newlines.
+    private fun scaleTextUpdateUi(value: String) = with(requireActivity()) {
+
+        //format the result
+        val weight = value.replace("\n", "").split("g")[0].replace(" ", "")
+
+        runOnUiThread {
+
+            findViewById<TextView>(R.id.weightEditText)?.text = weight
+
+        }
     }
 
     //externalMediaDirs pictures are located in /storage/primary/Android/media/org.wheatgenetics.onekk/OneKK
@@ -177,6 +261,8 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
     override fun onDestroy() {
 
         super.onDestroy()
+
+        mBluetoothManager.dispose()
 
         stopCameraAnalysis()
 
@@ -214,8 +300,8 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
                             it.setSurfaceProvider(mBinding?.viewFinder?.createSurfaceProvider())
                         }
 
-                val imageAnalyzer = ImageAnalysis.Builder()
-                        .setTargetResolution(metrics)
+                var imageAnalyzer = ImageAnalysis.Builder()
+                        .setTargetResolution(Size(1080, 1920)) //metrics)
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .build()
                         .also {
@@ -309,8 +395,6 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
         }
     }
 
-    private var mCamera: Camera? = null
-
     /**
      * Sets up auto focus and tap-to-focus functionality for the current camera instance.
      * https://stackoverflow.com/questions/58159891/how-to-auto-focus-with-android-camerax
@@ -352,20 +436,26 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
                             val src = result.src
                             val dst = result.dst
 
-                            Dialogs.askAcceptableImage(
-                                    activity,
-                                    AlertDialog.Builder(activity),
-                                    getString(R.string.ask_coin_recognition_ok),
-                                    srcBitmap = src, dstBitmap = dst, { success ->
+                            if (mPreferences.getBoolean("org.wheatgenetics.onekk.DISPLAY_ANALYSIS", true)) {
+
+                                Dialogs.askAcceptableImage(
+                                        activity,
+                                        AlertDialog.Builder(activity),
+                                        getString(R.string.ask_coin_recognition_ok),
+                                        srcBitmap = src, dstBitmap = dst, { success ->
+
+                                    savePipelineToDatabase(result)
+
+                                    isShowingDialog = false
+
+                                }) {
+
+                                    isShowingDialog = false
+
+                                }
+                            } else {
 
                                 savePipelineToDatabase(result)
-
-                                isShowingDialog = false
-
-                            }) {
-
-                                isShowingDialog = false
-
                             }
                         }
                     }
@@ -434,7 +524,12 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
 
         launch {
 
-            val rowid = viewModel.insert(AnalysisEntity()).toInt()
+            val weight = when(mPreferences.getString("org.wheatgenetics.onekk.SCALE_STEPS", "1")) {
+                "1" -> mBinding?.weightEditText?.text?.toString()?.toDoubleOrNull()
+                else -> null
+            }
+
+            val rowid = viewModel.insert(AnalysisEntity(weight = weight)).toInt()
 
             with(viewModel) {
 
@@ -466,6 +561,24 @@ class CameraFragment : Fragment(), CoroutineScope by MainScope() {
 
                 findNavController().navigate(CameraFragmentDirections.actionToContours(rowid))
 
+            }
+        }
+    }
+
+    override fun onStateChanged(state: RxBleClient.State) {
+
+        when (state) {
+
+            RxBleClient.State.READY -> {
+
+                startMacAddressSearch()
+
+            }
+
+            else -> {
+
+                //display a message if bt disconnects
+                mBluetoothManager.dispose()
             }
         }
     }

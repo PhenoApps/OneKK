@@ -302,5 +302,6 @@
     <string name="frag_contour_list_cluster_manual_count_hint">Enter manual count</string>
     <string name="none">None</string>
     <string name="menu_action_to_process_file">Process File</string>
+    <string name="weight_input_hint">Weight: </string>
 
 </resources>

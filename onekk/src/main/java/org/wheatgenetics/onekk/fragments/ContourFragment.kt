@@ -9,6 +9,8 @@ import androidx.appcompat.view.ContextThemeWrapper
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -70,11 +72,17 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
                 imageView?.setImageBitmap(BitmapFactory.decodeFile(mSourceBitmap))
             }
 
+            sViewModel.contours(aid).observeForever { contours ->
+
+                val count = contours.filter { it.selected }.mapNotNull { it.contour?.count }.reduceRight { x, y ->  y + x }
+
+                submitButton?.text = "${getString(R.string.frag_contour_list_total)} $count"
+
+            }
+
             return ui.root
 
         }
-
-        updateTotal()
 
         setHasOptionsMenu(true)
 
@@ -140,7 +148,18 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
         submitButton.setOnClickListener {
 
+            sViewModel.getAnalysis(aid).observe(viewLifecycleOwner, {
 
+                if (it.weight == null) {
+
+                    findNavController().navigate(ContourFragmentDirections.actionToScale(aid))
+
+                } else {
+
+                    findNavController().navigate(ContourFragmentDirections.actionToCamera())
+
+                }
+            })
         }
     }
 

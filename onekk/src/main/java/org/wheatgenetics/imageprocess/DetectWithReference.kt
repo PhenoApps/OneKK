@@ -1,6 +1,7 @@
 package org.wheatgenetics.imageprocess
 
 import android.graphics.Bitmap
+import androidx.camera.core.internal.utils.ImageUtil
 import org.opencv.android.Utils
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
@@ -19,6 +20,11 @@ class DetectWithReferences(private val coinReferenceDiameter: Double) {
     data class Result(val src: Bitmap, val dst: Bitmap, val contours: List<Contour>)
 
     private fun process(original: Mat): Result {
+
+        //upscale small images
+        while (original.height() <= 1920) {
+            Imgproc.pyrUp(original, original)
+        }
 
         val imageWidth = original.width().toDouble()
         val imageHeight = original.height().toDouble()
@@ -80,6 +86,7 @@ class DetectWithReferences(private val coinReferenceDiameter: Double) {
 
             val area = (Imgproc.contourArea(it))
 
+            //interquartile threshing
             if (area > reducedAreas.first && area < reducedAreas.second) {
 
                 Imgproc.drawContours(dst, listOf(it), -1, Scalar(255.0, 0.0, 255.0, 255.0), -1)
@@ -113,6 +120,7 @@ class DetectWithReferences(private val coinReferenceDiameter: Double) {
 
             val area = Imgproc.contourArea(it)
 
+            //reminder: min/max axis is not accurate for clusters
             val (minAxis, maxAxis) = axisEstimates[it] ?: 0.0 to 0.0
 
             Contour(center.x, center.y, minAxis, maxAxis, area, (area / avgArea).roundToInt())

@@ -46,22 +46,9 @@
             android:entries="@array/scale_steps"
             android:entryValues="@array/scale_steps_values"
             android:icon="@drawable/ic_usb"
-            android:key="scale_steps"
+            android:key="org.wheatgenetics.onekk.SCALE_STEPS"
             android:title="Choose scale steps" />
 
-        <SeekBarPreference
-            android:defaultValue="100"
-            android:key="org.wheatgenetics.onekk.MIN_SEED_VALUE"
-            android:max="5000"
-            android:summary="Minimum seed size (Optional)"
-            android:title="@string/min_size" />
-
-        <SeekBarPreference
-            android:defaultValue="100"
-            android:key="org.wheatgenetics.onekk.MAX_SEED_VALUE"
-            android:max="5000"
-            android:summary="Maximum seed size (Optional)"
-            android:title="@string/max_size" />
     </PreferenceCategory>
 
 </PreferenceScreen>
