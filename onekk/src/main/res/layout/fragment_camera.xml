@@ -22,6 +22,20 @@
             android:elevation="5dp"
             android:contentDescription="TODO" />
 
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:visibility="gone"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_margin="16dp"
+            android:scaleType="fitCenter"
+            android:background="@drawable/cell"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/weightEditText"
+            android:elevation="5dp"
+            android:contentDescription="TODO" />
+
         <androidx.camera.view.PreviewView
             android:visibility="visible"
             android:id="@+id/viewFinder"

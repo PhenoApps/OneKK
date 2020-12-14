@@ -54,13 +54,7 @@ class ExperimentViewModel(
 
     }
 
-    fun contours(aid: Int) = liveData {
-
-        val result = repo.selectAllContours(aid)
-
-        emit(result)
-
-    }
+    fun contours(aid: Int) = repo.selectAllContours(aid)
 
     suspend fun switchSelectedContour(aid: Int, id: Int, choice: Boolean) = repo.switchSelectedContour(aid, id, choice)
 

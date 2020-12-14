@@ -21,7 +21,7 @@ interface OnekkDao {
     suspend fun selectAllAnalysis(aid: Int): List<ImageEntity>
 
     @Query("SELECT * FROM contour WHERE aid = :aid")
-    suspend fun selectAllContours(aid: Int): List<ContourEntity>
+    fun selectAllContours(aid: Int): LiveData<List<ContourEntity>>
 
     /** Updates **/
     @Query("UPDATE contour SET selected = :selected WHERE aid = :aid AND cid = :cid")

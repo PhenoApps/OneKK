@@ -3,6 +3,7 @@ package org.wheatgenetics.onekk.fragments
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.os.Handler
 import android.view.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.view.ContextThemeWrapper
@@ -14,6 +15,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.fragment_contour_list.*
 import kotlinx.coroutines.*
 import org.opencv.core.CvException
@@ -44,7 +46,7 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
     private var mSourceBitmap: String? = null
     private var aid by Delegates.notNull<Int>()
-
+    private var mSortState: Boolean = true
     private var mBinding: FragmentContourListBinding? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -59,32 +61,42 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
         mBinding?.let { ui ->
 
+            setHasOptionsMenu(true)
+
             ui.setupRecyclerView(aid)
 
             ui.setupButtons()
 
             updateUi(aid)
 
-            sViewModel.getSourceImage(aid).observeForever { url ->
+            sViewModel.getSourceImage(aid).observeForever { uri ->
 
-                mSourceBitmap = url
+                mSourceBitmap = uri
 
-                imageView?.setImageBitmap(BitmapFactory.decodeFile(mSourceBitmap))
+                Glide.with(requireContext()).asBitmap().load(uri).fitCenter().into(imageView)
+                //imageView?.setImageBitmap(BitmapFactory.decodeFile(mSourceBitmap))
+
+                imageView?.visibility = View.VISIBLE
+
+                imageLoadingTextView.visibility = View.GONE
             }
+
+            submitButton?.text = getString(R.string.frag_contour_list_button_loading)
 
             sViewModel.contours(aid).observeForever { contours ->
 
-                val count = contours.filter { it.selected }.mapNotNull { it.contour?.count }.reduceRight { x, y ->  y + x }
+                if (contours.isNotEmpty()) {
 
-                submitButton?.text = "${getString(R.string.frag_contour_list_total)} $count"
+                    val count = contours.filter { it.selected }.mapNotNull { it.contour?.count }.reduceRight { x, y ->  y + x }
 
+                    submitButton?.text = "${getString(R.string.frag_contour_list_total)} $count"
+
+                }
             }
 
             return ui.root
 
         }
-
-        setHasOptionsMenu(true)
 
         return null
     }
@@ -165,85 +177,55 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
     private fun FragmentContourListBinding.setupRecyclerView(aid: Int) {
 
-        singleSeedListView?.layoutManager = LinearLayoutManager(requireContext())
+        recyclerView?.layoutManager = LinearLayoutManager(requireContext())
 
-        singleSeedListView?.adapter = ContourAdapter(this@ContourFragment, requireContext())
+        recyclerView?.adapter = ContourAdapter(this@ContourFragment, requireContext())
 
-        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
+    }
 
-            override fun onMove(recyclerView: RecyclerView,
-                                viewHolder: RecyclerView.ViewHolder,
-                                target: RecyclerView.ViewHolder): Boolean {
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
 
-                return false
+        super.onCreateOptionsMenu(menu, inflater)
 
-            }
+        inflater.inflate(R.menu.menu_contour_view, menu)
+    }
 
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
 
-                Dialogs.onOk(AlertDialog.Builder(requireContext()),
-                        getString(R.string.ask_delete_experiment),
-                        getString(R.string.cancel),
-                        getString(R.string.ok)) {
+        when (item.itemId) {
 
-                    if (it) {
+            //toggle the torch when the option is clicked
+            R.id.action_sort -> {
 
-                        val cid = viewHolder.itemView.tag as Int
+                item.setIcon(when (mSortState) {
 
-                        launch {
+                    //ascending order by area, switch to descending
+                    true -> {
 
-                            sViewModel.deleteContour(aid, cid)
+                        mSortState = false
 
-                            updateUi(aid)
-                        }
+                        R.drawable.ic_sort_variant
 
                     }
 
-                    singleSeedListView?.adapter?.notifyItemChanged(viewHolder.adapterPosition)
-                }
-            }
+                    //descending to ascending
+                    else -> {
 
-        }).attachToRecyclerView(singleSeedListView)
+                        mSortState = true
 
-        clusterListView?.layoutManager = LinearLayoutManager(requireContext())
-
-        clusterListView?.adapter = ContourAdapter(this@ContourFragment, requireContext())
-
-        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
-
-            override fun onMove(recyclerView: RecyclerView,
-                                viewHolder: RecyclerView.ViewHolder,
-                                target: RecyclerView.ViewHolder): Boolean {
-
-                return false
-
-            }
-
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-
-                Dialogs.onOk(AlertDialog.Builder(requireContext()),
-                        getString(R.string.ask_delete_experiment),
-                        getString(R.string.cancel),
-                        getString(R.string.ok)) {
-
-                    if (it) {
-
-                        val cid = viewHolder.itemView.tag as Int
-
-                        launch {
-
-                            sViewModel.deleteContour(aid, cid)
-
-                            updateUi(aid)
-                        }
+                        R.drawable.ic_sort_reverse_variant
 
                     }
+                })
 
-                    clusterListView?.adapter?.notifyItemChanged(viewHolder.adapterPosition)
-                }
             }
 
-        }).attachToRecyclerView(clusterListView)
+            else -> return super.onOptionsItemSelected(item)
+        }
+
+        updateUi(aid)
+
+        return true
     }
 
     private fun updateUi(aid: Int) {
@@ -254,11 +236,17 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
             val clusters = it.filter { it.contour?.count ?: 0 > 1 }
 
-            (mBinding?.singleSeedListView?.adapter as? ContourAdapter)
-                    ?.submitList(singles)
+            val contours = when(mSortState) {
+                true -> (singles + clusters).sortedBy { it.contour?.area }
+                else -> (singles + clusters).sortedByDescending { it.contour?.area }
+            }
 
-            (mBinding?.clusterListView?.adapter as? ContourAdapter)
-                    ?.submitList(clusters)
+            (mBinding?.recyclerView?.adapter as? ContourAdapter)
+                    ?.submitList(contours)
         }
+
+        Handler().postDelayed({
+            mBinding?.recyclerView?.scrollToPosition(0)
+        }, 500)
     }
 }

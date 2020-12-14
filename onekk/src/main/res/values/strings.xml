@@ -303,5 +303,8 @@
     <string name="none">None</string>
     <string name="menu_action_to_process_file">Process File</string>
     <string name="weight_input_hint">Weight: </string>
+    <string name="frag_contour_list_button_loading">Counting...</string>
+    <string name="frag_contour_list_image_loading">Loading image...</string>
+    <string name="menu_contour_list_sort">Sort</string>
 
 </resources>

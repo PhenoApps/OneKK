@@ -37,24 +37,12 @@ class OnekkRepository
 
     }
 
-    suspend fun selectAllContours(aid: Int): List<ContourEntity> {
-
-        return selectAllContoursAsync(aid).await()
-    }
+    fun selectAllContours(aid: Int) = dao.selectAllContours(aid)
 
 //    suspend fun selectAllAnalysis(exp: ExperimentEntity): List<ImageEntity> {
 //
 //        return selectAllAnalysisAsync(exp).await()
 //    }
-
-    private suspend fun selectAllContoursAsync(aid: Int): Deferred<List<ContourEntity>> = withContext(Dispatchers.IO) {
-
-        return@withContext async {
-
-            return@async dao.selectAllContours(aid)
-
-        }
-    }
 
     private suspend fun selectAllCountriesAsync(): Deferred<List<String>> = withContext(Dispatchers.IO) {
 

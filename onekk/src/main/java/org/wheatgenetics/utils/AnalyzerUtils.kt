@@ -13,6 +13,17 @@ fun ByteBuffer.toByteArray(): ByteArray {
 }
 
 fun ImageProxy.toBitmap(): Bitmap {
+
+    val buffer: ByteBuffer = this.planes[0].buffer
+    val bytes = ByteArray(buffer.remaining())
+
+    buffer.get(bytes)
+
+    return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+}
+
+fun ImageProxy.yuvToBitmap(): Bitmap {
+
     val yBuffer = planes[0].buffer // Y
     val uBuffer = planes[1].buffer // U
     val vBuffer = planes[2].buffer // V

@@ -5,33 +5,31 @@ import android.content.Context
 import android.graphics.*
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.DisplayMetrics
 import android.util.Log
 import android.util.Size
 import android.view.*
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.camera.core.*
 import androidx.camera.core.Camera
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
 import com.polidea.rxandroidble2.RxBleClient
 import com.polidea.rxandroidble2.helpers.ValueInterpreter
 import kotlinx.android.synthetic.main.fragment_image.view.*
 import kotlinx.coroutines.*
 import org.wheatgenetics.imageprocess.DetectWithReferences
 import org.wheatgenetics.onekk.R
-import org.wheatgenetics.onekk.analyzers.CoinAnalyzer
-import org.wheatgenetics.onekk.analyzers.NoopAnalyzer
+import org.wheatgenetics.onekk.analyzers.Detector
 import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
 import org.wheatgenetics.onekk.database.models.AnalysisEntity
@@ -44,28 +42,27 @@ import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentCameraBinding
 import org.wheatgenetics.onekk.interfaces.BleNotificationListener
 import org.wheatgenetics.onekk.interfaces.BleStateListener
+import org.wheatgenetics.onekk.interfaces.DetectorListener
 import org.wheatgenetics.utils.BluetoothUtil
 import org.wheatgenetics.utils.DateUtil
 import org.wheatgenetics.utils.Dialogs
+import org.wheatgenetics.utils.toBitmap
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.lang.IllegalStateException
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 /**
- * This fragment uses the CameraX analysis API. Two different analyzers, Coin and Seed, are used
- * for recognizing and counting/measuring coins respectively.
- *
- * Analysis:
- * The coin analyzer is a quick adaptiveThresholding approach which, when four coins are recognized,
- * will enable the camera capture button. The camera capture button switches the analysis to the
- * Seed Analyzer, which requires the source image of the coin recognition task.
+ * This fragment uses the CameraX analysis API. The use-cases used are preview and image capture.
+ * Image capture is used to take high resolution images. The capture mode prioritizes image quality over latency.
+ * When the image capture button is pressed, an image is saved and the detector is run. Interfaces are implemented to
+ * listen to detector results. When results occur, the user is asked to accept the detection. If it is accepted, the image
+ * along with its results are saved to the local database.
  */
-class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, CoroutineScope by MainScope() {
+class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotificationListener, CoroutineScope by MainScope() {
 
     private val db by lazy {
         OnekkDatabase.getInstance(requireContext())
@@ -94,7 +91,7 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
     private var isShowingDialog: Boolean = false
 
-    //query the relative screen size
+    //query the relative screen size, used for creating a preview that matches the screen size
     private val metrics by lazy {
 
         val metrics = DisplayMetrics().also { mBinding?.viewFinder?.display?.getRealMetrics(it) }
@@ -106,28 +103,36 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
         screenSize
     }
 
-    private val checkCamPermissions by lazy {
+    private val checkPermissions by lazy {
 
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { granted ->
 
-            //if (granted) {
+            //ensure all permissions are granted
+            if (granted.values.all { it }) {
 
-                startCameraAnalysis(sNoopAnalyzer)
+                startCameraAnalysis()
 
-            //}
+            } else {
+                //TODO show message saying camera/bluetooth/storage is required to start camera preview
+                with(requireActivity()) {
+                    setResult(android.app.Activity.RESULT_CANCELED)
+                    finish()
+                }
+            }
         }
     }
 
+    /**
+     * Start the detector given a user-chosen file.
+     */
     private val importFile by lazy {
 
         registerForActivityResult(ActivityResultContracts.GetContent()) { doc ->
 
             doc?.let { nonNullDoc ->
 
-                val bmp = BitmapFactory.decodeStream(
-                        requireContext().contentResolver.openInputStream(nonNullDoc.normalizeScheme()))
-
-                startCameraAnalysis(coinAnalyzer(bmp))
+                initiateDetector(BitmapFactory.decodeStream(requireContext()
+                        .contentResolver.openInputStream(nonNullDoc.normalizeScheme())))
             }
         }
     }
@@ -139,25 +144,16 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
     }
 
-    private val sNoopAnalyzer = NoopAnalyzer()
-
-    private fun coinAnalyzer(src: Bitmap? = null): CoinAnalyzer {
-
-        val diameter = mPreferences.getString(getString(R.string.onekk_coin_pref_key), "24.26")?.toDoubleOrNull() ?: 19.1
-
-        return CoinAnalyzer(diameter, src) { result ->
-
-            callCoinRecognitionDialog(result)
-
-        }
-    }
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
 
         mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_camera, container, false)
 
-        checkCamPermissions.launch(arrayOf(android.Manifest.permission.CAMERA))
+        checkPermissions.launch(arrayOf(android.Manifest.permission.CAMERA,
+                android.Manifest.permission.ACCESS_FINE_LOCATION,
+                android.Manifest.permission.BLUETOOTH,
+                android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE))
 
         with(mBinding) {
 
@@ -175,11 +171,7 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
             //starts camera thread executor, which must be destroyed/stopped in onDestroy
             cameraExecutor = Executors.newSingleThreadExecutor()
 
-            this?.cameraCaptureButton?.setOnClickListener {
-
-                startCameraAnalysis(coinAnalyzer())
-
-            }
+            startCameraAnalysis()
         }
 
         startMacAddressSearch()
@@ -233,6 +225,29 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
     }
 
     /**
+     * Reads the preferences for the current selected reference and runs the detector.
+     */
+    private fun initiateDetector(image: Bitmap) {
+
+        mBinding?.toggleDetectorProgress(true)
+
+        //default is the size for a quarter
+        val diameter = mPreferences.getString(getString(R.string.onekk_coin_pref_key), "24.26")?.toDoubleOrNull() ?: 24.26
+
+        try {
+
+            Detector(this@CameraFragment, diameter).scan(image)
+
+        } catch (e: Exception) {
+
+            e.printStackTrace()
+
+            mBinding?.toggleDetectorProgress(false)
+
+        }
+    }
+
+    /**
      * Function that updates the scale measurement UI which can be called from other threads.
      */
     //TODO: use ohaus commands to format the output text to not include newlines.
@@ -281,7 +296,7 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
      * Calling this function with an analyzer will stop the previous analyzer.
      */
     //reference https://developer.android.com/training/camerax/analyze
-    private fun startCameraAnalysis(analyzer: ImageAnalysis.Analyzer) {
+    private fun startCameraAnalysis() {
 
         this@CameraFragment.context?.let { ctx ->
 
@@ -300,13 +315,24 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
                             it.setSurfaceProvider(mBinding?.viewFinder?.createSurfaceProvider())
                         }
 
-                var imageAnalyzer = ImageAnalysis.Builder()
-                        .setTargetResolution(Size(1080, 1920)) //metrics)
-                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                val highResImageCapture = ImageCapture.Builder()
+                        .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
                         .build()
-                        .also {
-                            it.setAnalyzer(cameraExecutor, analyzer)
-                        }
+
+                mBinding?.cameraCaptureButton?.setOnClickListener {
+                    highResImageCapture.takePicture(cameraExecutor,
+                            object : ImageCapture.OnImageCapturedCallback() {
+                                override fun onCaptureSuccess(image: ImageProxy) {
+                                    image.use {
+
+                                        initiateDetector(it.toBitmap())
+
+                                    }
+                                    super.onCaptureSuccess(image)
+                                }
+                            })
+
+                }
 
                 // Select back camera as a default
                 val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
@@ -317,7 +343,7 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
                     // Bind use cases to camera
                     val cam = cameraProvider.bindToLifecycle(this as LifecycleOwner,
-                            cameraSelector, preview, imageAnalyzer)
+                            cameraSelector, preview, highResImageCapture)
 
                     setupCamera(cam)
 
@@ -401,11 +427,7 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
      */
     private fun setupCamera(cam: Camera) {
 
-        requireActivity().runOnUiThread {
-
-            mCamera = cam
-
-        }
+        mCamera = cam
 
         enableOneTapFocus(cam)
 
@@ -415,13 +437,10 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
     /**
      * Creates a Dialog that asks the user to accept or decline the image.
-     * In this case, if the coin recognition step is accepted, the analyzer switches to the watershed algorithm.
      */
     private fun callCoinRecognitionDialog(result: DetectWithReferences.Result) {
 
         if (!isShowingDialog) {
-
-            startCameraAnalysis(sNoopAnalyzer)
 
             isShowingDialog = true
 
@@ -453,6 +472,7 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
                                     isShowingDialog = false
 
                                 }
+
                             } else {
 
                                 savePipelineToDatabase(result)
@@ -502,7 +522,6 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
         return true
     }
 
-
     private inline fun View.afterMeasured(crossinline block: () -> Unit) {
         viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
@@ -514,15 +533,16 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
         })
     }
 
+    /**
+     * When the coin recognition is accepted, the idea is to save all the pipeline images
+     * as an analysis row. Images are saved in the externalMedia directory, but their uri's are
+     * stored in the local database.
+     *
+     * When the one-step process is used, the weight is also stored into the analysis row.
+     */
     private fun savePipelineToDatabase(result: DetectWithReferences.Result) {
 
-        /**
-         * When the coin recognition is accepted, the idea is to save all the pipeline images
-         * as an analysis row. Images are saved in the externalMedia directory, but their uri's are
-         * stored in the local database.
-         */
-
-        launch {
+        launch(Dispatchers.IO) {
 
             val weight = when(mPreferences.getString("org.wheatgenetics.onekk.SCALE_STEPS", "1")) {
                 "1" -> mBinding?.weightEditText?.text?.toString()?.toDoubleOrNull()
@@ -531,33 +551,41 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
             val rowid = viewModel.insert(AnalysisEntity(weight = weight)).toInt()
 
-            with(viewModel) {
+            launch {
 
-                result.contours.forEach { contour ->
+                with(viewModel) {
 
-                    insert(ContourEntity(
-                            Contour(contour.x,
-                                    contour.y,
-                                    contour.count,
-                                    contour.area,
-                                    contour.minAxis,
-                                    contour.maxAxis),
-                            selected = true,
-                            aid = rowid))
-                }
+                    result.contours.forEach { contour ->
 
-                result.dst.let { image ->
-
-                    val file = File(outputDirectory.path.toString(), "${UUID.randomUUID()}.png")
-
-                    FileOutputStream(file).use { stream ->
-
-                        image.compress(Bitmap.CompressFormat.PNG, 100, stream)
-
+                        insert(ContourEntity(
+                                Contour(contour.x,
+                                        contour.y,
+                                        contour.count,
+                                        contour.area,
+                                        contour.minAxis,
+                                        contour.maxAxis),
+                                selected = true,
+                                aid = rowid))
                     }
 
-                    viewModel.insert(ImageEntity(Image(Uri.fromFile(file).path.toString(), DateUtil().getTime()), rowid.toInt()))
+                    result.dst.let { image ->
+
+                        val file = File(outputDirectory.path.toString(), "${UUID.randomUUID()}.png")
+
+                        FileOutputStream(file).use { stream ->
+
+                            image.compress(Bitmap.CompressFormat.PNG, 100, stream)
+
+                        }
+
+                        Glide.with(requireContext()).asBitmap().load(file.toUri()).fitCenter().preload()
+
+                        viewModel.insert(ImageEntity(Image(Uri.fromFile(file).path.toString(), DateUtil().getTime()), rowid.toInt()))
+                    }
                 }
+            }
+
+            requireActivity().runOnUiThread {
 
                 findNavController().navigate(CameraFragmentDirections.actionToContours(rowid))
 
@@ -565,6 +593,10 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
         }
     }
 
+    /**
+     * BLE listener implementation for reading the bluetooth adapter state.
+     * Uses RxBleClient in BluetoothUtil.
+     */
     override fun onStateChanged(state: RxBleClient.State) {
 
         when (state) {
@@ -581,5 +613,36 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
                 mBluetoothManager.dispose()
             }
         }
+    }
+
+    /**
+     * Simple UI method for toggling the progress bar and button.
+     */
+    private fun FragmentCameraBinding.toggleDetectorProgress(toggle: Boolean) = requireActivity().runOnUiThread {
+
+        when (toggle) {
+
+            true -> {
+                progressBar.visibility = View.VISIBLE
+                cameraCaptureButton.visibility = View.GONE
+            }
+
+            else -> {
+                progressBar.visibility = View.GONE
+                cameraCaptureButton.visibility = View.VISIBLE
+            }
+        }
+    }
+
+    /**
+     * Listener method that is called from the analyzer class. This result holds
+     * the output of the detection algorithm including src/dst images, and detected contours with stats.
+     */
+    override fun onDetectorCompleted(result: DetectWithReferences.Result) {
+
+        mBinding?.toggleDetectorProgress(false)
+
+        callCoinRecognitionDialog(result)
+
     }
 }
