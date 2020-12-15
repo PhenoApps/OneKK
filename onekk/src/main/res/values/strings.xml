@@ -306,5 +306,11 @@
     <string name="frag_contour_list_button_loading">Counting...</string>
     <string name="frag_contour_list_image_loading">Loading image...</string>
     <string name="menu_contour_list_sort">Sort</string>
+    <string name="menu_action_to_analysis_manager">Analysis Manager</string>
+    <string name="menu_analysis_manager_delete_all">Delete All</string>
+    <string name="frag_analysis_ask_delete_all">Delete all analyses from database?</string>
+    <string name="frag_analysis_ask_delete_cancel_button">Cancel</string>
+    <string name="frag_analysis_ask_delete_ok_button">OK</string>
+    <string name="dialog_update_analysis_button_text">Count again</string>
 
 </resources>

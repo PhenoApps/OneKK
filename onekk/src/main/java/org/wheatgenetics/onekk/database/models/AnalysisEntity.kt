@@ -9,6 +9,9 @@ import org.wheatgenetics.onekk.database.models.embedded.Image
 @Entity(tableName = "analysis")
 data class AnalysisEntity(
 
+        @ColumnInfo(name = "date")
+        var date: String? = null,
+
         @ColumnInfo(name = "weight")
         var weight: Double? = null,
 

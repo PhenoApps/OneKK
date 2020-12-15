@@ -111,7 +111,7 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
 
             this?.scaleCaptureButton?.setOnClickListener {
 
-                viewModel.updateAnalysisWeight(aid, this.scaleEditText.text?.toString()?.toDoubleOrNull())
+                viewModel.updateAnalysisWeight(aid, this.scaleFragmentEditText.text?.toString()?.toDoubleOrNull())
 
                 findNavController().navigate(ScaleFragmentDirections.actionToCamera())
             }
@@ -124,7 +124,7 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
 
         }
 
-        setHasOptionsMenu(true)
+        startMacAddressSearch()
 
         return mBinding?.root
     }
@@ -135,43 +135,16 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
 
         if (macAddress != null) {
 
-            BluetoothUtil(requireContext()).establishConnectionToAddress(this, macAddress)
+            mBluetoothManager.establishConnectionToAddress(this, macAddress)
 
         } else {
 
             //TODO: Instead of moving to Settings, the service can be automatically found (if it's available)
             Toast.makeText(requireContext(), getString(R.string.frag_scale_no_mac_address_found_message), Toast.LENGTH_LONG).show()
 
-            findNavController().navigate(ScaleFragmentDirections.actionToSettings())
+//            findNavController().navigate(ScaleFragmentDirections.actionToSettings())
 
         }
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-
-        inflater.inflate(R.menu.scale_toolbar, menu)
-
-        mMenu = menu
-
-        super.onCreateOptionsMenu(menu, inflater)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-
-        with(mBinding) {
-
-            when(item.itemId) {
-
-                R.id.action_print -> {
-
-                    startMacAddressSearch()
-
-                }
-                else -> null
-            }
-        }
-
-        return super.onOptionsItemSelected(item)
     }
 
     /**
@@ -194,7 +167,7 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
 
             it.runOnUiThread {
 
-                it.findViewById<TextView>(R.id.scaleEditText)?.text = formatWeightText(value)
+                it.findViewById<TextView>(R.id.scaleFragmentEditText)?.text = formatWeightText(value)
 
             }
         }

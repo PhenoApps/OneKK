@@ -65,20 +65,25 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
             ui.setupRecyclerView(aid)
 
-            ui.setupButtons()
-
             updateUi(aid)
 
             sViewModel.getSourceImage(aid).observeForever { uri ->
 
                 mSourceBitmap = uri
 
-                Glide.with(requireContext()).asBitmap().load(uri).fitCenter().into(imageView)
-                //imageView?.setImageBitmap(BitmapFactory.decodeFile(mSourceBitmap))
+                try {
+
+                    Glide.with(requireContext()).asBitmap().load(uri).fitCenter().into(imageView)
+                    //imageView?.setImageBitmap(BitmapFactory.decodeFile(mSourceBitmap))
+
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
 
                 imageView?.visibility = View.VISIBLE
 
-                imageLoadingTextView.visibility = View.GONE
+                //Todo crashing
+                imageLoadingTextView?.visibility = View.GONE
             }
 
             submitButton?.text = getString(R.string.frag_contour_list_button_loading)
@@ -91,6 +96,7 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
                     submitButton?.text = "${getString(R.string.frag_contour_list_total)} $count"
 
+                    ui.setupButtons(count)
                 }
             }
 
@@ -156,9 +162,11 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
         }
     }
 
-    private fun FragmentContourListBinding.setupButtons() {
+    private fun FragmentContourListBinding.setupButtons(count: Int) {
 
         submitButton.setOnClickListener {
+
+            sViewModel.updateAnalysisCount(aid, count)
 
             sViewModel.getAnalysis(aid).observe(viewLifecycleOwner, {
 

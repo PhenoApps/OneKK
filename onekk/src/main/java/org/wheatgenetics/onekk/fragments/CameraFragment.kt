@@ -187,7 +187,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
         if (macAddress != null) {
 
-            BluetoothUtil(requireContext()).establishConnectionToAddress(this, macAddress)
+            mBluetoothManager.establishConnectionToAddress(this, macAddress)
 
         } else {
 
@@ -549,11 +549,13 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
                 else -> null
             }
 
-            val rowid = viewModel.insert(AnalysisEntity(weight = weight)).toInt()
+            val rowid = viewModel.insert(AnalysisEntity(date = DateUtil().getTime(), weight = weight)).toInt()
 
             launch {
 
                 with(viewModel) {
+
+                    var count = 0.0
 
                     result.contours.forEach { contour ->
 
@@ -566,7 +568,11 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
                                         contour.maxAxis),
                                 selected = true,
                                 aid = rowid))
+
+                        count += contour.count
                     }
+
+                    updateAnalysisCount(rowid, count.toInt())
 
                     result.dst.let { image ->
 

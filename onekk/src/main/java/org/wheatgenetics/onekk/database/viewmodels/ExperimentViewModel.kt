@@ -14,6 +14,10 @@ import java.io.InputStream
 class ExperimentViewModel(
         private val repo: OnekkRepository): ViewModel() {
 
+    fun deleteAllAnalysis() = viewModelScope.launch {
+        repo.deleteAllAnalysis()
+    }
+
     fun insert(contour: ContourEntity) = viewModelScope.launch {
         repo.insert(contour)
     }
@@ -28,6 +32,10 @@ class ExperimentViewModel(
 
     fun updateAnalysisWeight(aid: Int, weight: Double?) = viewModelScope.launch {
         repo.updateAnalysisWeight(aid, weight)
+    }
+
+    fun updateAnalysisCount(aid: Int, count: Int) = viewModelScope.launch {
+        repo.updateAnalysisCount(aid, count)
     }
 
     fun clearAll() = viewModelScope.launch {
@@ -54,6 +62,8 @@ class ExperimentViewModel(
 
     }
 
+    fun analysis() = repo.selectAllAnalysis()
+
     fun contours(aid: Int) = repo.selectAllContours(aid)
 
     suspend fun switchSelectedContour(aid: Int, id: Int, choice: Boolean) = repo.switchSelectedContour(aid, id, choice)
@@ -65,10 +75,6 @@ class ExperimentViewModel(
     suspend fun insert(analysis: AnalysisEntity): Long = viewModelScope.async {
         return@async repo.insert(analysis)
     }.await()
-
-    fun dropAll() = viewModelScope.launch {
-        repo.dropAnalysis()
-    }
 
     /**
         lines of the csv file are expected to have 7 values like:

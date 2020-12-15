@@ -5,6 +5,9 @@
         android:icon="@drawable/ic_nv_export"
         android:title="@string/export"/>
     <item
+        android:id="@+id/action_to_analysis"
+        android:title="@string/menu_action_to_analysis_manager"/>
+    <item
         android:id="@+id/action_coin_manager"
         android:icon="@drawable/ic_coin_database"
         android:title="@string/menu_action_to_coin_manager"/>

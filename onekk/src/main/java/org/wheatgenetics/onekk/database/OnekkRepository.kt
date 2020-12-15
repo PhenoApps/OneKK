@@ -16,6 +16,10 @@ class OnekkRepository
 
     fun getAnalysis(aid: Int) = dao.getAnalysis(aid)
 
+    fun selectAllAnalysis() = dao.getAllAnalysis()
+
+    suspend fun deleteAllAnalysis() = dao.deleteAllAnalysis()
+
     suspend fun selectAllCountries(): List<String> {
 
         return selectAllCountriesAsync().await()
@@ -65,10 +69,6 @@ class OnekkRepository
         dao.switchSelectedContour(aid, id, choice)
     }
 
-    suspend fun dropAnalysis() = withContext(Dispatchers.IO) {
-        dao.dropAnalysis()
-    }
-
     suspend fun deleteContour(aid: Int, cid: Int) = withContext(Dispatchers.IO) {
         dao.deleteContour(aid, cid)
     }
@@ -79,6 +79,10 @@ class OnekkRepository
 
     suspend fun updateAnalysisWeight(aid: Int, weight: Double?) = withContext(Dispatchers.IO) {
         dao.updateAnalysisWeight(aid, weight)
+    }
+
+    suspend fun updateAnalysisCount(aid: Int, count: Int) = withContext(Dispatchers.IO) {
+        dao.updateAnalysisCount(aid, count)
     }
 
     suspend fun insert(contour: ContourEntity) = withContext(Dispatchers.IO) {

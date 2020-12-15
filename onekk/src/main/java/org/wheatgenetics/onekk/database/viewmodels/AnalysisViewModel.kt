@@ -23,7 +23,4 @@ class AnalysisViewModel(
         repo.insert(analysis)
     }
 
-    fun dropAll() = viewModelScope.launch {
-        repo.dropAnalysis()
-    }
 }

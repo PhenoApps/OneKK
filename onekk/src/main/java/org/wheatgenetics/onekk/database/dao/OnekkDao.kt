@@ -17,6 +17,9 @@ interface OnekkDao {
     @Query("SELECT * FROM analysis WHERE aid = :aid LIMIT 1")
     fun getAnalysis(aid: Int): LiveData<AnalysisEntity>
 
+    @Query("SELECT * FROM analysis")
+    fun getAllAnalysis(): LiveData<List<AnalysisEntity>>
+
     @Query("SELECT * FROM image WHERE aid = :aid")
     suspend fun selectAllAnalysis(aid: Int): List<ImageEntity>
 
@@ -29,6 +32,10 @@ interface OnekkDao {
 
     @Query("UPDATE analysis SET weight = :weight WHERE aid = :aid")
     suspend fun updateAnalysisWeight(aid: Int, weight: Double?)
+
+    @Query("UPDATE analysis SET count = :count WHERE aid = :aid")
+    suspend fun updateAnalysisCount(aid: Int, count: Int)
+
     /** Inserts **/
 
     @Insert
@@ -45,6 +52,5 @@ interface OnekkDao {
     suspend fun deleteContour(aid: Int, cid: Int)
 
     @Query("DELETE FROM analysis")
-    suspend fun dropAnalysis()
-
+    suspend fun deleteAllAnalysis()
 }
