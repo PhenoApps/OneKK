@@ -69,11 +69,11 @@ class DetectWithReferences(private val coinReferenceDiameter: Double) {
 
         val dst = original.clone()
 
-        //draw the coins as filled contours
-        Imgproc.drawContours(dst, coins, -1, Scalar(255.0, 255.0, 0.0, 0.0), -1)
+        //draw the coins as filled contours pink
+        Imgproc.drawContours(dst, coins, -1, Scalar(255.0, 255.0, 0.0, 255.0), -1)
 
-        //draw outline around the seeds / clusters
-        Imgproc.drawContours(dst, seeds, -1, Scalar(0.0, 255.0, 255.0, 0.0), 3)
+        //draw outline around the seeds / clusters green
+        Imgproc.drawContours(dst, seeds, -1, Scalar(0.0, 255.0, 0.0, 255.0), -1)
 
         //use interquartile range to partition single seeds from clusters and noise
         val areas = seeds.map { Imgproc.contourArea(it) }
