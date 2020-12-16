@@ -118,10 +118,10 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
                     true
                 }
 
-        findPreference<Preference>("org.wheatgenetics.onekk.SCALE_STEPS")!!
+        findPreference<Preference>(getString(R.string.onekk_preference_mode_key))!!
                 .setOnPreferenceChangeListener { preference, newValue ->
                     mPreferences.edit().apply {
-                        putString("org.wheatgenetics.onekk.SCALE_STEPS", (newValue as? String) ?: "1")
+                        putString(getString(R.string.onekk_preference_mode_key), (newValue as? String) ?: "1")
                     }.apply()
 
                     true

@@ -626,9 +626,13 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
                 requireActivity().runOnUiThread {
 
-                    findNavController().navigate(CameraFragmentDirections.actionToContours(rowid))
+                    val mode = mPreferences.getString(getString(R.string.onekk_preference_mode_key), "1")
+                    when(mode) {
+                        "2", "3" -> findNavController().navigate(CameraFragmentDirections.actionToContours(rowid))
+                    }
 
                 }
+
             } else {
 
                 requireActivity().runOnUiThread {

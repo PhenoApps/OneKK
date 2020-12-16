@@ -1,5 +1,6 @@
 package org.wheatgenetics.onekk.fragments
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
@@ -35,6 +36,10 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
     private val db: OnekkDatabase by lazy {
         OnekkDatabase.getInstance(requireContext())
+    }
+
+    private val mPreferences by lazy {
+        requireContext().getSharedPreferences(getString(R.string.onekk_preference_key), Context.MODE_PRIVATE)
     }
 
     private val sViewModel: ExperimentViewModel by viewModels {
@@ -170,14 +175,11 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
             sViewModel.getAnalysis(aid).observe(viewLifecycleOwner, {
 
-                if (it.weight == null) {
+                when(mPreferences.getString(getString(R.string.onekk_preference_mode_key), "1")) {
 
-                    findNavController().navigate(ContourFragmentDirections.actionToScale(aid))
+                    "1", "2" -> findNavController().popBackStack()
 
-                } else {
-
-                    findNavController().navigate(ContourFragmentDirections.actionToCamera())
-
+                    else -> findNavController().navigate(ContourFragmentDirections.actionToScale(aid))
                 }
             })
         }
