@@ -2,6 +2,7 @@ package org.wheatgenetics.onekk.adapters
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.TextView
 import androidx.databinding.DataBindingUtil
@@ -40,7 +41,7 @@ class AnalysisAdapter(private val listener: OnClickAnalysis) : ListAdapter<Analy
 
                 }
 
-                bind(analysis)
+                bind(listener, analysis)
 
             }
         }
@@ -48,9 +49,19 @@ class AnalysisAdapter(private val listener: OnClickAnalysis) : ListAdapter<Analy
 
     class ViewHolder(private val binding: ListItemAnalysisBinding) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(model: AnalysisEntity) {
+        fun bind(listener: OnClickAnalysis, model: AnalysisEntity) {
 
             with(binding) {
+
+                binding.checkbox.isChecked = model.selected
+
+                binding.root.setOnClickListener {
+
+                    checkbox.isChecked = !model.selected
+
+                    listener.onSelectionSwapped(model.aid!!, checkbox.isChecked)
+
+                }
 
                 name = model.name
 
@@ -59,6 +70,8 @@ class AnalysisAdapter(private val listener: OnClickAnalysis) : ListAdapter<Analy
                 count = model.count.toString()
 
                 weight = model.weight.toString()
+
+                selected = model.selected
             }
         }
     }

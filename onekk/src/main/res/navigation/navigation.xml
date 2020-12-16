@@ -65,6 +65,11 @@
         android:label="@string/nav_label_coin_manager"/>
 
     <fragment
+        android:id="@+id/about_fragment"
+        android:name="org.wheatgenetics.onekk.fragments.AboutFragment"
+        android:label="@string/nav_label_about"/>
+
+    <fragment
         android:id="@+id/camera_preview_fragment"
         android:name="org.wheatgenetics.onekk.fragments.CameraFragment"
         android:label="@string/nav_label_camera_preview">
@@ -76,6 +81,10 @@
         <action android:id="@+id/action_to_barcode_scanner"
             app:popUpTo="@id/camera_preview_fragment"
             app:destination="@+id/barcode_fragment"/>
+
+        <action android:id="@+id/action_to_about"
+            app:popUpTo="@id/camera_preview_fragment"
+            app:destination="@+id/about_fragment"/>
 
         <action android:id="@+id/action_to_analysis"
             app:popUpTo="@id/camera_preview_fragment"

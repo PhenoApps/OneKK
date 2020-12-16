@@ -15,6 +15,9 @@
         <variable
             name="weight"
             type="String" />
+        <variable
+            name="selected"
+            type="boolean" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -28,6 +31,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/checkbox"
+            android:checked="@={selected}"
+            android:clickable="false"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/nameTextView"
             app:layout_constraintTop_toTopOf="parent"
@@ -57,6 +62,15 @@
             app:layout_constraintTop_toBottomOf="@id/countTextView"
             app:layout_constraintBottom_toBottomOf="parent"/>
 
+        <TextView
+            android:id="@+id/countDescriptionTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/list_item_analysis_count_action_text"
+            app:layout_constraintTop_toBottomOf="@id/nameTextView"
+            app:layout_constraintStart_toStartOf="@id/countTextView"
+            app:layout_constraintEnd_toEndOf="@id/countTextView"/>
+
         <Button
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -69,6 +83,15 @@
             app:layout_constraintTop_toBottomOf="@id/nameTextView"
             app:layout_constraintBottom_toTopOf="@id/dateTextView"
             app:layout_constraintEnd_toStartOf="@id/listWeightEditText"/>
+
+        <TextView
+            android:id="@+id/weighDescriptionTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/list_item_analysis_weight_action_text"
+            app:layout_constraintTop_toBottomOf="@id/nameTextView"
+            app:layout_constraintStart_toStartOf="@id/listWeightEditText"
+            app:layout_constraintEnd_toEndOf="@id/listWeightEditText"/>
 
         <Button
             android:layout_width="0dp"

@@ -271,11 +271,11 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                     mNavController.navigate(CameraFragmentDirections.actionToAnalysis())
 
                 }
-//                R.id.action_nav_about -> {
-//
-//                    //mNavController.navigate(ExperimentListFragmentDirections.actionToAbout())
-//
-//                }
+                R.id.action_nav_about -> {
+
+                    mNavController.navigate(CameraFragmentDirections.actionToAbout())
+
+                }
             }
 
             mDrawerLayout.closeDrawers()

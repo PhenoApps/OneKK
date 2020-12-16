@@ -36,8 +36,10 @@ interface OnekkDao {
     @Query("UPDATE analysis SET count = :count WHERE aid = :aid")
     suspend fun updateAnalysisCount(aid: Int, count: Int)
 
-    /** Inserts **/
+    @Query("UPDATE analysis SET selected = :selected WHERE aid = :aid")
+    suspend fun updateAnalysisSelected(aid: Int, selected: Boolean)
 
+    /** Inserts **/
     @Insert
     suspend fun insert(analysis: AnalysisEntity): Long
     @Insert
@@ -51,6 +53,6 @@ interface OnekkDao {
     @Query("DELETE FROM contour WHERE aid = :aid AND cid = :cid")
     suspend fun deleteContour(aid: Int, cid: Int)
 
-    @Query("DELETE FROM analysis")
+    @Query("DELETE FROM analysis WHERE selected = 1")
     suspend fun deleteAllAnalysis()
 }

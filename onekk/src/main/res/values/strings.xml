@@ -118,7 +118,7 @@
     <string name="background_multi_processing">Background and Multi processing</string>
 
     <!-- Settings -> Coin Size -->
-    <string name="coin_size">Reference coin size </string>
+    <string name="coin_size">Coin Type</string>
     <string name="country">Country </string>
     <string name="currency">Currency </string>
     <string name="coin_name">Coin Name </string>
@@ -271,7 +271,7 @@
     <string name="device_recycler_view_header_scale_fragment">Local BLE Devices</string>
     <string name="loading">Loading...</string>
     <string name="device_preferences">Device Preferences</string>
-    <string name="enable_bluetooth">Enable Bluetooth</string>
+    <string name="enable_bluetooth">Available Devices</string>
     <string name="preferences_enable_bluetooth_key">org.wheatgenetics.onekk.BLUETOOTH_ENABLED</string>
     <string name="devices">devices</string>
     <string name="onekk_preference_key">ONEKK_PREFERENCES</string>
@@ -310,7 +310,7 @@
     <string name="menu_contour_list_sort">Sort</string>
     <string name="menu_action_to_analysis_manager">Analysis Manager</string>
     <string name="menu_analysis_manager_delete_all">Delete All</string>
-    <string name="frag_analysis_ask_delete_all">Delete all analyses from database?</string>
+    <string name="frag_analysis_ask_delete_all">Delete all selected analyses from database?</string>
     <string name="frag_analysis_ask_delete_cancel_button">Cancel</string>
     <string name="frag_analysis_ask_delete_ok_button">OK</string>
     <string name="dialog_update_analysis_button_text">Count again</string>
@@ -321,5 +321,42 @@
     <string name="camera_fragment_dialog_first_load_ask_address">Press OK to establish a BLE connection.</string>
     <string name="camera_fragment_dialog_first_load_cancel">cancel</string>
     <string name="camera_fragment_dialog_first_load_ok">OK</string>
+    <string name="onekk_preference_collector_key">org.wheatgenetics.onekk.COLLECTOR</string>
+    <string name="frag_analysis_export_button">Export</string>
+    <string name="frag_analysis_delete_button">Delete</string>
+    <string name="export_name_header">Name</string>
+    <string name="export_date_header">Date</string>
+    <string name="export_count_header">Count</string>
+    <string name="export_weight_header">Weight</string>
+    <string name="frag_analysis_table_empty_message">Analysis table is empty.</string>
+
+    <!-- About dialog -->
+    <string name="about_version_title">Version</string>
+    <string name="about_title_other_apps">Other PhenoApps</string>
+    <string name="about_project_lead_title">Project Lead</string>
+    <string name="about_developer_title">Developer</string>
+    <string name="about_developer_trife" translatable="false">Trevor Rife</string>
+    <string name="about_developer_trife_location" translatable="false">Kansas State University</string>
+    <string name="about_developer_trife_email" translatable="false">trife@ksu.edu</string>
+    <string name="about_email_title">Email</string>
+    <string name="about_developer_trife_website" translatable="false">https://github.com/PhenoApps/Field-Book</string>
+    <string name="about_contributors_title">Contributors</string>
+    <string name="about_contributors_developers_title">Developers</string>
+    <string name="about_translators_title">Translators</string>
+    <string name="about_translators_text" translatable="false">Irazema Fuentes-Bueno,  Sandra Dunckel,  Shuangye Wu,  Narinder Singh,  Daljit Singh,  Erena Edae,  Tatiana Danilova,  Rodrigo Pedrozo,  Cristiano Lemes da Silva,  Sophie Bouchet,  Hiroyoshi Iwata,  Goro Ishikawa,  Khaled El-Shamaa, Mokhlesur Rahman, Alice Brunazzi</string>
+    <string name="about_contributors_funding_title">Funding</string>
+    <string name="about_contributors_funding_text_first" translatable="false">Development of </string>
+    <string name="about_contributors_funding_text_after" translatable="false"> has been supported by the Collaborative Crop Research Program of The McKnight Foundation, the National Science Foundation (#1543958), and the National Institute of Food and Agriculture (#2019-67021-29931).</string>
+    <string name="about_rate">Rate this app</string>
+    <string name="about_technical_title">Technical Details</string>
+    <string name="about_github_title">GitHub</string>
+    <string name="about_licenses_title">Licenses</string>
+    <string name="about_help_translate_title">Help translate</string>
+    <string name="changelog_title">Changelog</string>
+    <string name="libraries_title">Libraries</string>
+    <string name="nav_label_about">About</string>
+    <string name="frag_scale_weight_button_text">Weigh</string>
+    <string name="list_item_analysis_weight_action_text">Weigh sample.</string>
+    <string name="list_item_analysis_count_action_text">Count sample.</string>
 
 </resources>

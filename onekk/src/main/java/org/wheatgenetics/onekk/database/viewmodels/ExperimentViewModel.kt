@@ -38,6 +38,10 @@ class ExperimentViewModel(
         repo.updateAnalysisCount(aid, count)
     }
 
+    fun updateAnalysisSelected(aid: Int, selected: Boolean) = viewModelScope.launch {
+        repo.updateAnalysisSelected(aid, selected)
+    }
+
     fun clearAll() = viewModelScope.launch {
 
     }

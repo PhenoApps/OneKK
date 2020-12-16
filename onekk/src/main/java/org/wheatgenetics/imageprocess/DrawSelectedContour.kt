@@ -27,16 +27,19 @@ class DrawSelectedContour {
 
     private val sSelectedColor = Scalar(0.0, 255.0, 0.0)
 
-    private fun process(original: Mat, x: Double, y: Double, minAxis: Double, maxAxis: Double): Bitmap {
+    private fun process(original: Mat, x: Double, y: Double, cluster: Boolean, minAxis: Double, maxAxis: Double): Bitmap {
 
         //original image, center point, radius, perimeter color, perimeter draw thickness
         Imgproc.circle(original, Point(x,y), boundary/2, sSelectedColor, 5)
 
-        return Mat(original, Rect(x.toInt()-boundary/2, y.toInt()-boundary/2, boundary, boundary)).toBitmap()
+        return when (cluster) {
+            false -> Mat(original, Rect(x.toInt()-boundary/2, y.toInt()-boundary/2, boundary, boundary)).toBitmap()
+            true -> Mat(original, Rect(x.toInt()-boundary*2, y.toInt()-boundary*2, boundary*4, boundary*4)).toBitmap()
+        }
 
     }
 
-    fun process(inputBitmap: Bitmap?, x: Double, y: Double, minAxis: Double, maxAxis: Double): Bitmap {
+    fun process(inputBitmap: Bitmap?, x: Double, y: Double, cluster: Boolean, minAxis: Double, maxAxis: Double): Bitmap {
 
         val frame = Mat()
 
@@ -44,6 +47,6 @@ class DrawSelectedContour {
 
         Utils.bitmapToMat(copy, frame)
 
-        return process(frame, x, y, minAxis, maxAxis)
+        return process(frame, x, y, cluster, minAxis, maxAxis)
     }
 }

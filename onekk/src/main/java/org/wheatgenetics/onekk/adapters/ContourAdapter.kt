@@ -48,17 +48,19 @@ class ContourAdapter(
 
                 checkbox.isChecked = model.selected
 
-                clickListener = View.OnClickListener {
-
-                    checkbox.isChecked = !checkbox.isChecked
+                checkbox.setOnClickListener {
 
                     listener.onChoiceSwapped(model.cid ?: -1, checkbox.isChecked)
+
+                }
+
+                clickListener = View.OnClickListener {
 
                     with(model.contour) {
 
                         this?.let {
 
-                            listener.onTouch(x, y, minAxis, maxAxis)
+                            listener.onTouch(x, y, count > 1, minAxis, maxAxis)
 
                         }
                     }

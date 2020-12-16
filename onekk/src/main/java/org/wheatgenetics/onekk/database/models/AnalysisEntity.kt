@@ -9,6 +9,9 @@ import org.wheatgenetics.onekk.database.models.embedded.Image
 @Entity(tableName = "analysis")
 data class AnalysisEntity(
 
+        @ColumnInfo(name = "selected")
+        var selected: Boolean = false,
+
         @ColumnInfo(name = "name")
         var name: String? = null,
 

@@ -112,7 +112,7 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
         return null
     }
 
-    suspend fun updateImageView(x: Double, y: Double, minAxis: Double, maxAxis: Double): Deferred<Bitmap> = withContext(Dispatchers.IO) {
+    suspend fun updateImageView(x: Double, y: Double, cluster: Boolean, minAxis: Double, maxAxis: Double): Deferred<Bitmap> = withContext(Dispatchers.IO) {
 
         async {
 
@@ -120,7 +120,7 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
             try {
 
-                DrawSelectedContour().process(bmp, x, y, minAxis, maxAxis)
+                DrawSelectedContour().process(bmp, x, y, cluster, minAxis, maxAxis)
 
             } catch (e: CvException) {
 
@@ -131,12 +131,12 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
         }
     }
 
-    override fun onTouch(x: Double, y: Double, minAxis: Double, maxAxis: Double) {
+    override fun onTouch(x: Double, y: Double, cluster: Boolean, minAxis: Double, maxAxis: Double) {
 
         launch {
 
             mBinding?.imageView?.setImageBitmap(
-                    updateImageView(x, y, minAxis, maxAxis)
+                    updateImageView(x, y, cluster, minAxis, maxAxis)
                             .await())
 
         }

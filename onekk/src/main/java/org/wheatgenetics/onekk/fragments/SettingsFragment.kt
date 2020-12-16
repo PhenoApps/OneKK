@@ -118,6 +118,15 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
                     true
                 }
 
+        findPreference<Preference>(getString(R.string.onekk_preference_collector_key))!!
+                .setOnPreferenceChangeListener { preference, newValue ->
+                    mPreferences.edit().apply {
+                        putString(getString(R.string.onekk_preference_collector_key), (newValue as? String) ?: "1")
+                    }.apply()
+
+                    true
+                }
+
         findPreference<Preference>(getString(R.string.onekk_preference_mode_key))!!
                 .setOnPreferenceChangeListener { preference, newValue ->
                     mPreferences.edit().apply {

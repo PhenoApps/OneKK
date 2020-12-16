@@ -8,8 +8,8 @@
         android:width="1dp" />
 
     <gradient
-        android:startColor="#10FFFFFF"
-        android:endColor="#10FFFFFF"/>
+        android:startColor="#42FFFFFF"
+        android:endColor="#42FFFFFF"/>
 
     <padding
         android:bottom="5dp"

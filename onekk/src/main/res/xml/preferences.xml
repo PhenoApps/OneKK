@@ -6,6 +6,7 @@
     <PreferenceCategory android:title="General">
 
         <EditTextPreference
+            android:key="@string/onekk_preference_collector_key"
             android:icon="@drawable/ic_person"
             android:title="@string/collector" />
     </PreferenceCategory>

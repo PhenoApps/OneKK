@@ -85,6 +85,10 @@ class OnekkRepository
         dao.updateAnalysisCount(aid, count)
     }
 
+    suspend fun updateAnalysisSelected(aid: Int, selected: Boolean) = withContext(Dispatchers.IO) {
+        dao.updateAnalysisSelected(aid, selected)
+    }
+
     suspend fun insert(contour: ContourEntity) = withContext(Dispatchers.IO) {
         dao.insert(contour)
     }

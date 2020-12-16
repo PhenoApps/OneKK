@@ -7,6 +7,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.*
+import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
@@ -167,14 +168,14 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
 
             it.runOnUiThread {
 
-                it.findViewById<TextView>(R.id.scaleFragmentEditText)?.text = formatWeightText(value)
+                it.findViewById<EditText>(R.id.scaleFragmentEditText)?.setText(formatWeightText(value).toString())
 
             }
         }
     }
 
-    private fun formatWeightText(text: String): String = text.replace("\n", "")
+    private fun formatWeightText(text: String): Double = text.replace("\n", "")
             .split("g")[0]
-            .replace(" ", "")
+            .replace(" ", "").toDoubleOrNull() ?: 0.0
 
 }
