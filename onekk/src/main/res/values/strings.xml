@@ -276,6 +276,7 @@
     <string name="devices">devices</string>
     <string name="onekk_preference_key">ONEKK_PREFERENCES</string>
     <string name="onekk_preference_mode_key">org.wheatgenetics.onekk.SCALE_STEPS</string>
+    <string name="onekk_first_load_ask_mac_address">org.wheatgenetics.onekk.FIRST_LOAD_ADDRESS</string>
     <string name="frag_scale_no_mac_address_found_message">Please choose a BLE device in the Settings.</string>
     <string name="dialog_choose_ble_device_title">Please choose a BLE device.</string>
     <string name="frag_camera_not_enough_coins_found">Not enough coins found, please have at least four in the image.</string>
@@ -317,5 +318,8 @@
     <string name="frag_camera_no_sample_name_message">Please provide a sample name.</string>
     <string name="nav_label_barcode_scan">Barcode scan fragment</string>
     <string name="menu_camera_barcode_scan_title">Scan barcode</string>
+    <string name="camera_fragment_dialog_first_load_ask_address">Press OK to establish a BLE connection.</string>
+    <string name="camera_fragment_dialog_first_load_cancel">cancel</string>
+    <string name="camera_fragment_dialog_first_load_ok">OK</string>
 
 </resources>

@@ -184,6 +184,25 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
             })
         }
 
+        when (mPreferences.getBoolean(getString(R.string.onekk_first_load_ask_mac_address), true)) {
+
+            true -> {
+                Dialogs.onOk(AlertDialog.Builder(requireContext()),
+                        getString(R.string.camera_fragment_dialog_first_load_ask_address),
+                        getString(R.string.camera_fragment_dialog_first_load_cancel),
+                        getString(R.string.camera_fragment_dialog_first_load_ok)) { theyWantToSetAddress ->
+
+                    if (theyWantToSetAddress) {
+
+                        findNavController().navigate(CameraFragmentDirections.actionToSettings())
+
+                    }
+                }
+            }
+        }
+
+        mPreferences.edit().putBoolean(getString(R.string.onekk_first_load_ask_mac_address), false).apply()
+
         checkPermissions.launch(arrayOf(android.Manifest.permission.CAMERA,
                 android.Manifest.permission.ACCESS_FINE_LOCATION,
                 android.Manifest.permission.BLUETOOTH,
