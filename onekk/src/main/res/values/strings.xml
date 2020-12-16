@@ -312,5 +312,9 @@
     <string name="frag_analysis_ask_delete_cancel_button">Cancel</string>
     <string name="frag_analysis_ask_delete_ok_button">OK</string>
     <string name="dialog_update_analysis_button_text">Count again</string>
+    <string name="frag_camera_sample_name_text_hint">Sample name:</string>
+    <string name="frag_camera_no_sample_name_message">Please provide a sample name.</string>
+    <string name="nav_label_barcode_scan">Barcode scan fragment</string>
+    <string name="menu_camera_barcode_scan_title">Scan barcode</string>
 
 </resources>

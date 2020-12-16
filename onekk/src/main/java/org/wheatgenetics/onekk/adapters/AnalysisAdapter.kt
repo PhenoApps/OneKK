@@ -52,6 +52,8 @@ class AnalysisAdapter(private val listener: OnClickAnalysis) : ListAdapter<Analy
 
             with(binding) {
 
+                name = model.name
+
                 date = model.date
 
                 count = model.count.toString()

@@ -10,6 +10,7 @@ import android.util.Log
 import android.util.Size
 import android.view.*
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.camera.core.*
@@ -19,6 +20,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.fragment.findNavController
@@ -37,6 +39,7 @@ import org.wheatgenetics.onekk.database.models.ContourEntity
 import org.wheatgenetics.onekk.database.models.ImageEntity
 import org.wheatgenetics.onekk.database.models.embedded.Contour
 import org.wheatgenetics.onekk.database.models.embedded.Image
+import org.wheatgenetics.onekk.database.viewmodels.BarcodeSharedViewModel
 import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
 import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentCameraBinding
@@ -71,6 +74,8 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
     private val viewModel by viewModels<ExperimentViewModel> {
         OnekkViewModelFactory(OnekkRepository.getInstance(db.dao(), db.coinDao()))
     }
+
+    private val barcodeViewModel: BarcodeSharedViewModel by activityViewModels()
 
     private val mPreferences by lazy {
         requireContext().getSharedPreferences(getString(R.string.onekk_preference_key), Context.MODE_PRIVATE)
@@ -110,7 +115,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
             //ensure all permissions are granted
             if (granted.values.all { it }) {
 
-                startCameraAnalysis()
+                setupFragment()
 
             } else {
                 //TODO show message saying camera/bluetooth/storage is required to start camera preview
@@ -144,16 +149,20 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
     }
 
+    private fun setupFragment() {
+
+        startCameraAnalysis()
+
+        startMacAddressSearch()
+
+        setHasOptionsMenu(true)
+
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
 
         mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_camera, container, false)
-
-        checkPermissions.launch(arrayOf(android.Manifest.permission.CAMERA,
-                android.Manifest.permission.ACCESS_FINE_LOCATION,
-                android.Manifest.permission.BLUETOOTH,
-                android.Manifest.permission.READ_EXTERNAL_STORAGE,
-                android.Manifest.permission.WRITE_EXTERNAL_STORAGE))
 
         with(mBinding) {
 
@@ -168,17 +177,21 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
             }
 
-            //starts camera thread executor, which must be destroyed/stopped in onDestroy
-            cameraExecutor = Executors.newSingleThreadExecutor()
+            barcodeViewModel.lastScan.observe(viewLifecycleOwner, {
 
-            startCameraAnalysis()
+                mBinding?.nameEditText?.setText(it)
+
+            })
         }
 
-        startMacAddressSearch()
-
-        setHasOptionsMenu(true)
+        checkPermissions.launch(arrayOf(android.Manifest.permission.CAMERA,
+                android.Manifest.permission.ACCESS_FINE_LOCATION,
+                android.Manifest.permission.BLUETOOTH,
+                android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE))
 
         return mBinding?.root
+
     }
 
     private fun startMacAddressSearch() {
@@ -222,6 +235,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
         mBluetoothManager.dispose()
 
+        stopCameraAnalysis()
     }
 
     /**
@@ -285,7 +299,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
     private fun stopCameraAnalysis() {
 
-        cameraExecutor.shutdown()
+        if (::cameraExecutor.isInitialized) cameraExecutor.shutdown()
 
     }
 
@@ -298,7 +312,10 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
     //reference https://developer.android.com/training/camerax/analyze
     private fun startCameraAnalysis() {
 
-        this@CameraFragment.context?.let { ctx ->
+        //starts camera thread executor, which must be destroyed/stopped in onDestroy
+        cameraExecutor = Executors.newSingleThreadExecutor()
+
+        requireContext().let { ctx ->
 
             val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
 
@@ -320,6 +337,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
                         .build()
 
                 mBinding?.cameraCaptureButton?.setOnClickListener {
+
                     highResImageCapture.takePicture(cameraExecutor,
                             object : ImageCapture.OnImageCapturedCallback() {
                                 override fun onCaptureSuccess(image: ImageProxy) {
@@ -329,6 +347,11 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
                                     }
                                     super.onCaptureSuccess(image)
+                                }
+
+                                override fun onError(exception: ImageCaptureException) {
+                                    super.onError(exception)
+                                    println("error")
                                 }
                             })
 
@@ -516,6 +539,11 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
             }
 
+            R.id.action_barcode_scan -> {
+
+                findNavController().navigate(CameraFragmentDirections.actionToBarcodeScanner())
+
+            }
             else -> return super.onOptionsItemSelected(item)
         }
 
@@ -549,52 +577,63 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
                 else -> null
             }
 
-            val rowid = viewModel.insert(AnalysisEntity(date = DateUtil().getTime(), weight = weight)).toInt()
+            val name = mBinding?.nameEditText?.text?.toString() ?: String()
 
-            launch {
+            if (name.isNotBlank()) {
 
-                with(viewModel) {
+                val rowid = viewModel.insert(AnalysisEntity(name = name,
+                        date = DateUtil().getTime(), weight = weight)).toInt()
 
-                    var count = 0.0
+                launch {
 
-                    result.contours.forEach { contour ->
+                    with(viewModel) {
 
-                        insert(ContourEntity(
-                                Contour(contour.x,
-                                        contour.y,
-                                        contour.count,
-                                        contour.area,
-                                        contour.minAxis,
-                                        contour.maxAxis),
-                                selected = true,
-                                aid = rowid))
+                        var count = 0.0
 
-                        count += contour.count
-                    }
+                        result.contours.forEach { contour ->
 
-                    updateAnalysisCount(rowid, count.toInt())
+                            insert(ContourEntity(
+                                    Contour(contour.x,
+                                            contour.y,
+                                            contour.count,
+                                            contour.area,
+                                            contour.minAxis,
+                                            contour.maxAxis),
+                                    selected = true,
+                                    aid = rowid))
 
-                    result.dst.let { image ->
-
-                        val file = File(outputDirectory.path.toString(), "${UUID.randomUUID()}.png")
-
-                        FileOutputStream(file).use { stream ->
-
-                            image.compress(Bitmap.CompressFormat.PNG, 100, stream)
-
+                            count += contour.count
                         }
 
-                        Glide.with(requireContext()).asBitmap().load(file.toUri()).fitCenter().preload()
+                        updateAnalysisCount(rowid, count.toInt())
 
-                        viewModel.insert(ImageEntity(Image(Uri.fromFile(file).path.toString(), DateUtil().getTime()), rowid.toInt()))
+                        result.dst.let { image ->
+
+                            val file = File(outputDirectory.path.toString(), "${UUID.randomUUID()}.png")
+
+                            FileOutputStream(file).use { stream ->
+
+                                image.compress(Bitmap.CompressFormat.PNG, 100, stream)
+
+                            }
+
+                            Glide.with(requireContext()).asBitmap().load(file.toUri()).fitCenter().preload()
+
+                            viewModel.insert(ImageEntity(Image(Uri.fromFile(file).path.toString(), DateUtil().getTime()), rowid.toInt()))
+                        }
                     }
                 }
-            }
 
-            requireActivity().runOnUiThread {
+                requireActivity().runOnUiThread {
 
-                findNavController().navigate(CameraFragmentDirections.actionToContours(rowid))
+                    findNavController().navigate(CameraFragmentDirections.actionToContours(rowid))
 
+                }
+            } else {
+
+                requireActivity().runOnUiThread {
+                    Toast.makeText(requireContext(), R.string.frag_camera_no_sample_name_message, Toast.LENGTH_LONG).show()
+                }
             }
         }
     }

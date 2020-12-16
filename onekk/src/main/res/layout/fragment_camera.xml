@@ -18,7 +18,7 @@
             android:background="@drawable/cell"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/weightEditText"
+            app:layout_constraintBottom_toTopOf="@id/nameEditText"
             android:elevation="5dp"
             android:contentDescription="TODO" />
 
@@ -32,7 +32,7 @@
             android:background="@drawable/cell"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/weightEditText"
+            app:layout_constraintBottom_toTopOf="@id/nameEditText"
             android:elevation="5dp"
             android:contentDescription="TODO" />
 
@@ -68,8 +68,21 @@
             android:elevation="5dp"
             android:textSize="24sp"
             android:hint="@string/weight_input_hint"
-            android:background="@drawable/cell"
+            android:background="@drawable/cell_transparent"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+        <EditText
+            android:id="@+id/nameEditText"
+            android:visibility="visible"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:layout_margin="16dp"
+            android:elevation="5dp"
+            android:textSize="24sp"
+            android:hint="@string/frag_camera_sample_name_text_hint"
+            android:background="@drawable/cell_transparent"
+            app:layout_constraintBottom_toTopOf="@id/weightEditText"
             app:layout_constraintStart_toStartOf="parent"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
