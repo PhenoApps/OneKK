@@ -43,7 +43,7 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginTop="8dp"
-            android:text='@{@string/contour_list_area_prefix + area + @string/contour_list_area_suffix}'
+            android:text='@{@string/contour_list_area_prefix + area}'
             app:layout_constraintBottom_toTopOf="@id/dataTextView"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/checkbox"

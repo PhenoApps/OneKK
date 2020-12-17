@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <string-array name="analysis_algorithm">
+        <item>Fast</item>
+        <item>Slow</item>
+    </string-array>
+
+    <string-array name="analysis_algorithm_values">
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
     <string-array name="scale_steps">
         <item>One step</item>
         <item>Two steps</item>

@@ -50,6 +50,14 @@
             android:key="org.wheatgenetics.onekk.SCALE_STEPS"
             android:title="Choose scale steps" />
 
+        <ListPreference
+            android:defaultValue="1"
+            android:entries="@array/analysis_algorithm"
+            android:entryValues="@array/analysis_algorithm_values"
+            android:icon="@drawable/ic_advanced_processing"
+            android:key="org.wheatgenetics.onekk.ANALYSIS_ALGORITHM"
+            android:title="Choose algorithm" />
+
     </PreferenceCategory>
 
 </PreferenceScreen>

@@ -136,6 +136,15 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
                     true
                 }
 
+        findPreference<Preference>(getString(R.string.onekk_preference_algorithm_mode_key))!!
+                .setOnPreferenceChangeListener { preference, newValue ->
+                    mPreferences.edit().apply {
+                        putString(getString(R.string.onekk_preference_algorithm_mode_key), (newValue as? String) ?: "1")
+                    }.apply()
+
+                    true
+                }
+
         //crash if this is called before this preference is created
         findPreference<Preference>(getString(R.string.preferences_enable_bluetooth_key))!!
                 .setOnPreferenceClickListener {

@@ -1,6 +1,7 @@
 package org.wheatgenetics.imageprocess
 
 import android.graphics.Bitmap
+import com.mikepenz.aboutlibraries.detector.Detect
 import org.opencv.android.Utils
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
@@ -18,12 +19,9 @@ import kotlin.math.pow
 import kotlin.math.roundToInt
 
 
-class DetectWithReferences(private val dir: File, private val coinReferenceDiameter: Double): DetectorAlgorithm {
+class WatershedWithReferences(private val dir: File, private val coinReferenceDiameter: Double): DetectorAlgorithm {
 
-    data class Contour(val x: Double, val y: Double, val minAxis: Double, val maxAxis: Double, val area: Double, val count: Int)
-    data class Result(val src: Bitmap, val dst: Bitmap, val contours: List<Contour>)
-
-    private fun process(original: Mat): Result {
+    private fun process(original: Mat): DetectWithReferences.Result {
 
         //upscale small images
         while (original.height() <= 1920) {
@@ -38,29 +36,83 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
         val contours: List<MatOfPoint> = ArrayList()
         val hierarchy = Mat()
 
-        //convert image to greyscale and blur, this reduces the natural noise in images
-        Imgproc.cvtColor(src, src, Imgproc.COLOR_BGR2GRAY)
-        Imgproc.GaussianBlur(src, src, Size(3.0, 3.0), 15.0)
+        val cropped = original //]Mat(original, rect)
 
-        //dilate the image to fill any tiny holes that make contours discontinuous
-        Imgproc.dilate(src, src, Mat(), Point(-1.0, -1.0), 8)
+        org.opencv.imgcodecs.Imgcodecs.imwrite(dir.path + "/cropped.png", cropped)
 
-        //threshold the image, adaptive might be overkill here because the lightbox ensures a uniform background
-        Imgproc.adaptiveThreshold(src, src, 255.0, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY_INV, 15, 10.0)
+        val gray = Mat()
 
-        //blur to smooth threshed contours, otherwise contours can be jagged
-        Imgproc.GaussianBlur(src, src, Size(3.0, 3.0), 15.0)
+        Imgproc.cvtColor(cropped, gray, Imgproc.COLOR_BGR2GRAY)
 
-        //final dilate to fill holes formed by adaptive threshing/blurring
-        Imgproc.dilate(src, src, Mat(), Point(-1.0, -1.0), 3)
+        Imgproc.GaussianBlur(gray, gray, Size(3.0, 3.0), 15.0)
 
-        //CHAIN_APPROX_NONE will give more contour points, uses more memory
-        //uses RETR_EXTERNAL, skip any hierarchy parsing.
-        /**
-         * TODO: we can improve this by parsing the hierarchy, sometimes seeds might be 'split'
-         *       into multiple contours which are siblings. Look at opencv findcontours docs for more info.
-         **/
-        Imgproc.findContours(src, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE)
+        val thresh = Mat()
+
+        Imgproc.threshold(gray, thresh, 0.0, 255.0, Imgproc.THRESH_OTSU + Imgproc.THRESH_BINARY_INV)
+
+        org.opencv.imgcodecs.Imgcodecs.imwrite(dir.path + "/first_thresh.png", thresh)
+
+        val kernel = Mat.ones(Size(3.0, 3.0), CvType.CV_8U)
+
+        //remove noise
+        val opening = Mat()
+        Imgproc.morphologyEx(thresh, opening, Imgproc.MORPH_OPEN, kernel, Point(-1.0,-1.0), 2)
+
+        org.opencv.imgcodecs.Imgcodecs.imwrite(dir.path + "/opening.png", opening)
+
+        val sure_bg = Mat()
+        Imgproc.dilate(opening, sure_bg, kernel, Point(-1.0, -1.0), 3)
+
+        val dt = Mat()
+        Imgproc.distanceTransform(opening, dt, Imgproc.DIST_L2, Imgproc.CV_DIST_MASK_5)
+        //Core.normalize(dt, dt, 0.0, 1.0, Core.NORM_MINMAX)
+
+        val sure_fg = Mat()
+        val maxValue = Core.minMaxLoc(dt).maxVal
+        Imgproc.threshold(dt, sure_fg, maxValue*0.2, 255.0, Imgproc.THRESH_BINARY)
+        sure_fg.convertTo(sure_fg, CvType.CV_8U)
+
+        val unknown = Mat()
+        Core.subtract(sure_bg, sure_fg, unknown)
+
+        org.opencv.imgcodecs.Imgcodecs.imwrite(dir.path + "/dt.png", dt)
+        org.opencv.imgcodecs.Imgcodecs.imwrite(dir.path + "/unknown.png", unknown)
+        org.opencv.imgcodecs.Imgcodecs.imwrite(dir.path + "/sure_bg.png", sure_bg)
+        org.opencv.imgcodecs.Imgcodecs.imwrite(dir.path + "/sure_fg.png", sure_fg)
+
+        var markers = Mat()
+        val components = Imgproc.connectedComponents(sure_fg, markers)
+
+        org.opencv.imgcodecs.Imgcodecs.imwrite(dir.path + "/markers.png", markers)
+
+        Core.add(markers, Scalar(1.0), markers)
+
+        markers = matSwap(markers, 255, Scalar(0.0), false, unknown)
+
+        org.opencv.imgcodecs.Imgcodecs.imwrite(dir.path + "/matswap.png", markers)
+
+        markers.convertTo(markers, CvType.CV_32SC1)
+
+        val blurred = Mat()
+        Imgproc.GaussianBlur(cropped, blurred, Size(3.0, 3.0), 5.0)
+
+        Imgproc.cvtColor(blurred, blurred, Imgproc.COLOR_RGBA2RGB)
+
+        Imgproc.watershed(blurred, markers)
+
+        org.opencv.imgcodecs.Imgcodecs.imwrite(dir.path + "/watershed.png", markers)
+
+        var output = Mat(original.size(), CvType.CV_8U)
+
+        markers.convertTo(markers, CvType.CV_8UC4)
+        val min = Core.minMaxLoc(markers).minVal
+        output = matSwap(output, min.toInt(), Scalar(255.0, .0, .0, 255.0), true, markers)
+
+        Imgproc.threshold(output, output, 0.0, 255.0, Imgproc.THRESH_OTSU + Imgproc.THRESH_BINARY_INV)
+
+        org.opencv.imgcodecs.Imgcodecs.imwrite(dir.path + "/output.png", output)
+
+        Imgproc.findContours(output, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE)
 
         //finds the four contours closest to the corners
         val coins: List<MatOfPoint> = findCoins(contours, imageWidth, imageHeight)
@@ -72,20 +124,36 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
 
         val dst = original.clone()
 
-        //draw the coins as filled contours pink
+        //draw the coins as filled contours yellow
         Imgproc.drawContours(dst, coins, -1, Scalar(255.0, 255.0, 0.0, 255.0), -1)
 
-        //draw outline around the seeds / clusters green
-        Imgproc.drawContours(dst, seeds, -1, Scalar(0.0, 255.0, 0.0, 255.0), -1)
+        var countable = ArrayList<MatOfPoint>()
+
+        //[Next, Previous, First_Child, Parent]
+        for (i in 0 until hierarchy.cols()) {
+
+            val heir = hierarchy.get(0, i)
+
+            if (heir[2] != -1.0) {
+
+                val addable = contours[i]
+
+                if (addable !in coins) {
+
+                    countable.add(addable)
+
+                }
+            }
+        }
 
         //use interquartile range to partition single seeds from clusters and noise
-        val areas = seeds.map { Imgproc.contourArea(it) }
+        val areas = countable.map { Imgproc.contourArea(it) }
         val reducedAreas = quartileRange(areas.toTypedArray())
 
         val singles = arrayListOf<MatOfPoint>()
         val clusters = arrayListOf<MatOfPoint>()
 
-        seeds.forEach {
+        countable.forEach {
 
             val area = (Imgproc.contourArea(it))
 
@@ -96,7 +164,7 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
 
                 singles.add(it)
 
-            } else if (area >= reducedAreas.second) {
+            } else if (area >= reducedAreas.second && area < 100000) {
 
                 clusters.add(it)
             }
@@ -115,9 +183,13 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
 
             val (minAxis, maxAxis) = axisEstimates[it] ?: 0.0 to 0.0
 
-            Contour(center.x, center.y, minAxis, maxAxis, singleEstimates[it] ?: error(""), 1)
+            DetectWithReferences.Contour(center.x, center.y, minAxis, maxAxis, singleEstimates[it] ?: error(""), 1)
 
         } + clusters.map {
+
+            val index = contours.indexOf(it)
+
+            val numChildren = findNumChildren(hierarchy, index)
 
             val center = it.center()
 
@@ -132,18 +204,40 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
                 this.width = this.width + 50
             }
 
+
             //reminder: min/max axis is not accurate for clusters
             val (minAxis, maxAxis) = axisEstimates[it] ?: 0.0 to 0.0
 
-            Contour(center.x, center.y, minAxis, maxAxis, area, (area / avgArea).roundToInt())
+            //draw seeds as pink
+            Imgproc.drawContours(dst, listOf(it), -1, Scalar(0.0, 255.0, 0.0, 255.0), -1)
+
+            DetectWithReferences.Contour(center.x, center.y, minAxis, maxAxis, area, numChildren)
 
         }
 
-        return Result(original.toBitmap(), dst.toBitmap(), objects)
+        return DetectWithReferences.Result(original.toBitmap(), dst.toBitmap(), objects)
 
     }
 
-    private fun matSwap(src: Mat, value: Int, newVal: Int, invert: Boolean, mask: Mat?): Mat {
+    private fun findNumChildren(tree: Mat, index: Int): Int {
+
+        var children = 0
+
+        //[Next, Previous, First_Child, Parent]
+        for (i in 0 until tree.cols()) {
+
+            val heir = tree.get(0, i)
+
+            if (heir[3] == index.toDouble()) {
+
+                children++
+            }
+        }
+
+        return children
+    }
+
+    private fun matSwap(src: Mat, value: Int, newVal: Scalar, invert: Boolean, mask: Mat?): Mat {
         var src = src
         src.convertTo(src, CvType.CV_8U)
         val dst = Mat(src.size(), CvType.CV_8U)
@@ -160,7 +254,7 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
         }
 
         //logMat(dst);
-        src = src.setTo(Scalar(newVal.toDouble()), dst)
+        src = src.setTo(newVal, dst)
 
         return src
     }
@@ -344,7 +438,7 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
     /*
     OpenCV Debug version, output frame is the opencv result.
      */
-    override fun process(inputBitmap: Bitmap?): Result {
+    override fun process(inputBitmap: Bitmap?): DetectWithReferences.Result {
         val frame = Mat()
         val copy = inputBitmap?.copy(inputBitmap.config, true)
         Utils.bitmapToMat(copy, frame)

@@ -267,9 +267,11 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
         //default is the size for a quarter
         val diameter = mPreferences.getString(getString(R.string.onekk_coin_pref_key), "24.26")?.toDoubleOrNull() ?: 24.26
 
+        val algorithm = mPreferences.getString(getString(R.string.onekk_preference_algorithm_mode_key), "1") ?: "1"
+
         try {
 
-            Detector(this@CameraFragment, diameter).scan(image)
+            Detector(algorithm, requireContext().externalMediaDirs.first(), this@CameraFragment, diameter).scan(image)
 
         } catch (e: Exception) {
 
@@ -645,6 +647,8 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
                 requireActivity().runOnUiThread {
 
+                    barcodeViewModel.lastScan.value = ""
+                    
                     mBinding?.nameEditText?.setText(String())
 
                     val mode = mPreferences.getString(getString(R.string.onekk_preference_mode_key), "1")

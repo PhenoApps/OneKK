@@ -276,6 +276,7 @@
     <string name="devices">devices</string>
     <string name="onekk_preference_key">ONEKK_PREFERENCES</string>
     <string name="onekk_preference_mode_key">org.wheatgenetics.onekk.SCALE_STEPS</string>
+    <string name="onekk_preference_algorithm_mode_key">org.wheatgenetics.onekk.ANALYSIS_ALGORITHM</string>
     <string name="onekk_first_load_ask_mac_address">org.wheatgenetics.onekk.FIRST_LOAD_ADDRESS</string>
     <string name="frag_scale_no_mac_address_found_message">Please choose a BLE device in the Settings.</string>
     <string name="dialog_choose_ble_device_title">Please choose a BLE device.</string>
