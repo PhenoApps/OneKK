@@ -88,6 +88,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
     }
 
     private lateinit var outputDirectory: File
+    private lateinit var captureDirectory: File
     private lateinit var cameraExecutor: ExecutorService
 
     private var mCamera: Camera? = null
@@ -177,6 +178,12 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
             }
 
+            getCaptureDirectory()?.let { dir ->
+
+                captureDirectory = dir
+
+            }
+
             barcodeViewModel.lastScan.observe(viewLifecycleOwner, {
 
                 mBinding?.nameEditText?.setText(it)
@@ -260,7 +267,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
     /**
      * Reads the preferences for the current selected reference and runs the detector.
      */
-    private fun initiateDetector(image: Bitmap) {
+    private fun initiateDetector(image: Bitmap, name: String? = null) {
 
         mBinding?.toggleDetectorProgress(true)
 
@@ -272,6 +279,18 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
         try {
 
             Detector(algorithm, requireContext().externalMediaDirs.first(), this@CameraFragment, diameter).scan(image)
+
+            name?.let { capturedImage ->
+
+                val file = File(captureDirectory.path.toString(), "${capturedImage}.png")
+
+                FileOutputStream(file).use { stream ->
+
+                    image.compress(Bitmap.CompressFormat.PNG, 100, stream)
+
+                }
+            }
+
 
         } catch (e: Exception) {
 
@@ -303,6 +322,16 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
         val mediaDir = context?.externalMediaDirs?.firstOrNull()?.let {
             File(it, resources.getString(R.string.app_name)).apply { mkdirs() } }
+
+        return if (mediaDir != null && mediaDir.exists())
+            mediaDir else context?.filesDir
+    }
+
+    //externalMediaDirs pictures are located in /storage/primary/Android/media/org.wheatgenetics.onekk/OneKK
+    private fun getCaptureDirectory(): File? {
+
+        val mediaDir = context?.externalMediaDirs?.firstOrNull()?.let {
+            File(it, resources.getString(R.string.app_name) + "Captures").apply { mkdirs() } }
 
         return if (mediaDir != null && mediaDir.exists())
             mediaDir else context?.filesDir
@@ -364,7 +393,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
                                 override fun onCaptureSuccess(image: ImageProxy) {
                                     image.use {
 
-                                        initiateDetector(it.toBitmap())
+                                        initiateDetector(it.toBitmap(), UUID.randomUUID().toString())
 
                                     }
                                     super.onCaptureSuccess(image)
@@ -648,7 +677,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
                 requireActivity().runOnUiThread {
 
                     barcodeViewModel.lastScan.value = ""
-                    
+
                     mBinding?.nameEditText?.setText(String())
 
                     val mode = mPreferences.getString(getString(R.string.onekk_preference_mode_key), "1")

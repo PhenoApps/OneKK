@@ -12,10 +12,7 @@ import org.wheatgenetics.utils.ImageProcessingUtil.Companion.toMatOfPoint2f
 import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.pow
-import kotlin.math.roundToInt
+import kotlin.math.*
 
 
 class DetectWithReferences(private val dir: File, private val coinReferenceDiameter: Double): DetectorAlgorithm {
@@ -121,6 +118,7 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
 
             val center = it.center()
 
+
             val area = Imgproc.contourArea(it)
 
             //make the ROI slightly bigger than the opencv bounding rect function
@@ -131,11 +129,18 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
                 this.height = this.height + 50
                 this.width = this.width + 50
             }
+//
+            val box = Imgproc.boundingRect(it)
+            val mask = Mat.zeros(original.size(), original.type())
+            Imgproc.drawContours(mask, listOf(it), -1, Scalar.all(255.0), -1)
+//            val roi = Mat()
+//            original.copyTo(roi, mask)
+            val count = watershed(Mat(mask, box))
 
             //reminder: min/max axis is not accurate for clusters
             val (minAxis, maxAxis) = axisEstimates[it] ?: 0.0 to 0.0
 
-            Contour(center.x, center.y, minAxis, maxAxis, area, (area / avgArea).roundToInt())
+            Contour(center.x, center.y, minAxis, maxAxis, area, count)
 
         }
 
@@ -143,7 +148,7 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
 
     }
 
-    private fun matSwap(src: Mat, value: Int, newVal: Int, invert: Boolean, mask: Mat?): Mat {
+    private fun matSwap(src: Mat, value: Int, newVal: Scalar, invert: Boolean, mask: Mat?): Mat {
         var src = src
         src.convertTo(src, CvType.CV_8U)
         val dst = Mat(src.size(), CvType.CV_8U)
@@ -160,7 +165,7 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
         }
 
         //logMat(dst);
-        src = src.setTo(Scalar(newVal.toDouble()), dst)
+        src = src.setTo(newVal, dst)
 
         return src
     }
@@ -208,6 +213,66 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
             estimateMillis(avgCoinDiameter, coinDiameterMilli, it.minMaxAxis().first) to
             estimateMillis(avgCoinDiameter, coinDiameterMilli, it.minMaxAxis().second)
         }
+    }
+
+    private fun watershed(original: Mat): Int {
+
+        val contours: List<MatOfPoint> = ArrayList()
+        val hierarchy = Mat()
+
+        val cropped = original //]Mat(original, rect)
+
+        org.opencv.imgcodecs.Imgcodecs.imwrite(dir.path + "/cropped.png", cropped)
+
+        val gray = Mat()
+
+        Imgproc.cvtColor(cropped, gray, Imgproc.COLOR_BGR2GRAY)
+
+        Imgproc.GaussianBlur(gray, gray, Size(3.0, 3.0), 15.0)
+
+        val thresh = Mat()
+
+        Imgproc.threshold(gray, thresh, 0.0, 255.0, Imgproc.THRESH_OTSU + Imgproc.THRESH_BINARY)
+
+        org.opencv.imgcodecs.Imgcodecs.imwrite(dir.path + "/first_thresh.png", thresh)
+
+        val kernel = Mat.ones(Size(3.0, 3.0), CvType.CV_8U)
+
+        //remove noise
+        val opening = Mat()
+        Imgproc.morphologyEx(thresh, opening, Imgproc.MORPH_OPEN, kernel, Point(-1.0,-1.0), 2)
+
+        org.opencv.imgcodecs.Imgcodecs.imwrite(dir.path + "/opening.png", opening)
+
+        val sure_bg = Mat()
+        Imgproc.dilate(opening, sure_bg, kernel, Point(-1.0, -1.0), 3)
+
+        val dt = Mat()
+        Imgproc.distanceTransform(opening, dt, Imgproc.DIST_L2, Imgproc.CV_DIST_MASK_5)
+        //Core.normalize(dt, dt, 0.0, 1.0, Core.NORM_MINMAX)
+
+        val sure_fg = Mat()
+        val maxValue = Core.minMaxLoc(dt).maxVal
+        Imgproc.threshold(dt, sure_fg, maxValue*0.7, 255.0, Imgproc.THRESH_BINARY)
+        sure_fg.convertTo(sure_fg, CvType.CV_8U)
+
+        val unknown = Mat()
+        Core.subtract(sure_bg, sure_fg, unknown)
+
+        org.opencv.imgcodecs.Imgcodecs.imwrite(dir.path + "/dt.png", dt)
+        org.opencv.imgcodecs.Imgcodecs.imwrite(dir.path + "/unknown.png", unknown)
+        org.opencv.imgcodecs.Imgcodecs.imwrite(dir.path + "/sure_bg.png", sure_bg)
+        org.opencv.imgcodecs.Imgcodecs.imwrite(dir.path + "/sure_fg.png", sure_fg)
+
+        //Imgproc.GaussianBlur(sure_fg, sure_fg, Size(), 5.0)
+
+        Imgproc.findContours(sure_fg, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE)
+
+//        org.opencv.imgcodecs.Imgcodecs.imwrite(dir.path + "/${contours.size}COUNTED${UUID.randomUUID()}output.png", sure_fg)
+
+        //subtract the background label and border label
+        return contours.size
+
     }
 
     /**
