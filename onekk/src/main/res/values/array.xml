@@ -12,9 +12,9 @@
     </string-array>
 
     <string-array name="scale_steps">
-        <item>One step</item>
-        <item>Two steps</item>
-        <item>Three steps</item>
+        <item>Don\'t collect weight</item>
+        <item>Collect weight and image together</item>
+        <item>Collect weight after image</item>
     </string-array>
 
     <string-array name="scale_steps_values">

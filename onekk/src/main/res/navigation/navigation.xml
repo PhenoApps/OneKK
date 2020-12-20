@@ -57,7 +57,13 @@
     <fragment
         android:id="@+id/settings_fragment"
         android:name="org.wheatgenetics.onekk.fragments.SettingsFragment"
-        android:label="@string/nav_label_settings"/>
+        android:label="@string/nav_label_settings">
+
+        <action android:id="@+id/action_to_coin_manager"
+            app:popUpTo="@id/settings_fragment"
+            app:destination="@+id/coin_manager"/>
+
+    </fragment>
 
     <fragment
         android:id="@+id/coin_manager"

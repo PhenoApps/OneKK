@@ -228,6 +228,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
         if (requireArguments().getString("mode") == "import") {
             importFile.launch("image/*")
+            arguments?.putString("mode", "default")
         }
 
         return mBinding?.root

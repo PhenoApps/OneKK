@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <PreferenceCategory android:title="General">
+    <PreferenceCategory app:iconSpaceReserved="false"
+        android:title="General">
 
         <EditTextPreference
             android:key="@string/onekk_preference_collector_key"
@@ -11,7 +13,8 @@
             android:title="@string/collector" />
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="@string/device_preferences">
+    <PreferenceCategory app:iconSpaceReserved="false"
+        android:title="@string/frag_setting_scale_settings">
 
         <Preference
             android:key="@string/preferences_enable_bluetooth_key"
@@ -20,13 +23,13 @@
 
     </PreferenceCategory>
 
-    <PreferenceCategory
-        android:key="org.wheatgenetics.onekk.PROCESSING"
-        android:title="Workflow">
+    <PreferenceCategory app:iconSpaceReserved="false"
+        android:title="@string/frag_setting_coin_title">
 
         <ListPreference
             android:title="@string/coin_country_choice"
             android:summary=""
+            android:icon="@drawable/ic_world"
             android:key="org.wheatgenetics.onekk.REFERENCE_COUNTRY"/>
 
         <ListPreference
@@ -35,28 +38,40 @@
             android:key="org.wheatgenetics.onekk.REFERENCE_NAME"
             android:title="@string/coin_size"/>
 
+        <Preference
+            android:summary=""
+            android:icon="@drawable/ic_coin_database"
+            android:key="@string/onekk_coin_manager_key"
+            android:title="@string/frag_settings_coin_manager_title"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:iconSpaceReserved="false"
+        android:key="org.wheatgenetics.onekk.PROCESSING"
+        android:title="Workflow">
+
+        <ListPreference
+            android:defaultValue="1"
+            android:entries="@array/analysis_algorithm"
+            android:entryValues="@array/analysis_algorithm_values"
+            android:icon="@drawable/ic_android_studio"
+            android:key="org.wheatgenetics.onekk.ANALYSIS_ALGORITHM"
+            android:title="@string/frag_settings_algorithm_title" />
+
         <CheckBoxPreference
             android:defaultValue="true"
             android:icon="@drawable/ic_choose_photo"
             android:key="org.wheatgenetics.onekk.DISPLAY_ANALYSIS"
-            android:summary="Display analysis preview"
+            android:summary="@string/frag_settings_display_analysis_summary"
             android:title="@string/display_analysis" />
 
         <ListPreference
             android:defaultValue="1"
             android:entries="@array/scale_steps"
             android:entryValues="@array/scale_steps_values"
-            android:icon="@drawable/ic_usb"
+            android:icon="@drawable/ic_scale"
             android:key="org.wheatgenetics.onekk.SCALE_STEPS"
-            android:title="Choose scale steps" />
-
-        <ListPreference
-            android:defaultValue="1"
-            android:entries="@array/analysis_algorithm"
-            android:entryValues="@array/analysis_algorithm_values"
-            android:icon="@drawable/ic_advanced_processing"
-            android:key="org.wheatgenetics.onekk.ANALYSIS_ALGORITHM"
-            android:title="Choose algorithm" />
+            android:title="@string/frag_settings_weight_workflow_title" />
 
     </PreferenceCategory>
 

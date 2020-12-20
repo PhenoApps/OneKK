@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import androidx.preference.EditTextPreference
 import androidx.preference.ListPreference
 import androidx.preference.Preference
@@ -118,6 +119,14 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
                     true
                 }
 
+        findPreference<Preference>(getString(R.string.onekk_coin_manager_key))!!
+                .setOnPreferenceClickListener {
+
+                    findNavController().navigate(SettingsFragmentDirections.actionToCoinManager())
+
+                    true
+                }
+
         findPreference<Preference>(getString(R.string.onekk_preference_collector_key))!!
                 .setOnPreferenceChangeListener { preference, newValue ->
                     mPreferences.edit().apply {
@@ -129,6 +138,9 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
 
         findPreference<Preference>(getString(R.string.onekk_preference_mode_key))!!
                 .setOnPreferenceChangeListener { preference, newValue ->
+
+                    preference.summary = newValue.toString()
+
                     mPreferences.edit().apply {
                         putString(getString(R.string.onekk_preference_mode_key), (newValue as? String) ?: "1")
                     }.apply()

@@ -97,7 +97,7 @@
     <!-- Settings strings -->
     <string name="processing">Processing</string>
     <string name="seed_size_range">Seed Size Range (Optional)</string>
-    <string name="display_analysis">Display analysis preview</string>
+    <string name="display_analysis">Show analysis preview</string>
     <string name="background_color">Background Color </string>
     <string name="advanced_settings">Advanced Settings</string>
 
@@ -270,7 +270,7 @@
     <string name="print">Connect to a Bluetooth device.</string>
     <string name="device_recycler_view_header_scale_fragment">Local BLE Devices</string>
     <string name="loading">Loading...</string>
-    <string name="device_preferences">Device Preferences</string>
+    <string name="frag_setting_scale_settings">Scale Settings</string>
     <string name="enable_bluetooth">Available Devices</string>
     <string name="preferences_enable_bluetooth_key">org.wheatgenetics.onekk.BLUETOOTH_ENABLED</string>
     <string name="devices">devices</string>
@@ -360,5 +360,11 @@
     <string name="list_item_analysis_weight_action_text">Weigh sample.</string>
     <string name="list_item_analysis_count_action_text">Count sample.</string>
     <string name="nav_drawer_title_import">Import a file</string>
+    <string name="frag_setting_coin_title">Coin</string>
+    <string name="frag_settings_coin_manager_title">Coin Manager</string>
+    <string name="onekk_coin_manager_key">org.wheatgenetics.onekk.COIN_MANAGER_NAVIGATE</string>
+    <string name="frag_settings_algorithm_title">Algorithm</string>
+    <string name="frag_settings_display_analysis_summary">Displays an analysis preview prior to saving sample.</string>
+    <string name="frag_settings_weight_workflow_title">Weight workflow</string>
 
 </resources>
