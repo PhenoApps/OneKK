@@ -251,11 +251,11 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         nvDrawer.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
 
-//                R.id.action_nav_export -> {
-//
-//                    askExport()
-//
-//                }
+                R.id.action_to_import -> {
+
+                    mNavController.navigate(CameraFragmentDirections.actionToImport(mode = "import"))
+
+                }
                 R.id.action_coin_manager -> {
 
                     mNavController.navigate(CameraFragmentDirections.actionToCoinManager())

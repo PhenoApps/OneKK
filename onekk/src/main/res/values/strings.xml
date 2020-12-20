@@ -359,5 +359,6 @@
     <string name="frag_scale_weight_button_text">Weigh</string>
     <string name="list_item_analysis_weight_action_text">Weigh sample.</string>
     <string name="list_item_analysis_count_action_text">Count sample.</string>
+    <string name="nav_drawer_title_import">Import a file</string>
 
 </resources>

@@ -137,8 +137,14 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
             doc?.let { nonNullDoc ->
 
+                //imported file uris are parsed for their names to use as the sample name
+                val path = nonNullDoc.lastPathSegment.toString()
+                val name = if ("/" in path) {
+                    path.split("/").last()
+                } else path
+
                 initiateDetector(BitmapFactory.decodeStream(requireContext()
-                        .contentResolver.openInputStream(nonNullDoc.normalizeScheme())))
+                        .contentResolver.openInputStream(nonNullDoc)), name)
             }
         }
     }
@@ -189,6 +195,10 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
                 mBinding?.nameEditText?.setText(it)
 
             })
+
+            this?.barcodeScanButton?.setOnClickListener {
+                findNavController().navigate(CameraFragmentDirections.actionToBarcodeScanner())
+            }
         }
 
         when (mPreferences.getBoolean(getString(R.string.onekk_first_load_ask_mac_address), true)) {
@@ -215,6 +225,10 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
                 android.Manifest.permission.BLUETOOTH,
                 android.Manifest.permission.READ_EXTERNAL_STORAGE,
                 android.Manifest.permission.WRITE_EXTERNAL_STORAGE))
+
+        if (requireArguments().getString("mode") == "import") {
+            importFile.launch("image/*")
+        }
 
         return mBinding?.root
 
@@ -270,6 +284,8 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
     private fun initiateDetector(image: Bitmap, name: String? = null) {
 
         mBinding?.toggleDetectorProgress(true)
+
+        mBinding?.nameEditText?.setText(name)
 
         //default is the size for a quarter
         val diameter = mPreferences.getString(getString(R.string.onekk_coin_pref_key), "24.26")?.toDoubleOrNull() ?: 24.26
@@ -583,17 +599,6 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
             }
 
-            R.id.action_import_file -> {
-
-                importFile.launch("image/*")
-
-            }
-
-            R.id.action_barcode_scan -> {
-
-                findNavController().navigate(CameraFragmentDirections.actionToBarcodeScanner())
-
-            }
             else -> return super.onOptionsItemSelected(item)
         }
 
@@ -667,7 +672,15 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
                             }
 
-                            Glide.with(requireContext()).asBitmap().load(file.toUri()).fitCenter().preload()
+                            try {
+
+                                Glide.with(requireContext()).asBitmap().load(file.toUri()).fitCenter().preload()
+
+                            } catch (e: Exception) {
+
+                                e.printStackTrace()
+
+                            }
 
                             viewModel.insert(ImageEntity(Image(Uri.fromFile(file).path.toString(), DateUtil().getTime()), rowid.toInt()))
                         }

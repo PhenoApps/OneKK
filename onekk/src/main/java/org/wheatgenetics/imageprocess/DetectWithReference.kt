@@ -129,7 +129,7 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
                 this.height = this.height + 50
                 this.width = this.width + 50
             }
-//
+
             val box = Imgproc.boundingRect(it)
             val mask = Mat.zeros(original.size(), original.type())
             Imgproc.drawContours(mask, listOf(it), -1, Scalar.all(255.0), -1)
@@ -240,7 +240,7 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
 
         //remove noise
         val opening = Mat()
-        Imgproc.morphologyEx(thresh, opening, Imgproc.MORPH_OPEN, kernel, Point(-1.0,-1.0), 2)
+        Imgproc.morphologyEx(thresh, opening, Imgproc.MORPH_ELLIPSE, kernel, Point(-1.0,-1.0), 2)
 
         org.opencv.imgcodecs.Imgcodecs.imwrite(dir.path + "/opening.png", opening)
 
@@ -249,11 +249,11 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
 
         val dt = Mat()
         Imgproc.distanceTransform(opening, dt, Imgproc.DIST_L2, Imgproc.CV_DIST_MASK_5)
-        //Core.normalize(dt, dt, 0.0, 1.0, Core.NORM_MINMAX)
+        Core.normalize(dt, dt, 0.0, 1.0, Core.NORM_MINMAX)
 
         val sure_fg = Mat()
         val maxValue = Core.minMaxLoc(dt).maxVal
-        Imgproc.threshold(dt, sure_fg, maxValue*0.7, 255.0, Imgproc.THRESH_BINARY)
+        Imgproc.threshold(dt, sure_fg, 0.7, 255.0, Imgproc.THRESH_BINARY)
         sure_fg.convertTo(sure_fg, CvType.CV_8U)
 
         val unknown = Mat()

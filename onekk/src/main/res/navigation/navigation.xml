@@ -78,6 +78,11 @@
             android:defaultValue="default"
             app:argType="string"/>
 
+        <action android:id="@+id/action_to_import"
+            app:popUpToInclusive="true"
+            app:popUpTo="@id/camera_preview_fragment"
+            app:destination="@+id/camera_preview_fragment"/>
+
         <action android:id="@+id/action_to_barcode_scanner"
             app:popUpTo="@id/camera_preview_fragment"
             app:destination="@+id/barcode_fragment"/>
