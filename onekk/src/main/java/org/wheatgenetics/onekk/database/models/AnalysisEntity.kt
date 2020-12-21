@@ -24,6 +24,30 @@ data class AnalysisEntity(
         @ColumnInfo(name = "count")
         var count: Int? = null,
 
+        @ColumnInfo(name = "uri")
+        var uri: String? = null,
+
+        @ColumnInfo(name = "collector")
+        var collector: String? = null,
+
+        @ColumnInfo(name = "minAxisAvg")
+        var minAxisAvg: Double? = null,
+
+        @ColumnInfo(name = "maxAxisAvg")
+        var maxAxisAvg: Double? = null,
+
+        @ColumnInfo(name = "minAxisVar")
+        var minAxisVar: Double? = null,
+
+        @ColumnInfo(name = "maxAxisVar")
+        var maxAxisVar: Double? = null,
+
+        @ColumnInfo(name = "minAxisCv")
+        var minAxisCv: Double? = null,
+
+        @ColumnInfo(name = "maxAxisCv")
+        var maxAxisCv: Double? = null,
+
         @ColumnInfo(name = "aid")
         @PrimaryKey(autoGenerate = true)
         var aid: Int? = null)

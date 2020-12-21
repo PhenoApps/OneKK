@@ -24,7 +24,10 @@ interface OnekkDao {
     suspend fun selectAllAnalysis(aid: Int): List<ImageEntity>
 
     @Query("SELECT * FROM contour WHERE aid = :aid")
-    fun selectAllContours(aid: Int): LiveData<List<ContourEntity>>
+    fun selectContoursById(aid: Int): LiveData<List<ContourEntity>>
+
+    @Query("SELECT * FROM contour")
+    fun selectAllContours(): LiveData<List<ContourEntity>>
 
     /** Updates **/
     @Query("UPDATE contour SET selected = :selected WHERE aid = :aid AND cid = :cid")
@@ -36,8 +39,16 @@ interface OnekkDao {
     @Query("UPDATE analysis SET count = :count WHERE aid = :aid")
     suspend fun updateAnalysisCount(aid: Int, count: Int)
 
+    @Query("UPDATE analysis SET minAxisAvg = :minAxisAvg, minAxisVar = :minAxisVar, minAxisCv = :minAxisCv, maxAxisAvg = :maxAxisAvg, maxAxisVar = :maxAxisVar, maxAxisCv = :maxAxisCv WHERE aid = :aid")
+    suspend fun updateAnalysisData(aid: Int,
+                                   minAxisAvg: Double, minAxisVar: Double, minAxisCv: Double,
+                                   maxAxisAvg: Double, maxAxisVar: Double, maxAxisCv: Double)
+
     @Query("UPDATE analysis SET selected = :selected WHERE aid = :aid")
     suspend fun updateAnalysisSelected(aid: Int, selected: Boolean)
+
+    @Query("UPDATE analysis set selected = 1")
+    suspend fun updateSelectAllAnalysis()
 
     /** Inserts **/
     @Insert
@@ -52,6 +63,9 @@ interface OnekkDao {
      */
     @Query("DELETE FROM contour WHERE aid = :aid AND cid = :cid")
     suspend fun deleteContour(aid: Int, cid: Int)
+
+    @Query("DELETE FROM analysis WHERE aid = :aid")
+    suspend fun deleteAnalysis(aid: Int)
 
     @Query("DELETE FROM analysis WHERE selected = 1")
     suspend fun deleteAllAnalysis()

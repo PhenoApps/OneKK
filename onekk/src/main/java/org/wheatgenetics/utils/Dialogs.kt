@@ -62,13 +62,12 @@ class Dialogs {
                 }
 
                 setNeutralButton(neutralText) { _, _ ->
-
-                    function(false)
-
+                    
                 }
 
                 setNegativeButton(negativeText) { _, _ ->
 
+                    function(false)
                 }
 
                 show()

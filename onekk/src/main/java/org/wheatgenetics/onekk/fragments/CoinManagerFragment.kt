@@ -10,7 +10,6 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import kotlinx.android.synthetic.main.fragment_coin_manager.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -126,7 +125,7 @@ class CoinManagerFragment : Fragment(), CoinValueChangedListener, CoroutineScope
 
         sViewModel.coinModels(country).observeForever { coins ->
 
-            (recyclerView.adapter as CoinManagerAdapter).submitList(coins)
+            (mBinding?.recyclerView?.adapter as? CoinManagerAdapter)?.submitList(coins)
 
         }
     }

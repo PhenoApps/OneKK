@@ -7,7 +7,7 @@ import org.wheatgenetics.onekk.interfaces.DetectorAlgorithm
 import org.wheatgenetics.onekk.interfaces.DetectorListener
 import java.io.File
 
-class Detector(private val algorithm: String, private val dir: File, private val listener: DetectorListener, referenceDiameter: Double): CoroutineScope by MainScope() {
+class Detector(private val algorithm: String, private val dir: File, private val listener: DetectorListener, referenceDiameter: Double, private val imported: File? = null): CoroutineScope by MainScope() {
 
 //    private var frames = 0.0
 //    private var startAnalysisTime = System.currentTimeMillis()
@@ -26,7 +26,7 @@ class Detector(private val algorithm: String, private val dir: File, private val
 
             //Log.d(CameraFragment.TAG, "CoinAnalyzer: ${System.currentTimeMillis() - startTime}")
 
-            listener.onDetectorCompleted(result)
+            listener.onDetectorCompleted(result, imported)
         }
     }
 }

@@ -19,16 +19,25 @@
     </fragment>
 
     <fragment
+        android:id="@+id/graph_fragment"
+        android:name="org.wheatgenetics.onekk.fragments.GraphFragment"
+        android:label="@string/graph_fragment_label">
+        <argument android:name="analysis"
+            android:defaultValue="-1"
+            app:argType="integer"/>
+    </fragment>
+
+    <fragment
         android:id="@+id/analysis_fragment"
         android:name="org.wheatgenetics.onekk.fragments.AnalysisFragment"
         android:label="@string/analysis_fragment_label">
 
         <action android:id="@+id/action_to_contours"
-            app:popUpTo="@id/camera_preview_fragment"
+            app:popUpTo="@id/analysis_fragment"
             app:destination="@id/contour_fragment"/>
 
         <action android:id="@+id/action_to_scale"
-            app:popUpTo="@id/camera_preview_fragment"
+            app:popUpTo="@id/analysis_fragment"
             app:destination="@id/scale_fragment"/>
     </fragment>
 
@@ -43,7 +52,9 @@
 
         <action android:id="@+id/action_to_camera"
             app:destination="@id/camera_preview_fragment"/>
-
+        <action android:id="@+id/action_to_graph"
+            app:popUpTo="@id/contour_fragment"
+            app:destination="@id/graph_fragment"/>
         <action android:id="@+id/action_to_scale"
             app:popUpTo="@id/camera_preview_fragment"
             app:destination="@id/scale_fragment"/>

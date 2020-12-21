@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import android.view.*
 import android.widget.EditText
@@ -18,6 +19,9 @@ import androidx.databinding.DataBindingUtil
 import androidx.documentfile.provider.DocumentFile
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -28,6 +32,7 @@ import org.wheatgenetics.onekk.adapters.AnalysisAdapter
 import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
 import org.wheatgenetics.onekk.database.models.AnalysisEntity
+import org.wheatgenetics.onekk.database.models.ContourEntity
 import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
 import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentAnalysisManagerBinding
@@ -39,6 +44,7 @@ import org.wheatgenetics.utils.DateUtil
 import org.wheatgenetics.utils.Dialogs
 import org.wheatgenetics.utils.FileUtil
 import java.util.*
+import kotlin.collections.ArrayList
 
 class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, CoroutineScope by MainScope() {
 
@@ -64,43 +70,11 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
 
         with(mBinding) {
 
-            val adapter = AnalysisAdapter(this@AnalysisFragment)
-            this?.recyclerView?.adapter = adapter
+            this?.recyclerView?.adapter = AnalysisAdapter(this@AnalysisFragment)
             this?.recyclerView?.layoutManager = LinearLayoutManager(requireContext())
 
-            viewModel.analysis().observe(viewLifecycleOwner, {
+            this?.updateUi()
 
-                if (it.isEmpty()) {
-
-                    Toast.makeText(requireContext(), R.string.frag_analysis_table_empty_message, Toast.LENGTH_LONG).show()
-
-                    findNavController().popBackStack()
-                }
-                
-                adapter.submitList(it)
-
-            })
-
-            this?.exportButton?.setOnClickListener {
-
-                exportFile(adapter.currentList.filter { it.selected })
-            }
-
-            this?.deleteButton?.setOnClickListener {
-
-                Dialogs.onOk(AlertDialog.Builder(requireContext()),
-                        title = getString(R.string.frag_analysis_ask_delete_all),
-                        cancel = getString(R.string.frag_analysis_ask_delete_cancel_button),
-                        ok = getString(R.string.frag_analysis_ask_delete_ok_button)) {
-
-                    if (it) {
-
-                        viewModel.deleteAllAnalysis()
-
-                    }
-
-                }
-            }
         }
 
         setHasOptionsMenu(true)
@@ -108,55 +82,82 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
         return mBinding?.root
     }
 
-    /**
-     * Uses activity results contracts to create a document and call the export function
-     */
-    private fun exportFile(analysis: List<AnalysisEntity>) {
+    private fun FragmentAnalysisManagerBinding.updateUi() {
 
-        registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { it?.let { uri ->
+        viewModel.analysis().observeOnce(this@AnalysisFragment, {
+
+            if (it.isEmpty()) {
+
+                Toast.makeText(requireContext(), R.string.frag_analysis_table_empty_message, Toast.LENGTH_LONG).show()
+
+                findNavController().popBackStack()
+            }
+
+            (this.recyclerView.adapter as? AnalysisAdapter)?.submitList(
+                    it.sortedByDescending { it.date })
+
+        })
+    }
+
+    private fun exportSamples(fileName: String, analysis: List<AnalysisEntity>) {
+
+        registerForActivityResult(ActivityResultContracts.CreateDocument()) { it?.let { uri ->
 
             launch {
 
                 withContext(Dispatchers.IO) {
 
-                    val chosenUri = Uri.parse(uri.toString())
+                    FileUtil(requireContext()).export(uri, analysis)
 
-                    val folder = DocumentFile.fromTreeUri(requireContext(), chosenUri)
-
-                    folder?.let {
-
-                        val docFile = it.createDirectory("Output_${DateUtil().getTime()}")
-
-                        docFile?.let { directory ->
-
-                            directory.createFile("text/csv", "${UUID.randomUUID()}.csv")?.let { output ->
-
-                                FileUtil(requireContext()).export(output.uri, analysis)
-
-                            }
-                        }
-                    }
                 }
             }
-        }}.launch(requireContext().filesDir.toUri())
-    }
-
-    override fun onClickCount(aid: Int) {
-
-        findNavController().navigate(AnalysisFragmentDirections.actionToContours(aid))
+        }}.launch(fileName)
 
     }
 
-    override fun onSelectionSwapped(aid: Int, selected: Boolean) {
+    private fun exportSeeds(fileName: String, analysis: List<AnalysisEntity>, contours: List<ContourEntity>) {
 
-        viewModel.updateAnalysisSelected(aid, selected)
+        registerForActivityResult(ActivityResultContracts.CreateDocument()) { it?.let { uri ->
+
+            launch {
+
+                withContext(Dispatchers.IO) {
+
+                    FileUtil(requireContext()).exportSeeds(uri, analysis, contours)
+
+                }
+            }
+        }}.launch(fileName)
 
     }
 
-    override fun onClick(aid: Int) {
+    /**
+     * Uses activity results contracts to create a document and call the export function
+     */
+    private fun exportFile(analysis: List<AnalysisEntity>) {
 
-        findNavController().navigate(AnalysisFragmentDirections.actionToScale(aid))
+        val outputFilePrefix = getString(R.string.export_file_prefix)
 
+        val fileName = "$outputFilePrefix${DateUtil().getTime()}"
+
+        Dialogs.booleanOption(AlertDialog.Builder(requireContext()),
+                getString(R.string.frag_analysis_dialog_export_title),
+                getString(R.string.frag_analysis_dialog_export_samples_option),
+                getString(R.string.frag_analysis_dialog_export_seeds_option),
+                getString(R.string.frag_analysis_dialog_export_cancel_option)) { option ->
+
+            if (option) {
+
+                exportSamples(fileName, analysis)
+
+            } else {
+
+                viewModel.selectAllContours().observeOnce(viewLifecycleOwner, {
+                    exportSeeds(fileName, analysis, it)
+
+                })
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -170,10 +171,53 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
 
         when (item.itemId) {
 
+            R.id.action_delete -> {
+
+                askDelete()
+            }
+
+            R.id.action_export -> {
+
+               (mBinding?.recyclerView?.adapter as? AnalysisAdapter)
+                    ?.currentList?.filter { it.selected }?.let { data ->
+
+                        exportFile(data)
+
+                    }
+            }
+
+            R.id.action_select_all -> {
+
+                viewModel.updateSelectAllAnalysis()
+
+                mBinding?.updateUi()
+            }
+
             else -> return super.onOptionsItemSelected(item)
         }
 
-//        return true
+        return true
+    }
+
+    private fun askDelete() {
+
+        Dialogs.onOk(AlertDialog.Builder(requireContext()),
+                title = getString(R.string.frag_analysis_ask_delete_all),
+                cancel = getString(R.string.frag_analysis_ask_delete_cancel_button),
+                ok = getString(R.string.frag_analysis_ask_delete_ok_button)) {
+
+            if (it) {
+
+                launch {
+
+                    viewModel.deleteSelectedAnalysis()
+
+                    requireActivity().runOnUiThread {
+                        mBinding?.updateUi()
+                    }
+                }
+            }
+        }
     }
 
     override fun onAnalysisUpdated(aid: Int, weight: Double?) {
@@ -182,4 +226,31 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
 
     }
 
+    override fun onClickCount(aid: Int) {
+
+        findNavController().navigate(AnalysisFragmentDirections.actionToContours(aid))
+
+    }
+
+    override fun onSelectionSwapped(position: Int, model: AnalysisEntity, selected: Boolean) {
+
+        viewModel.updateAnalysisSelected(model.aid!!, selected)
+
+        (mBinding?.recyclerView?.adapter?.notifyItemChanged(position))
+    }
+
+    override fun onClick(aid: Int) {
+
+        findNavController().navigate(AnalysisFragmentDirections.actionToScale(aid))
+
+    }
+
+    private fun <T> LiveData<T>.observeOnce(lifecycleOwner: LifecycleOwner, observer: Observer<T>) {
+        observe(lifecycleOwner, object : Observer<T> {
+            override fun onChanged(t: T?) {
+                observer.onChanged(t)
+                removeObserver(this)
+            }
+        })
+    }
 }

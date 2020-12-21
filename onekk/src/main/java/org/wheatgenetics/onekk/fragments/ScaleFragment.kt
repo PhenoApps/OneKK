@@ -10,6 +10,7 @@ import android.view.*
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -26,6 +27,7 @@ import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentScaleBinding
 import org.wheatgenetics.onekk.interfaces.BleNotificationListener
 import org.wheatgenetics.utils.BluetoothUtil
+import org.wheatgenetics.utils.Dialogs
 import java.lang.IllegalStateException
 import java.lang.IndexOutOfBoundsException
 import java.util.*
@@ -99,8 +101,25 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
 
         aid = requireArguments().getInt("analysis", -1)
 
-        startMacAddressSearch()
+        when (mPreferences.getBoolean(getString(R.string.onekk_first_scale_fragment_ask_mac_address), true)) {
 
+            true -> {
+                Dialogs.onOk(AlertDialog.Builder(requireContext()),
+                        getString(R.string.camera_fragment_dialog_first_load_ask_address),
+                        getString(R.string.camera_fragment_dialog_first_load_cancel),
+                        getString(R.string.camera_fragment_dialog_first_load_ok)) { theyWantToSetAddress ->
+
+                    if (theyWantToSetAddress) {
+
+                        startMacAddressSearch()
+
+                    }
+                }
+            }
+            else ->  {
+                mPreferences.edit().putBoolean(getString(R.string.onekk_first_load_ask_mac_address), false).apply()
+            }
+        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -125,9 +144,33 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
 
         }
 
-        startMacAddressSearch()
+        setHasOptionsMenu(true)
 
         return mBinding?.root
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+
+        super.onCreateOptionsMenu(menu, inflater)
+
+        inflater.inflate(R.menu.menu_scale_view, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+
+        when (item.itemId) {
+
+            //toggle the torch when the option is clicked
+            R.id.action_ble_connect -> {
+
+                startMacAddressSearch()
+
+            }
+
+            else -> return super.onOptionsItemSelected(item)
+        }
+
+        return true
     }
 
     private fun startMacAddressSearch() {

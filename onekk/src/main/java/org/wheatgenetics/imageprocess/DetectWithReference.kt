@@ -293,7 +293,7 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
                 val y = Imgproc.moments(it)
                 val v = Point(y.m10 / y.m00, y.m01 / y.m00)
 
-                euclideanDistance(u, v) < 100
+                euclideanDistance(u, v) < 10
             }
 
             if (others.isEmpty()) {

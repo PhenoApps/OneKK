@@ -60,6 +60,7 @@ dependencies {
     implementation files('libs/javacpp.jar')
     implementation files('libs/opencsv-3.1.jar')
     implementation files('libs/opencv.jar')
+    implementation 'org.apache.commons:commons-math3:3.6.1'
 
     def lifecycle_version = "2.3.0-alpha06"
 
@@ -164,6 +165,8 @@ dependencies {
     implementation "androidx.core:core-ktx:+"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.0"
+
+    implementation 'com.jjoe64:graphview:4.2.2'
 
 //github repositories
     implementation 'com.github.MFlisar:changelog:1.1.7'

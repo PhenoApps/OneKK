@@ -204,7 +204,12 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
         when (item.itemId) {
 
-            //toggle the torch when the option is clicked
+            R.id.action_graph -> {
+
+                findNavController().navigate(ContourFragmentDirections.actionToGraph(aid))
+
+            }
+
             R.id.action_sort -> {
 
                 item.setIcon(when (mSortState) {

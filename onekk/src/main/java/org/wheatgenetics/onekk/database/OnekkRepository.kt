@@ -18,7 +18,11 @@ class OnekkRepository
 
     fun selectAllAnalysis() = dao.getAllAnalysis()
 
+    suspend fun deleteAnalysis(aid: Int) = dao.deleteAnalysis(aid)
+
     suspend fun deleteAllAnalysis() = dao.deleteAllAnalysis()
+
+    suspend fun updateSelectAllAnalysis() = dao.updateSelectAllAnalysis()
 
     suspend fun selectAllCountries(): List<String> {
 
@@ -41,7 +45,9 @@ class OnekkRepository
 
     }
 
-    fun selectAllContours(aid: Int) = dao.selectAllContours(aid)
+    fun selectAllContours() = dao.selectAllContours()
+
+    fun selectContoursById(aid: Int) = dao.selectContoursById(aid)
 
 //    suspend fun selectAllAnalysis(exp: ExperimentEntity): List<ImageEntity> {
 //
@@ -83,6 +89,12 @@ class OnekkRepository
 
     suspend fun updateAnalysisCount(aid: Int, count: Int) = withContext(Dispatchers.IO) {
         dao.updateAnalysisCount(aid, count)
+    }
+
+    suspend fun updateAnalysisData(aid: Int,
+                                         minAxisAvg: Double, minAxisVar: Double, minAxisCv: Double,
+                                         maxAxisAvg: Double, maxAxisVar: Double, maxAxisCv: Double) = withContext(Dispatchers.IO) {
+        dao.updateAnalysisData(aid, minAxisAvg, minAxisVar, minAxisCv, maxAxisAvg, maxAxisVar, maxAxisCv)
     }
 
     suspend fun updateAnalysisSelected(aid: Int, selected: Boolean) = withContext(Dispatchers.IO) {

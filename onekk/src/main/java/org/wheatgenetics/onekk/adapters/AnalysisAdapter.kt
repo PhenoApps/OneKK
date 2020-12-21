@@ -29,19 +29,7 @@ class AnalysisAdapter(private val listener: OnClickAnalysis) : ListAdapter<Analy
 
             with(holder as ViewHolder) {
 
-                holder.itemView.findViewById<TextView>(R.id.listWeightEditText).setOnClickListener {
-
-                    listener.onClick(analysis.aid!!)
-
-                }
-
-                holder.itemView.findViewById<TextView>(R.id.countTextView).setOnClickListener {
-
-                    listener.onClickCount(analysis.aid!!)
-
-                }
-
-                bind(listener, analysis)
+                bind(position, listener, analysis)
 
             }
         }
@@ -49,18 +37,27 @@ class AnalysisAdapter(private val listener: OnClickAnalysis) : ListAdapter<Analy
 
     class ViewHolder(private val binding: ListItemAnalysisBinding) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(listener: OnClickAnalysis, model: AnalysisEntity) {
+        fun bind(position: Int, listener: OnClickAnalysis, model: AnalysisEntity) {
 
             with(binding) {
 
-                binding.checkbox.isChecked = model.selected
+                listWeightEditText.setOnClickListener {
 
-                binding.root.setOnClickListener {
+                    listener.onClick(model.aid!!)
 
-                    checkbox.isChecked = !model.selected
+                }
 
-                    listener.onSelectionSwapped(model.aid!!, checkbox.isChecked)
+                countTextView.setOnClickListener {
 
+                    listener.onClickCount(model.aid!!)
+
+                 }
+
+                itemView.setOnClickListener {
+
+                    model.selected = !model.selected
+
+                    listener.onSelectionSwapped(position, model, model.selected)
                 }
 
                 name = model.name
@@ -70,6 +67,10 @@ class AnalysisAdapter(private val listener: OnClickAnalysis) : ListAdapter<Analy
                 count = model.count.toString()
 
                 weight = model.weight.toString()
+
+                minAxisAvg = model.minAxisAvg.toString()
+
+                maxAxisAvg = model.maxAxisAvg.toString()
 
                 selected = model.selected
             }

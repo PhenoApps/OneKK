@@ -5,4 +5,9 @@
         android:icon="@drawable/ic_sort_reverse_variant"
         app:showAsAction="ifRoom"
         android:title="@string/menu_contour_list_sort"/>
+    <item
+        android:id="@+id/action_graph"
+        android:icon="@drawable/ic_world"
+        app:showAsAction="ifRoom"
+        android:title="@string/menu_contour_list_graph"/>
 </menu>

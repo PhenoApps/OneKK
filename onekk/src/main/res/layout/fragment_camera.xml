@@ -66,6 +66,7 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginLeft="16dp"
+            android:inputType="numberDecimal"
             android:elevation="5dp"
             android:textSize="24sp"
             android:hint="@string/weight_input_hint"

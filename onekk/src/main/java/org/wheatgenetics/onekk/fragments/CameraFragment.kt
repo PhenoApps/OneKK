@@ -57,6 +57,7 @@ import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import kotlin.math.sqrt
 
 /**
  * This fragment uses the CameraX analysis API. The use-cases used are preview and image capture.
@@ -284,9 +285,13 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
      */
     private fun initiateDetector(image: Bitmap, name: String? = null) {
 
-        mBinding?.toggleDetectorProgress(true)
+        requireActivity().runOnUiThread {
 
-        mBinding?.nameEditText?.setText(name)
+            mBinding?.toggleDetectorProgress(true)
+
+            mBinding?.nameEditText?.setText(name)
+
+        }
 
         //default is the size for a quarter
         val diameter = mPreferences.getString(getString(R.string.onekk_coin_pref_key), "24.26")?.toDoubleOrNull() ?: 24.26
@@ -295,19 +300,20 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
         try {
 
-            Detector(algorithm, requireContext().externalMediaDirs.first(), this@CameraFragment, diameter).scan(image)
 
-            name?.let { capturedImage ->
+            if (name != null) {
 
-                val file = File(captureDirectory.path.toString(), "${capturedImage}.png")
+                val file = File(captureDirectory.path.toString(), "${name}.png")
 
                 FileOutputStream(file).use { stream ->
 
                     image.compress(Bitmap.CompressFormat.PNG, 100, stream)
 
                 }
-            }
 
+                Detector(algorithm, requireContext().externalMediaDirs.first(), this@CameraFragment, diameter, imported = file).scan(image)
+
+            } else Detector(algorithm, requireContext().externalMediaDirs.first(), this@CameraFragment, diameter).scan(image)
 
         } catch (e: Exception) {
 
@@ -327,9 +333,11 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
         //format the result
         val weight = value.replace("\n", "").split("g")[0].replace(" ", "")
 
+        val weightText = weight.toDoubleOrNull() ?: 0.0
+
         runOnUiThread {
 
-            findViewById<TextView>(R.id.weightEditText)?.text = weight
+            findViewById<TextView>(R.id.weightEditText)?.text = weightText.toString()
 
         }
     }
@@ -400,28 +408,36 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
                         }
 
                 val highResImageCapture = ImageCapture.Builder()
+                        .setTargetResolution(metrics)
                         .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
                         .build()
 
                 mBinding?.cameraCaptureButton?.setOnClickListener {
 
-                    highResImageCapture.takePicture(cameraExecutor,
-                            object : ImageCapture.OnImageCapturedCallback() {
-                                override fun onCaptureSuccess(image: ImageProxy) {
-                                    image.use {
+                    val name = mBinding?.nameEditText?.text?.toString() ?: String()
 
-                                        initiateDetector(it.toBitmap(), UUID.randomUUID().toString())
+                    if (name.isNotBlank()) {
+                        highResImageCapture.takePicture(cameraExecutor,
+                                object : ImageCapture.OnImageCapturedCallback() {
+                                    override fun onCaptureSuccess(image: ImageProxy) {
+                                        image.use {
 
+                                            initiateDetector(it.toBitmap(), name)
+
+                                        }
+                                        super.onCaptureSuccess(image)
                                     }
-                                    super.onCaptureSuccess(image)
-                                }
 
-                                override fun onError(exception: ImageCaptureException) {
-                                    super.onError(exception)
-                                    println("error")
-                                }
-                            })
-
+                                    override fun onError(exception: ImageCaptureException) {
+                                        super.onError(exception)
+                                        println("error")
+                                    }
+                                })
+                    } else {
+                        requireActivity().runOnUiThread {
+                            Toast.makeText(requireContext(), R.string.frag_camera_no_sample_name_message, Toast.LENGTH_LONG).show()
+                        }
+                    }
                 }
 
                 // Select back camera as a default
@@ -528,7 +544,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
     /**
      * Creates a Dialog that asks the user to accept or decline the image.
      */
-    private fun callCoinRecognitionDialog(result: DetectWithReferences.Result) {
+    private fun callCoinRecognitionDialog(result: DetectWithReferences.Result, imported: File? = null) {
 
         if (!isShowingDialog) {
 
@@ -553,7 +569,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
                                         getString(R.string.ask_coin_recognition_ok),
                                         srcBitmap = src, dstBitmap = dst, { success ->
 
-                                    savePipelineToDatabase(result)
+                                    savePipelineToDatabase(result, imported)
 
                                     isShowingDialog = false
 
@@ -565,7 +581,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
                             } else {
 
-                                savePipelineToDatabase(result)
+                                savePipelineToDatabase(result, imported)
                             }
                         }
                     }
@@ -624,7 +640,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
      *
      * When the one-step process is used, the weight is also stored into the analysis row.
      */
-    private fun savePipelineToDatabase(result: DetectWithReferences.Result) {
+    private fun savePipelineToDatabase(result: DetectWithReferences.Result, imported: File? = null) {
 
         launch(Dispatchers.IO) {
 
@@ -633,18 +649,28 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
                 else -> null
             }
 
+            val collector = mPreferences.getString(getString(R.string.onekk_preference_collector_key), "") ?: ""
+
             val name = mBinding?.nameEditText?.text?.toString() ?: String()
 
             if (name.isNotBlank()) {
 
-                val rowid = viewModel.insert(AnalysisEntity(name = name,
-                        date = DateUtil().getTime(), weight = weight)).toInt()
+                val rowid = viewModel.insert(AnalysisEntity(
+                        name = name,
+                        collector = collector,
+                        uri = imported?.toUri().toString(),
+                        date = DateUtil().getTime(),
+                        weight = weight)).toInt()
 
                 launch {
 
                     with(viewModel) {
 
                         var count = 0.0
+
+                        var minAxisAvg = 0.0
+
+                        var maxAxisAvg = 0.0
 
                         result.contours.forEach { contour ->
 
@@ -658,10 +684,32 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
                                     selected = true,
                                     aid = rowid))
 
+                            if (contour.count == 1) {
+
+                                minAxisAvg += contour.minAxis
+
+                                maxAxisAvg += contour.maxAxis
+
+                            }
+
                             count += contour.count
                         }
 
+                        val singles = result.contours.filter { it.count == 1 }
+                        val n = singles.size
+
+                        minAxisAvg /= n
+                        maxAxisAvg /= n
+
+                        val minAxisVar = variance(singles.map { it.minAxis }, minAxisAvg, n)
+                        val maxAxisVar = variance(singles.map { it.maxAxis }, maxAxisAvg, n)
+
+                        val minAxisCv = sqrt(minAxisVar) / minAxisAvg
+                        val maxAxisCv = sqrt(maxAxisVar) / maxAxisAvg
+
                         updateAnalysisCount(rowid, count.toInt())
+
+                        updateAnalysisData(rowid, minAxisAvg, minAxisVar, minAxisCv, maxAxisAvg, maxAxisVar, maxAxisCv)
 
                         result.dst.let { image ->
 
@@ -710,6 +758,9 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
         }
     }
 
+    private fun variance(population: List<Double>, mean: Double, n: Int) =
+            population.map { Math.pow(it - mean, 2.0) }.sum() / (n - 1)
+
     /**
      * BLE listener implementation for reading the bluetooth adapter state.
      * Uses RxBleClient in BluetoothUtil.
@@ -755,11 +806,11 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
      * Listener method that is called from the analyzer class. This result holds
      * the output of the detection algorithm including src/dst images, and detected contours with stats.
      */
-    override fun onDetectorCompleted(result: DetectWithReferences.Result) {
+    override fun onDetectorCompleted(result: DetectWithReferences.Result, imported: File?) {
 
         mBinding?.toggleDetectorProgress(false)
 
-        callCoinRecognitionDialog(result)
+        callCoinRecognitionDialog(result, imported)
 
     }
 }

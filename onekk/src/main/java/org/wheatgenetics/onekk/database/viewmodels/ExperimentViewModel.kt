@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.wheatgenetics.onekk.database.OnekkRepository
 import org.wheatgenetics.onekk.database.models.AnalysisEntity
@@ -13,6 +14,26 @@ import java.io.InputStream
 
 class ExperimentViewModel(
         private val repo: OnekkRepository): ViewModel() {
+
+    suspend fun deleteSelectedAnalysis() {
+
+        coroutineScope {
+
+            async {
+
+                deleteAllAnalysis()
+
+            }.await()
+        }
+    }
+
+    fun deleteAnalysis(aid: Int) = viewModelScope.launch {
+        repo.deleteAnalysis(aid)
+    }
+
+    fun updateSelectAllAnalysis() = viewModelScope.launch {
+        repo.updateSelectAllAnalysis()
+    }
 
     fun deleteAllAnalysis() = viewModelScope.launch {
         repo.deleteAllAnalysis()
@@ -36,6 +57,12 @@ class ExperimentViewModel(
 
     fun updateAnalysisCount(aid: Int, count: Int) = viewModelScope.launch {
         repo.updateAnalysisCount(aid, count)
+    }
+
+    fun updateAnalysisData(aid: Int,
+                           minAxisAvg: Double, minAxisVar: Double, minAxisCv: Double,
+                           maxAxisAvg: Double, maxAxisVar: Double, maxAxisCv: Double) = viewModelScope.launch {
+        repo.updateAnalysisData(aid, minAxisAvg, minAxisVar, minAxisCv, maxAxisAvg, maxAxisVar, maxAxisCv)
     }
 
     fun updateAnalysisSelected(aid: Int, selected: Boolean) = viewModelScope.launch {
@@ -68,7 +95,9 @@ class ExperimentViewModel(
 
     fun analysis() = repo.selectAllAnalysis()
 
-    fun contours(aid: Int) = repo.selectAllContours(aid)
+    fun selectAllContours() = repo.selectAllContours()
+
+    fun contours(aid: Int) = repo.selectContoursById(aid)
 
     suspend fun switchSelectedContour(aid: Int, id: Int, choice: Boolean) = repo.switchSelectedContour(aid, id, choice)
 

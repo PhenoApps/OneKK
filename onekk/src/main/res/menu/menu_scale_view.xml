@@ -1,0 +1,8 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_ble_connect"
+        android:icon="@drawable/ic_bluetooth_transfer"
+        app:showAsAction="ifRoom"
+        android:title="@string/menu_scale_fragment_ble"/>
+</menu>
