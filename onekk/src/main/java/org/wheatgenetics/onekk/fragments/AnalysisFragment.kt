@@ -39,6 +39,7 @@ import org.wheatgenetics.onekk.databinding.FragmentAnalysisManagerBinding
 import org.wheatgenetics.onekk.interfaces.AnalysisUpdateListener
 import org.wheatgenetics.onekk.interfaces.BleNotificationListener
 import org.wheatgenetics.onekk.interfaces.OnClickAnalysis
+import org.wheatgenetics.onekk.observeOnce
 import org.wheatgenetics.utils.BluetoothUtil
 import org.wheatgenetics.utils.DateUtil
 import org.wheatgenetics.utils.Dialogs
@@ -80,6 +81,12 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
         setHasOptionsMenu(true)
 
         return mBinding?.root
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        mBinding?.updateUi()
     }
 
     private fun FragmentAnalysisManagerBinding.updateUi() {
@@ -243,14 +250,5 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
 
         findNavController().navigate(AnalysisFragmentDirections.actionToScale(aid))
 
-    }
-
-    private fun <T> LiveData<T>.observeOnce(lifecycleOwner: LifecycleOwner, observer: Observer<T>) {
-        observe(lifecycleOwner, object : Observer<T> {
-            override fun onChanged(t: T?) {
-                observer.onChanged(t)
-                removeObserver(this)
-            }
-        })
     }
 }

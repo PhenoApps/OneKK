@@ -17,7 +17,7 @@ import kotlin.math.*
 
 class DetectWithReferences(private val dir: File, private val coinReferenceDiameter: Double): DetectorAlgorithm {
 
-    data class Contour(val x: Double, val y: Double, val minAxis: Double, val maxAxis: Double, val area: Double, val count: Int)
+    data class Contour(val x: Double, val y: Double, val minAxis: Double?, val maxAxis: Double?, val area: Double, val count: Int)
     data class Result(val src: Bitmap, val dst: Bitmap, val contours: List<Contour>)
 
     private fun process(original: Mat): Result {
@@ -99,9 +99,12 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
             }
         }
 
-        val avgArea = singles.map { Imgproc.contourArea(it) }.reduceRight { x, y -> x + y } / seeds.size
+//        val avgArea = singles.map { Imgproc.contourArea(it) }.reduceRight { x, y -> x + y } / seeds.size
 
-        val singleEstimates = estimateSeedArea(singles, coins, Math.PI * (coinReferenceDiameter / 2).pow(2))
+        val coinAreaMilli = Math.PI * (coinReferenceDiameter / 2).pow(2)
+
+        val singleEstimates = estimateSeedArea(singles, coins, coinAreaMilli)
+        val clusterEstimates = estimateSeedArea(clusters, coins, coinAreaMilli)
 
         val axisEstimates = estimateAxis(singles, coins, coinReferenceDiameter)
 
@@ -117,7 +120,6 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
         } + clusters.map {
 
             val center = it.center()
-
 
             val area = Imgproc.contourArea(it)
 
@@ -137,10 +139,7 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
 //            original.copyTo(roi, mask)
             val count = watershed(Mat(mask, box))
 
-            //reminder: min/max axis is not accurate for clusters
-            val (minAxis, maxAxis) = axisEstimates[it] ?: 0.0 to 0.0
-
-            Contour(center.x, center.y, minAxis, maxAxis, area, count)
+            Contour(center.x, center.y, null, null, clusterEstimates[it] ?: error(""), count)
 
         }
 

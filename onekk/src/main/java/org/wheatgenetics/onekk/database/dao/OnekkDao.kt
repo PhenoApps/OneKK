@@ -33,6 +33,9 @@ interface OnekkDao {
     @Query("UPDATE contour SET selected = :selected WHERE aid = :aid AND cid = :cid")
     suspend fun switchSelectedContour(aid: Int, cid: Int, selected: Boolean)
 
+    @Query("UPDATE contour SET count = :count WHERE cid = :cid")
+    suspend fun updateContourCount(cid: Int, count: Int)
+
     @Query("UPDATE analysis SET weight = :weight WHERE aid = :aid")
     suspend fun updateAnalysisWeight(aid: Int, weight: Double?)
 

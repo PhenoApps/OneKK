@@ -7,7 +7,7 @@ data class Contour(
         var y: Double,
         var count: Int,
         var area: Double?,
-        var minAxis: Double,
-        var maxAxis: Double,
+        var minAxis: Double?,
+        var maxAxis: Double?,
         var date: String? = DateUtil().getTime()
 )

@@ -686,9 +686,13 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
                             if (contour.count == 1) {
 
-                                minAxisAvg += contour.minAxis
+                                if (contour.minAxis != null &&
+                                        contour.maxAxis != null) {
 
-                                maxAxisAvg += contour.maxAxis
+                                    minAxisAvg += contour.minAxis
+
+                                    maxAxisAvg += contour.maxAxis
+                                }
 
                             }
 
@@ -701,8 +705,8 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
                         minAxisAvg /= n
                         maxAxisAvg /= n
 
-                        val minAxisVar = variance(singles.map { it.minAxis }, minAxisAvg, n)
-                        val maxAxisVar = variance(singles.map { it.maxAxis }, maxAxisAvg, n)
+                        val minAxisVar = variance(singles.map { it.minAxis ?: 0.0 }, minAxisAvg, n)
+                        val maxAxisVar = variance(singles.map { it.maxAxis ?: 0.0 }, maxAxisAvg, n)
 
                         val minAxisCv = sqrt(minAxisVar) / minAxisAvg
                         val maxAxisCv = sqrt(maxAxisVar) / maxAxisAvg

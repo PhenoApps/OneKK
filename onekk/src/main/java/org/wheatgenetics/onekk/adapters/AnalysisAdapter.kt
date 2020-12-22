@@ -13,6 +13,7 @@ import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.database.models.AnalysisEntity
 import org.wheatgenetics.onekk.databinding.ListItemAnalysisBinding
 import org.wheatgenetics.onekk.interfaces.OnClickAnalysis
+import org.wheatgenetics.onekk.shortenString
 
 class AnalysisAdapter(private val listener: OnClickAnalysis) : ListAdapter<AnalysisEntity, RecyclerView.ViewHolder>(DiffCallback()) {
 
@@ -68,9 +69,9 @@ class AnalysisAdapter(private val listener: OnClickAnalysis) : ListAdapter<Analy
 
                 weight = model.weight.toString()
 
-                minAxisAvg = model.minAxisAvg.toString()
+                minAxisAvg = shortenString(model.minAxisAvg ?: 0.0)
 
-                maxAxisAvg = model.maxAxisAvg.toString()
+                maxAxisAvg = shortenString(model.maxAxisAvg ?: 0.0)
 
                 selected = model.selected
             }

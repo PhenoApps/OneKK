@@ -99,6 +99,8 @@ class ExperimentViewModel(
 
     fun contours(aid: Int) = repo.selectContoursById(aid)
 
+    suspend fun updateContourCount(cid: Int, count: Int) = repo.updateContourCount(cid, count)
+
     suspend fun switchSelectedContour(aid: Int, id: Int, choice: Boolean) = repo.switchSelectedContour(aid, id, choice)
 
     fun getSourceImage(aid: Int) = repo.selectSourceImage(aid)

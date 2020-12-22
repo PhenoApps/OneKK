@@ -30,6 +30,7 @@ import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
 import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentContourListBinding
 import org.wheatgenetics.onekk.interfaces.ContourOnTouchListener
+import org.wheatgenetics.onekk.observeOnce
 import org.wheatgenetics.utils.Dialogs
 import kotlin.properties.Delegates
 
@@ -94,17 +95,17 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
         mBinding?.submitButton?.text = getString(R.string.frag_contour_list_button_loading)
 
-        sViewModel.contours(aid).observeForever { contours ->
+        sViewModel.contours(aid).observeOnce(viewLifecycleOwner, { contours ->
 
             if (contours.isNotEmpty()) {
 
                 val count = contours.filter { it.selected }.mapNotNull { it.contour?.count }.reduceRight { x, y ->  y + x }
 
-                submitButton?.text = "${getString(R.string.frag_contour_list_total)} $count"
+                submitButton?.text = "$count"
 
                 mBinding?.setupButtons(count)
             }
-        }
+        })
 
         return mBinding?.root
     }
@@ -118,22 +119,32 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
         contourHeader.areaTextView.setOnClickListener {
             mSortMode = 0
             updateUi(aid)
+            scrollToTop()
         }
 
         contourHeader.lengthTextView.setOnClickListener {
             mSortMode = 1
             updateUi(aid)
+            scrollToTop()
         }
 
         contourHeader.widthTextView.setOnClickListener {
             mSortMode = 2
             updateUi(aid)
+            scrollToTop()
         }
 
         contourHeader.countTextView.setOnClickListener {
             mSortMode = 3
             updateUi(aid)
+            scrollToTop()
         }
+    }
+
+    private fun scrollToTop() {
+        Handler().postDelayed({
+            mBinding?.recyclerView?.scrollToPosition(0)
+        }, 500)
     }
 
     suspend fun updateImageView(x: Double, y: Double, cluster: Boolean, minAxis: Double, maxAxis: Double): Deferred<Bitmap> = withContext(Dispatchers.IO) {
@@ -186,17 +197,31 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
         }
     }
 
-    private fun updateTotal() = with(requireActivity()) {
+    private fun updateTotal() = activity?.let {
 
-        sViewModel.contours(aid).observeForever { contours ->
+        sViewModel.contours(aid).observeOnce(viewLifecycleOwner, { contours ->
 
-            runOnUiThread {
+            val count = contours.filter { it.selected }.mapNotNull { it.contour?.count }.reduceRight { x, y ->  y + x }
 
-                val count = contours.filter { it.selected }.mapNotNull { it.contour?.count }.reduceRight { x, y ->  y + x }
+            sViewModel.updateAnalysisCount(aid, count)
 
-                mBinding?.submitButton?.setText(getString(R.string.frag_contour_list_total) + count)
+            it.runOnUiThread {
+
+                mBinding?.submitButton?.text = count.toString()
 
             }
+        })
+    }
+
+    override fun onCountEdited(cid: Int, count: Int) {
+
+        launch {
+
+            sViewModel.updateContourCount(cid, count)
+
+            updateTotal()
+
+            updateUi(aid)
         }
     }
 
@@ -219,15 +244,12 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
             sViewModel.updateAnalysisCount(aid, count)
 
-            sViewModel.getAnalysis(aid).observe(viewLifecycleOwner, {
+            when(mPreferences.getString(getString(R.string.onekk_preference_mode_key), "1")) {
 
-                when(mPreferences.getString(getString(R.string.onekk_preference_mode_key), "1")) {
+                "1", "2" -> findNavController().popBackStack()
 
-                    "1", "2" -> findNavController().popBackStack()
-
-                    else -> findNavController().navigate(ContourFragmentDirections.actionToScale(aid))
-                }
-            })
+                else -> findNavController().navigate(ContourFragmentDirections.actionToScale(aid))
+            }
         }
     }
 
@@ -265,6 +287,10 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
                         mSortState = false
 
+                        updateUi(aid)
+
+                        scrollToTop()
+
                         R.drawable.ic_sort_variant
 
                     }
@@ -273,6 +299,10 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
                     else -> {
 
                         mSortState = true
+
+                        updateUi(aid)
+
+                        scrollToTop()
 
                         R.drawable.ic_sort_reverse_variant
 
@@ -284,14 +314,12 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
             else -> return super.onOptionsItemSelected(item)
         }
 
-        updateUi(aid)
-
         return true
     }
 
     private fun updateUi(aid: Int) {
 
-        sViewModel.contours(aid).observeForever { data ->
+        sViewModel.contours(aid).observeOnce(viewLifecycleOwner, { data ->
 
             val singles = data.filter { it.contour?.count ?: 0 <= 1 }
 
@@ -302,15 +330,11 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
             //uses the two different modes to sort (ascending/descending) vs (area/l/w/count)
             val sorted = sortByState(contours)
 
-            requireActivity().runOnUiThread {
+            activity?.runOnUiThread {
                 (mBinding?.recyclerView?.adapter as? ContourAdapter)
                         ?.submitList(sorted)
             }
-        }
-
-        Handler().postDelayed({
-            mBinding?.recyclerView?.scrollToPosition(0)
-        }, 500)
+        })
     }
 
     private fun sortByState(contours: List<ContourEntity>): List<ContourEntity> {

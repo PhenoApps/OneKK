@@ -1,9 +1,12 @@
 package org.wheatgenetics.onekk.adapters
 
-import android.content.Context
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
+import androidx.core.widget.addTextChangedListener
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -12,6 +15,7 @@ import org.wheatgenetics.onekk.callbacks.DiffCallbacks
 import org.wheatgenetics.onekk.database.models.ContourEntity
 import org.wheatgenetics.onekk.databinding.ListItemContourBinding
 import org.wheatgenetics.onekk.interfaces.ContourOnTouchListener
+import org.wheatgenetics.onekk.shortenString
 
 class ContourAdapter(private val listener: ContourOnTouchListener) : ListAdapter<ContourEntity,
         ContourAdapter.ViewHolder>(DiffCallbacks.Companion.ContourDiffCallback()) {
@@ -59,35 +63,43 @@ class ContourAdapter(private val listener: ContourOnTouchListener) : ListAdapter
 
                         this?.let {
 
-                            listener.onTouch(model.cid!!, x, y, count > 1, minAxis, maxAxis)
+                            listener.onTouch(model.cid!!, x, y, count > 1, minAxis ?: 0.0, maxAxis ?: 0.0)
 
                         }
                     }
                 }
 
+                val watcher = object : TextWatcher {
+
+                    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                    }
+
+                    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                    }
+
+                    override fun afterTextChanged(s: Editable?) {
+                        listener.onCountEdited((itemView.tag as Int), s.toString().toIntOrNull() ?: 0)
+                    }
+                }
+
+                countTextView?.addTextChangedListener(watcher)
+
                 this.area = shortenString((model.contour?.area ?: 0.0))
 
-                this.length = shortenString((model.contour?.maxAxis ?: 0.0))
+                val maxAxis = model.contour?.maxAxis
+                this.length = if (maxAxis != null) {
+                    shortenString(maxAxis)
+                } else "NA"
 
-                this.width = shortenString(model.contour?.minAxis ?: 0.0)
+                val minAxis = model.contour?.minAxis
+                this.width = if (minAxis != null) {
+                    shortenString(minAxis)
+                } else "NA"
 
-                this.count = shortenString(model.contour?.count?.toDouble() ?: 0.0)
+                this.count = model.contour?.count ?: 0
 
                 this.selected = model.selected
             }
-        }
-
-        //simple function that takes a string expecting decimal places and shortens to 2 after the decimal.
-        private fun shortenString(long: Double): String {
-
-            val decimalPlaces = 2
-
-            val longNumber = long.toString()
-
-            val last = longNumber.indexOf(".") + decimalPlaces
-
-            return longNumber.padEnd(last).substring(0, last)
-
         }
     }
 }

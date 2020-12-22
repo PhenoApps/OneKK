@@ -23,7 +23,7 @@
             type="String" />
         <variable
             name="count"
-            type="String"/>
+            type="int"/>
         <variable
             name="selected"
             type="boolean"/>
@@ -32,19 +32,19 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@{selected ? @drawable/cell : @drawable/not_counted_highlight}">
+        android:background='@{width == "NA" || length =="NA" ? @drawable/not_measured_highlight : @drawable/cell}'>
 
-        <ImageButton
+        <CheckBox
             android:id="@+id/viewButton"
             android:background="@drawable/cell"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
-            android:onClick="@{viewCluster}"
+            android:checked="@{selected}"
+            android:onClick="@{highlight}"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/areaTextView"
-            android:src="@drawable/ic_visibility_24px"/>
+            app:layout_constraintEnd_toStartOf="@id/areaTextView" />
 
         <TextView style="@style/Text.ContourListTableText"
             tools:text="6.0"
@@ -53,7 +53,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@{area}"
-            android:onClick="@{highlight}"
+            android:onClick="@{viewCluster}"
             app:layout_constraintEnd_toStartOf="@id/lengthTextView"
             app:layout_constraintStart_toEndOf="@id/viewButton"
             app:layout_constraintTop_toTopOf="parent" />
@@ -65,7 +65,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@{length}"
-            android:onClick="@{highlight}"
+            android:onClick="@{viewCluster}"
             app:layout_constraintEnd_toStartOf="@id/widthTextView"
             app:layout_constraintStart_toEndOf="@id/areaTextView"
             app:layout_constraintTop_toTopOf="parent" />
@@ -77,19 +77,20 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@{width}"
-            android:onClick="@{highlight}"
+            android:onClick="@{viewCluster}"
             app:layout_constraintEnd_toStartOf="@id/countTextView"
             app:layout_constraintStart_toEndOf="@id/lengthTextView"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView style="@style/Text.ContourListTableText"
+        <EditText
             android:id="@+id/countTextView"
             android:background="@drawable/cell"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@{count}"
+            android:text="@{String.valueOf(count)}"
+            android:inputType="number"
             tools:text="42"
-            android:onClick="@{highlight}"
+            android:onClick="@{viewCluster}"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/widthTextView"
             app:layout_constraintTop_toTopOf="parent"/>

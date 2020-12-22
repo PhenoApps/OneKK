@@ -71,6 +71,10 @@ class OnekkRepository
 //        }
 //    }
 
+    suspend fun updateContourCount(cid: Int, count: Int) = withContext(Dispatchers.IO) {
+        dao.updateContourCount(cid, count)
+    }
+
     suspend fun switchSelectedContour(aid: Int, id: Int, choice: Boolean) = withContext(Dispatchers.IO) {
         dao.switchSelectedContour(aid, id, choice)
     }

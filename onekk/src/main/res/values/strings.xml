@@ -399,5 +399,6 @@
     <string name="header_contour_count">Count</string>
     <string name="header_contour_width">Width</string>
     <string name="header_contour_length">Length</string>
+    <string name="frag_contour_list_total_count_prefix">"Total: "</string>
 
 </resources>
