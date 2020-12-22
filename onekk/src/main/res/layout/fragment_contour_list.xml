@@ -37,7 +37,19 @@
             android:layout_marginTop="16dp"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/contour_header"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <include android:id="@+id/contour_header"
+            layout="@layout/header_contour"
+            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/imageView"
             app:layout_constraintBottom_toTopOf="@id/recyclerView"/>
 
         <androidx.recyclerview.widget.RecyclerView
@@ -50,7 +62,7 @@
             app:layout_constraintBottom_toTopOf="@id/submitButton"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/imageView"
+            app:layout_constraintTop_toBottomOf="@+id/contour_header"
             tools:listitem="@layout/list_item_contour" />
 
         <Button

@@ -3,81 +3,50 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <data>
-        <import type="android.view.View"/>
-
-        <variable
-            name="viewCluster"
-            type="android.view.View.OnClickListener"/>
-        <variable
-            name="highlight"
-            type="android.view.View.OnClickListener"/>
-        <variable
-            name="area"
-            type="String"/>
-        <variable
-            name="width"
-            type="String"/>
-        <variable
-            name="length"
-            type="String" />
-        <variable
-            name="count"
-            type="String"/>
-        <variable
-            name="selected"
-            type="boolean"/>
-    </data>
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@{selected ? @drawable/cell : @drawable/not_counted_highlight}">
+        android:layout_margin="16dp">
 
         <ImageButton
+            android:visibility="invisible"
             android:id="@+id/viewButton"
             android:background="@drawable/cell"
             android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:onClick="@{viewCluster}"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_height="match_parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/areaTextView"
-            android:src="@drawable/ic_visibility_24px"/>
+            android:src="@drawable/ic_info"/>
 
         <TextView style="@style/Text.ContourListTableText"
-            tools:text="6.0"
+            tools:text="Area"
             android:id="@+id/areaTextView"
             android:background="@drawable/cell"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@{area}"
-            android:onClick="@{highlight}"
+            android:text="@string/header_contour_area"
             app:layout_constraintEnd_toStartOf="@id/lengthTextView"
             app:layout_constraintStart_toEndOf="@id/viewButton"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView style="@style/Text.ContourListTableText"
-            tools:text="4.0"
+            tools:text="Length"
             android:id="@+id/lengthTextView"
             android:background="@drawable/cell"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@{length}"
-            android:onClick="@{highlight}"
+            android:text="@string/header_contour_length"
             app:layout_constraintEnd_toStartOf="@id/widthTextView"
             app:layout_constraintStart_toEndOf="@id/areaTextView"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView style="@style/Text.ContourListTableText"
-            tools:text="2.0"
+            tools:text="Width"
             android:id="@+id/widthTextView"
             android:background="@drawable/cell"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@{width}"
-            android:onClick="@{highlight}"
+            android:text="@string/header_contour_width"
             app:layout_constraintEnd_toStartOf="@id/countTextView"
             app:layout_constraintStart_toEndOf="@id/lengthTextView"
             app:layout_constraintTop_toTopOf="parent" />
@@ -87,9 +56,8 @@
             android:background="@drawable/cell"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@{count}"
-            tools:text="42"
-            android:onClick="@{highlight}"
+            android:text="@string/header_contour_count"
+            tools:text="Count"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/widthTextView"
             app:layout_constraintTop_toTopOf="parent"/>

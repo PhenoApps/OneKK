@@ -395,5 +395,9 @@
     <string name="menu_scale_fragment_ble">Establish a BLE connection.</string>
     <string name="graph_fragment_label">Graph contour stats.</string>
     <string name="menu_contour_list_graph">Graph contour stats.</string>
+    <string name="header_contour_area">Area (mm²)</string>
+    <string name="header_contour_count">Count</string>
+    <string name="header_contour_width">Width</string>
+    <string name="header_contour_length">Length</string>
 
 </resources>

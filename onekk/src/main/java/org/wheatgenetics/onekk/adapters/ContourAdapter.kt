@@ -13,10 +13,8 @@ import org.wheatgenetics.onekk.database.models.ContourEntity
 import org.wheatgenetics.onekk.databinding.ListItemContourBinding
 import org.wheatgenetics.onekk.interfaces.ContourOnTouchListener
 
-class ContourAdapter(
-        private val listener: ContourOnTouchListener,
-        val context: Context
-) : ListAdapter<ContourEntity, ContourAdapter.ViewHolder>(DiffCallbacks.Companion.ContourDiffCallback()) {
+class ContourAdapter(private val listener: ContourOnTouchListener) : ListAdapter<ContourEntity,
+        ContourAdapter.ViewHolder>(DiffCallbacks.Companion.ContourDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return ViewHolder(
@@ -46,49 +44,49 @@ class ContourAdapter(
 
             with(binding) {
 
-                checkbox.isChecked = model.selected
+                highlight = View.OnClickListener {
 
-                checkbox.setOnClickListener {
+                    this.selected = !model.selected
 
-                    listener.onChoiceSwapped(model.cid ?: -1, checkbox.isChecked)
+                    model.selected = !model.selected
 
+                    listener.onChoiceSwapped(model.cid ?: -1, model.selected)
                 }
 
-                clickListener = View.OnClickListener {
+                viewCluster = View.OnClickListener {
 
                     with(model.contour) {
 
                         this?.let {
 
-                            listener.onTouch(x, y, count > 1, minAxis, maxAxis)
+                            listener.onTouch(model.cid!!, x, y, count > 1, minAxis, maxAxis)
 
                         }
                     }
                 }
 
-                this.area = shortenString((model.contour?.area ?: 0.0).toString())
+                this.area = shortenString((model.contour?.area ?: 0.0))
 
-                //format the displayed data, single contours show their measurements as min/max axis and area in mm
-                //clusters show their estimated count along with their estimated area in mm
-                this.data = if ((model.contour?.count ?: 1) == 1) {
+                this.length = shortenString((model.contour?.maxAxis ?: 0.0))
 
-                    val maxAxis = shortenString((model.contour?.maxAxis ?: 0.0).toString())
-                    val minAxis = shortenString((model.contour?.minAxis ?: 0.0).toString())
+                this.width = shortenString(model.contour?.minAxis ?: 0.0)
 
-                    "$maxAxis x $minAxis"
-
-                } else ((model.contour?.count) ?: 0).toString()
+                this.count = shortenString(model.contour?.count?.toDouble() ?: 0.0)
 
                 this.selected = model.selected
             }
         }
 
         //simple function that takes a string expecting decimal places and shortens to 2 after the decimal.
-        private fun shortenString(long: String): String {
+        private fun shortenString(long: Double): String {
 
-            val last = long.indexOf(".") + 3
+            val decimalPlaces = 2
 
-            return long.padEnd(last).substring(0, last)
+            val longNumber = long.toString()
+
+            val last = longNumber.indexOf(".") + decimalPlaces
+
+            return longNumber.padEnd(last).substring(0, last)
 
         }
     }

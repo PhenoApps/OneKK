@@ -25,6 +25,7 @@ import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.adapters.ContourAdapter
 import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
+import org.wheatgenetics.onekk.database.models.ContourEntity
 import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
 import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentContourListBinding
@@ -52,6 +53,7 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
     private var mSourceBitmap: String? = null
     private var aid by Delegates.notNull<Int>()
     private var mSortState: Boolean = true
+    private var mSortMode: Int = 0
     private var mBinding: FragmentContourListBinding? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -64,52 +66,74 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
         mBinding = DataBindingUtil.inflate(localInflater, R.layout.fragment_contour_list, null, false)
 
-        mBinding?.let { ui ->
+        setHasOptionsMenu(true)
 
-            setHasOptionsMenu(true)
+        mBinding?.setupRecyclerView(aid)
 
-            ui.setupRecyclerView(aid)
+        mBinding?.setupHeaderSortButtons()
 
-            updateUi(aid)
+        updateUi(aid)
 
-            sViewModel.getSourceImage(aid).observeForever { uri ->
+        sViewModel.getSourceImage(aid).observeForever { uri ->
 
-                mSourceBitmap = uri
+            mSourceBitmap = uri
 
-                try {
+            try {
 
-                    Glide.with(requireContext()).asBitmap().load(uri).fitCenter().into(imageView)
-                    //imageView?.setImageBitmap(BitmapFactory.decodeFile(mSourceBitmap))
+                Glide.with(requireContext()).asBitmap().load(uri).fitCenter().into(imageView)
+                //imageView?.setImageBitmap(BitmapFactory.decodeFile(mSourceBitmap))
 
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-
-                imageView?.visibility = View.VISIBLE
-
-                //Todo crashing
-                imageLoadingTextView?.visibility = View.GONE
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
 
-            submitButton?.text = getString(R.string.frag_contour_list_button_loading)
+            mBinding?.imageView?.visibility = View.VISIBLE
 
-            sViewModel.contours(aid).observeForever { contours ->
-
-                if (contours.isNotEmpty()) {
-
-                    val count = contours.filter { it.selected }.mapNotNull { it.contour?.count }.reduceRight { x, y ->  y + x }
-
-                    submitButton?.text = "${getString(R.string.frag_contour_list_total)} $count"
-
-                    ui.setupButtons(count)
-                }
-            }
-
-            return ui.root
-
+            mBinding?.imageLoadingTextView?.visibility = View.GONE
         }
 
-        return null
+        mBinding?.submitButton?.text = getString(R.string.frag_contour_list_button_loading)
+
+        sViewModel.contours(aid).observeForever { contours ->
+
+            if (contours.isNotEmpty()) {
+
+                val count = contours.filter { it.selected }.mapNotNull { it.contour?.count }.reduceRight { x, y ->  y + x }
+
+                submitButton?.text = "${getString(R.string.frag_contour_list_total)} $count"
+
+                mBinding?.setupButtons(count)
+            }
+        }
+
+        return mBinding?.root
+    }
+
+    /**
+     * Clicking on the headers sorts by the header name.
+     * Elements are also sorted by the tool bar ascending/descending mode.
+     */
+    private fun FragmentContourListBinding.setupHeaderSortButtons() {
+
+        contourHeader.areaTextView.setOnClickListener {
+            mSortMode = 0
+            updateUi(aid)
+        }
+
+        contourHeader.lengthTextView.setOnClickListener {
+            mSortMode = 1
+            updateUi(aid)
+        }
+
+        contourHeader.widthTextView.setOnClickListener {
+            mSortMode = 2
+            updateUi(aid)
+        }
+
+        contourHeader.countTextView.setOnClickListener {
+            mSortMode = 3
+            updateUi(aid)
+        }
     }
 
     suspend fun updateImageView(x: Double, y: Double, cluster: Boolean, minAxis: Double, maxAxis: Double): Deferred<Bitmap> = withContext(Dispatchers.IO) {
@@ -131,16 +155,35 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
         }
     }
 
-    override fun onTouch(x: Double, y: Double, cluster: Boolean, minAxis: Double, maxAxis: Double) {
+    private var mLastSelectedContourId = -1
+    /**
+     * Interface function that returns the cropped image around the chosen contour.
+     * Uses a global variable to track if the same contour was clicked, if it was then show the
+     * original image; otherwise, show the new contour region.
+     */
+    override fun onTouch(cid: Int, x: Double, y: Double, cluster: Boolean, minAxis: Double, maxAxis: Double) {
 
         launch {
 
-            mBinding?.imageView?.setImageBitmap(
-                    updateImageView(x, y, cluster, minAxis, maxAxis)
-                            .await())
+            mLastSelectedContourId = when (mLastSelectedContourId) {
 
+                cid -> {
+
+                    mBinding?.imageView?.setImageBitmap(BitmapFactory.decodeFile(mSourceBitmap))
+
+                    -1
+                }
+                else -> {
+
+                    mBinding?.imageView?.setImageBitmap(
+                            updateImageView(x, y, cluster, minAxis, maxAxis)
+                                    .await())
+
+                    cid
+                }
+
+            }
         }
-
     }
 
     private fun updateTotal() = with(requireActivity()) {
@@ -164,6 +207,9 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
             sViewModel.switchSelectedContour(aid, id, selected)
 
             updateTotal()
+
+            updateUi(aid)
+
         }
     }
 
@@ -189,7 +235,7 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
         recyclerView?.layoutManager = LinearLayoutManager(requireContext())
 
-        recyclerView?.adapter = ContourAdapter(this@ContourFragment, requireContext())
+        recyclerView?.adapter = ContourAdapter(this@ContourFragment)
 
     }
 
@@ -245,23 +291,69 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
     private fun updateUi(aid: Int) {
 
-        sViewModel.contours(aid).observeForever {
+        sViewModel.contours(aid).observeForever { data ->
 
-            val singles = it.filter { it.contour?.count ?: 0 <= 1 }
+            val singles = data.filter { it.contour?.count ?: 0 <= 1 }
 
-            val clusters = it.filter { it.contour?.count ?: 0 > 1 }
+            val clusters = data.filter { it.contour?.count ?: 0 > 1 }
 
-            val contours = when(mSortState) {
-                true -> (singles + clusters).sortedBy { it.contour?.area }
-                else -> (singles + clusters).sortedByDescending { it.contour?.area }
+            val contours = (singles + clusters)
+
+            //uses the two different modes to sort (ascending/descending) vs (area/l/w/count)
+            val sorted = sortByState(contours)
+
+            requireActivity().runOnUiThread {
+                (mBinding?.recyclerView?.adapter as? ContourAdapter)
+                        ?.submitList(sorted)
             }
-
-            (mBinding?.recyclerView?.adapter as? ContourAdapter)
-                    ?.submitList(contours)
         }
 
         Handler().postDelayed({
             mBinding?.recyclerView?.scrollToPosition(0)
         }, 500)
+    }
+
+    private fun sortByState(contours: List<ContourEntity>): List<ContourEntity> {
+
+        return when(mSortState) {
+
+            //sort by ascending
+            true -> sortByMode(true, contours)
+
+            //sort by descending
+            else -> sortByMode(false, contours)
+        }
+
+    }
+
+    private fun sortByMode(ascending: Boolean, contours: List<ContourEntity>): List<ContourEntity> {
+
+        return when (mSortMode) {
+
+            0 -> {
+
+                if (ascending) contours.sortedBy { it.contour?.area }
+                else contours.sortedByDescending { it.contour?.area }
+
+            }
+            1 -> {
+
+                if (ascending) contours.sortedBy { it.contour?.maxAxis }
+                else contours.sortedByDescending { it.contour?.maxAxis }
+
+            }
+            2 -> {
+
+                if (ascending) contours.sortedBy { it.contour?.minAxis }
+                else contours.sortedByDescending { it.contour?.minAxis }
+
+            }
+            else -> {
+
+                if (ascending) contours.sortedBy { it.contour?.count }
+                else contours.sortedByDescending { it.contour?.count }
+
+            }
+        }
     }
 }
