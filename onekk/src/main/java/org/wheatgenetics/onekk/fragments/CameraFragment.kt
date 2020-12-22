@@ -300,7 +300,6 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
         try {
 
-
             if (name != null) {
 
                 val file = File(captureDirectory.path.toString(), "${name}.png")
@@ -575,6 +574,8 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
                                 }) {
 
+                                    mBinding?.nameEditText?.setText(String())
+                                    
                                     isShowingDialog = false
 
                                 }
@@ -756,6 +757,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
             } else {
 
                 requireActivity().runOnUiThread {
+
                     Toast.makeText(requireContext(), R.string.frag_camera_no_sample_name_message, Toast.LENGTH_LONG).show()
                 }
             }

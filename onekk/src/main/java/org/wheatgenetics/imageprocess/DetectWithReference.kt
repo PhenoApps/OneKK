@@ -22,6 +22,8 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
 
     private fun process(original: Mat): Result {
 
+        val kernel = Mat.ones(Size(3.0, 3.0), CvType.CV_8U)
+
         //upscale small images
         while (original.height() <= 1920) {
             Imgproc.pyrUp(original, original)
@@ -37,10 +39,11 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
 
         //convert image to greyscale and blur, this reduces the natural noise in images
         Imgproc.cvtColor(src, src, Imgproc.COLOR_BGR2GRAY)
+
         Imgproc.GaussianBlur(src, src, Size(3.0, 3.0), 15.0)
 
         //dilate the image to fill any tiny holes that make contours discontinuous
-        Imgproc.dilate(src, src, Mat(), Point(-1.0, -1.0), 8)
+        Imgproc.dilate(src, src, kernel, Point(-1.0, -1.0), 6)
 
         //threshold the image, adaptive might be overkill here because the lightbox ensures a uniform background
         Imgproc.adaptiveThreshold(src, src, 255.0, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY_INV, 15, 10.0)
@@ -49,7 +52,7 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
         Imgproc.GaussianBlur(src, src, Size(3.0, 3.0), 15.0)
 
         //final dilate to fill holes formed by adaptive threshing/blurring
-        Imgproc.dilate(src, src, Mat(), Point(-1.0, -1.0), 3)
+        Imgproc.dilate(src, src, kernel, Point(-1.0, -1.0), 3)
 
         //CHAIN_APPROX_NONE will give more contour points, uses more memory
         //uses RETR_EXTERNAL, skip any hierarchy parsing.
@@ -147,27 +150,6 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
 
     }
 
-    private fun matSwap(src: Mat, value: Int, newVal: Scalar, invert: Boolean, mask: Mat?): Mat {
-        var src = src
-        src.convertTo(src, CvType.CV_8U)
-        val dst = Mat(src.size(), CvType.CV_8U)
-        val `val` = Mat(src.size(), CvType.CV_8U, Scalar(value.toDouble()))
-        //mask = mask.setTo(new Scalar(value));
-
-        //logMat(mask);
-        var cmp = Core.CMP_EQ
-        if (invert) cmp = Core.CMP_NE
-        if (mask == null) {
-            Core.compare(src, `val`, dst, cmp)
-        } else {
-            Core.compare(mask, `val`, dst, cmp)
-        }
-
-        //logMat(dst);
-        src = src.setTo(newVal, dst)
-
-        return src
-    }
     //function that returns the min/max axis stats
     private fun MatOfPoint.minMaxAxis(): Pair<Double, Double> {
 

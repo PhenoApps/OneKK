@@ -174,66 +174,97 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
      */
     override fun onTouch(cid: Int, x: Double, y: Double, cluster: Boolean, minAxis: Double, maxAxis: Double) {
 
-        launch {
+        try {
+            launch {
 
-            mLastSelectedContourId = when (mLastSelectedContourId) {
+                mLastSelectedContourId = when (mLastSelectedContourId) {
 
-                cid -> {
+                    cid -> {
 
-                    mBinding?.imageView?.setImageBitmap(BitmapFactory.decodeFile(mSourceBitmap))
+                        mBinding?.imageView?.setImageBitmap(BitmapFactory.decodeFile(mSourceBitmap))
 
-                    -1
+                        -1
+                    }
+                    else -> {
+
+                        mBinding?.imageView?.setImageBitmap(
+                                updateImageView(x, y, cluster, minAxis, maxAxis)
+                                        .await())
+
+                        cid
+                    }
+
                 }
-                else -> {
-
-                    mBinding?.imageView?.setImageBitmap(
-                            updateImageView(x, y, cluster, minAxis, maxAxis)
-                                    .await())
-
-                    cid
-                }
-
             }
+
+        } catch (e: Exception) {
+
+            e.printStackTrace()
+
         }
     }
 
-    private fun updateTotal() = activity?.let {
+    private fun updateTotal() = try {
 
-        sViewModel.contours(aid).observeOnce(viewLifecycleOwner, { contours ->
+        activity?.let {
 
-            val count = contours.filter { it.selected }.mapNotNull { it.contour?.count }.reduceRight { x, y ->  y + x }
+            sViewModel.contours(aid).observeOnce(viewLifecycleOwner, { contours ->
 
-            sViewModel.updateAnalysisCount(aid, count)
+                val count = contours.filter { it.selected }.mapNotNull { it.contour?.count }.reduceRight { x, y ->  y + x }
 
-            it.runOnUiThread {
+                sViewModel.updateAnalysisCount(aid, count)
 
-                mBinding?.submitButton?.text = count.toString()
+                it.runOnUiThread {
 
-            }
-        })
+                    mBinding?.submitButton?.text = count.toString()
+
+                }
+            })
+        }
+
+    } catch (e: Exception) {
+
+        e.printStackTrace()
+
     }
 
     override fun onCountEdited(cid: Int, count: Int) {
 
-        launch {
+        try {
 
-            sViewModel.updateContourCount(cid, count)
+            launch {
 
-            updateTotal()
+                sViewModel.updateContourCount(cid, count)
 
-            updateUi(aid)
+                updateTotal()
+
+                updateUi(aid)
+            }
+
+        } catch (e: Exception) {
+
+            e.printStackTrace()
+
         }
     }
 
     override fun onChoiceSwapped(id: Int, selected: Boolean) {
 
-        launch {
+        try {
 
-            sViewModel.switchSelectedContour(aid, id, selected)
+            launch {
 
-            updateTotal()
+                sViewModel.switchSelectedContour(aid, id, selected)
 
-            updateUi(aid)
+                updateTotal()
+
+                updateUi(aid)
+
+            }
+
+        } catch (e: Exception) {
+
+            e.printStackTrace()
 
         }
     }
@@ -242,13 +273,21 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
         submitButton.setOnClickListener {
 
-            sViewModel.updateAnalysisCount(aid, count)
+            try {
 
-            when(mPreferences.getString(getString(R.string.onekk_preference_mode_key), "1")) {
+                sViewModel.updateAnalysisCount(aid, count)
 
-                "1", "2" -> findNavController().popBackStack()
+                when (mPreferences.getString(getString(R.string.onekk_preference_mode_key), "1")) {
 
-                else -> findNavController().navigate(ContourFragmentDirections.actionToScale(aid))
+                    "1", "2" -> findNavController().popBackStack()
+
+                    else -> findNavController().navigate(ContourFragmentDirections.actionToScale(aid))
+                }
+
+            } catch (e: Exception) {
+
+                e.printStackTrace()
+
             }
         }
     }
@@ -319,22 +358,29 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
     private fun updateUi(aid: Int) {
 
-        sViewModel.contours(aid).observeOnce(viewLifecycleOwner, { data ->
+        try {
+            sViewModel.contours(aid).observeOnce(viewLifecycleOwner, { data ->
 
-            val singles = data.filter { it.contour?.count ?: 0 <= 1 }
+                val singles = data.filter { it.contour?.count ?: 0 <= 1 }
 
-            val clusters = data.filter { it.contour?.count ?: 0 > 1 }
+                val clusters = data.filter { it.contour?.count ?: 0 > 1 }
 
-            val contours = (singles + clusters)
+                val contours = (singles + clusters)
 
-            //uses the two different modes to sort (ascending/descending) vs (area/l/w/count)
-            val sorted = sortByState(contours)
+                //uses the two different modes to sort (ascending/descending) vs (area/l/w/count)
+                val sorted = sortByState(contours)
 
-            activity?.runOnUiThread {
-                (mBinding?.recyclerView?.adapter as? ContourAdapter)
-                        ?.submitList(sorted)
-            }
-        })
+                activity?.runOnUiThread {
+                    (mBinding?.recyclerView?.adapter as? ContourAdapter)
+                            ?.submitList(sorted)
+                }
+            })
+
+        } catch (e: Exception) {
+
+            e.printStackTrace()
+
+        }
     }
 
     private fun sortByState(contours: List<ContourEntity>): List<ContourEntity> {

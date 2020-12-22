@@ -84,13 +84,13 @@ class GraphFragment : Fragment(), CoroutineScope by MainScope() {
 
 //                    setViewport(bell.minOf { it.x }, bell.maxOf { it.x }, bell.minOf { it.y }, bell.maxOf { it.y }, mBinding!!.graphView)
 
-                    setViewport(0.0, areas.size.toDouble(), areas.min() ?: 0.0, areas.max() ?: 0.0, mBinding!!.graphView)
+//                    setViewport(0.0, areas.size.toDouble(), areas.min() ?: 0.0, areas.max() ?: 0.0, mBinding!!.graphView)
 
 //                    val points = areas.mapIndexed { index, d -> DataPoint(index.toDouble(), d) }
 
                     //renderNormal(mBinding!!.graphView, points)
 
-                    displayHistogram(mBinding!!.graphView, BarGraphSeries(), 4096, areas.toDoubleArray())
+                    displayHistogram(mBinding!!.graphView, BarGraphSeries(), 32, areas.toDoubleArray())
                 }
             }
         })
