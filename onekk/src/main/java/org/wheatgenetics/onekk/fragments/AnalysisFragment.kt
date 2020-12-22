@@ -217,9 +217,13 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
 
                 launch {
 
-                    viewModel.deleteSelectedAnalysis()
+                    async {
 
-                    requireActivity().runOnUiThread {
+                        viewModel.deleteSelectedAnalysis()
+
+                    }.await()
+
+                    activity?.runOnUiThread {
                         mBinding?.updateUi()
                     }
                 }
