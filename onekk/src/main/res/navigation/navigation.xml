@@ -104,21 +104,9 @@
             app:popUpTo="@id/camera_preview_fragment"
             app:destination="@+id/barcode_fragment"/>
 
-        <action android:id="@+id/action_to_about"
-            app:popUpTo="@id/camera_preview_fragment"
-            app:destination="@+id/about_fragment"/>
-
-        <action android:id="@+id/action_to_analysis"
-            app:popUpTo="@id/camera_preview_fragment"
-            app:destination="@+id/analysis_fragment"/>
-
         <action android:id="@+id/action_to_process_file"
             app:popUpTo="@id/camera_preview_fragment"
             app:destination="@+id/camera_preview_fragment"/>
-
-        <action android:id="@+id/action_to_coin_manager"
-            app:popUpTo="@id/camera_preview_fragment"
-            app:destination="@+id/coin_manager"/>
 
         <action android:id="@+id/action_to_contours"
             app:popUpTo="@id/camera_preview_fragment"
@@ -129,10 +117,26 @@
             app:destination="@id/scale_fragment"/>
     </fragment>
 
+    <action android:id="@+id/global_action_to_import"
+        app:popUpToInclusive="true"
+        app:popUpTo="@id/camera_preview_fragment"
+        app:destination="@+id/camera_preview_fragment"/>
+
     <action
-        android:id="@+id/action_to_settings"
+        android:id="@+id/global_action_to_settings"
         app:destination="@id/settings_fragment"
         app:popUpTo="@id/camera_preview_fragment">
     </action>
 
+    <action android:id="@+id/global_action_to_about"
+        app:popUpTo="@id/camera_preview_fragment"
+        app:destination="@+id/about_fragment"/>
+
+    <action android:id="@+id/global_action_to_analysis"
+        app:popUpTo="@id/camera_preview_fragment"
+        app:destination="@+id/analysis_fragment"/>
+
+    <action android:id="@+id/global_action_to_coin_manager"
+        app:popUpTo="@id/camera_preview_fragment"
+        app:destination="@+id/coin_manager"/>
 </navigation>

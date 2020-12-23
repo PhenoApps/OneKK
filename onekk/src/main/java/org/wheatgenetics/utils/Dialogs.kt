@@ -7,6 +7,8 @@ import android.graphics.Bitmap
 import android.os.Handler
 import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
+import com.google.zxing.common.DetectorResult
+import org.wheatgenetics.imageprocess.DetectWithReferences
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.databinding.DialogCoinRecognitionBinding
 import org.wheatgenetics.onekk.databinding.DialogUpdateAnalysisBinding
@@ -149,7 +151,7 @@ class Dialogs {
             builder.show()
         }
 
-        fun askAcceptableImage(activity: Activity, builder: AlertDialog.Builder, title: String, srcBitmap: Bitmap?, dstBitmap: Bitmap?, function: ((Bitmap?) -> Unit)? = null, onDecline: (() -> Unit)? = null) {
+        fun askAcceptableImage(activity: Activity, builder: AlertDialog.Builder, title: String, result: DetectWithReferences.Result, function: ((Bitmap?) -> Unit)? = null, onDecline: (() -> Unit)? = null) {
 
             val binding = DataBindingUtil.inflate<DialogCoinRecognitionBinding>(activity.layoutInflater, R.layout.dialog_coin_recognition, null, false)
 
@@ -157,13 +159,13 @@ class Dialogs {
 
             binding.resultView.rotation = 90f
 
-            binding.resultView.setImageBitmap(dstBitmap)
+            binding.resultView.setImageBitmap(result.dst)
 
             builder.setTitle(title)
 
             builder.setPositiveButton(R.string.accept) { dialog, which ->
 
-                srcBitmap?.let { src ->
+                result.src?.let { src ->
 
                     if (function != null) {
                         function(src)

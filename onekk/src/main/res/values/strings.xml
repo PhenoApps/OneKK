@@ -301,6 +301,7 @@
     <string name="nav_label_coin_manager">Coin Manager</string>
     <string name="frag_contour_list_total">Total:</string>
     <string name="contour_list_area_suffix">mm²</string>
+    <string name="contour_list_mm_suffix">mm</string>
     <string name="contour_list_area_prefix">Area: </string>
     <string name="frag_contour_list_cluster_manual_count_hint">Enter manual count</string>
     <string name="none">None</string>
@@ -400,5 +401,10 @@
     <string name="header_contour_width">Width</string>
     <string name="header_contour_length">Length</string>
     <string name="frag_contour_list_total_count_prefix">"Total: "</string>
+
+    <string name="list_item_analysis_axis_prefix">μ (mm):\t</string>
+    <string name="list_item_analysis_axis_var_prefix">σ²:\t\t</string>
+    <string name="list_item_analysis_axis_cv_prefix">σ²/μ:\t\t</string>
+    <string name="frag_camera_sample_saved">Sample saved.</string>
 
 </resources>

@@ -11,8 +11,11 @@ interface OnekkDao {
 
     /** Select queries **/
 
-    @Query("SELECT url FROM image WHERE aid = :aid LIMIT 1")
+    @Query("SELECT uri FROM image WHERE aid = :aid LIMIT 1")
     fun selectSourceImage(aid: Int): LiveData<String>
+
+    @Query("SELECT * FROM image")
+    fun selectExampleImages(): LiveData<List<ImageEntity>>
 
     @Query("SELECT * FROM analysis WHERE aid = :aid LIMIT 1")
     fun getAnalysis(aid: Int): LiveData<AnalysisEntity>

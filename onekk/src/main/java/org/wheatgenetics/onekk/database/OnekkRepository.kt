@@ -13,7 +13,7 @@ class OnekkRepository
             private val dao: OnekkDao, private val coinDao: CoinDao) {
 
     fun selectSourceImage(aid: Int) = dao.selectSourceImage(aid)
-
+    fun selectExampleImages() = dao.selectExampleImages()
     fun getAnalysis(aid: Int) = dao.getAnalysis(aid)
 
     fun selectAllAnalysis() = dao.getAllAnalysis()

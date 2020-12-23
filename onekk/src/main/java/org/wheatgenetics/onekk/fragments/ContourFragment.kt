@@ -75,7 +75,7 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
         updateUi(aid)
 
-        sViewModel.getSourceImage(aid).observeForever { uri ->
+        sViewModel.getSourceImage(aid).observeOnce(viewLifecycleOwner, { uri ->
 
             mSourceBitmap = uri
 
@@ -91,7 +91,7 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
             mBinding?.imageView?.visibility = View.VISIBLE
 
             mBinding?.imageLoadingTextView?.visibility = View.GONE
-        }
+        })
 
         mBinding?.submitButton?.text = getString(R.string.frag_contour_list_button_loading)
 
@@ -117,24 +117,28 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
     private fun FragmentContourListBinding.setupHeaderSortButtons() {
 
         contourHeader.areaTextView.setOnClickListener {
+            if (mSortMode == 0) mSortState = !mSortState
             mSortMode = 0
             updateUi(aid)
             scrollToTop()
         }
 
         contourHeader.lengthTextView.setOnClickListener {
+            if (mSortMode == 1) mSortState = !mSortState
             mSortMode = 1
             updateUi(aid)
             scrollToTop()
         }
 
         contourHeader.widthTextView.setOnClickListener {
+            if (mSortMode == 2) mSortState = !mSortState
             mSortMode = 2
             updateUi(aid)
             scrollToTop()
         }
 
         contourHeader.countTextView.setOnClickListener {
+            if (mSortMode == 3) mSortState = !mSortState
             mSortMode = 3
             updateUi(aid)
             scrollToTop()
@@ -314,39 +318,6 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
             R.id.action_graph -> {
 
                 findNavController().navigate(ContourFragmentDirections.actionToGraph(aid))
-
-            }
-
-            R.id.action_sort -> {
-
-                item.setIcon(when (mSortState) {
-
-                    //ascending order by area, switch to descending
-                    true -> {
-
-                        mSortState = false
-
-                        updateUi(aid)
-
-                        scrollToTop()
-
-                        R.drawable.ic_sort_variant
-
-                    }
-
-                    //descending to ascending
-                    else -> {
-
-                        mSortState = true
-
-                        updateUi(aid)
-
-                        scrollToTop()
-
-                        R.drawable.ic_sort_reverse_variant
-
-                    }
-                })
 
             }
 

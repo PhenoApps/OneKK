@@ -43,7 +43,7 @@ class ImageProcessingUtil {
             val IQR = Q3 - Q1
             val firstValue = Q1 - 1.5 * IQR
             val secondValue = Q3 + 1.5 * IQR
-            return Pair(firstValue, secondValue)
+            return Pair(Math.max(firstValue, 50.0), secondValue)
         }
 
         /**

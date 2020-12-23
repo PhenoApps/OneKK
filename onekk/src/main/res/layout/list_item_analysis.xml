@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:tools="http://schemas.android.com/tools"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <data>
         <variable
@@ -12,6 +13,18 @@
         <variable
             name="count"
             type="String" />
+        <variable
+            name="minAxisVar"
+            type="String"/>
+        <variable
+            name="maxAxisVar"
+            type="String"/>
+        <variable
+            name="minAxisCv"
+            type="String"/>
+        <variable
+            name="maxAxisCv"
+            type="String"/>
         <variable
             name="weight"
             type="String" />
@@ -27,69 +40,91 @@
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
         android:background="@{selected ? @drawable/highlighted : @drawable/cell}"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp">
 
-        <TextView
+        <TextView style="@style/Text.ListItemAnalysisTitle"
             android:id="@+id/nameTextView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@{name}"
-            android:gravity="start"
             android:layout_marginStart="8dp"
             android:layout_marginTop="16dp"
-            android:textSize="24sp"
+            tools:text="Name"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/countTextView"/>
+            app:layout_constraintTop_toTopOf="parent"/>
 
-        <Button
+        <TextView style="@style/Text.ListItemAnalysis"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:id="@+id/countTextView"
-            android:text="@{count + ' ' + @string/list_item_analysis_seed_unit}"
-            android:ellipsize="marquee"
+            android:id="@+id/avgAxisTextView"
+            android:text="@{@string/list_item_analysis_axis_prefix + String.valueOf(minAxisAvg) + '/' + String.valueOf(maxAxisAvg)}"
+            android:layout_margin="16dp"
+            app:layout_constraintTop_toBottomOf="@id/nameTextView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/exampleImageView"/>
+
+        <TextView style="@style/Text.ListItemAnalysis"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/varAxisTextView"
+            android:text="@{@string/list_item_analysis_axis_var_prefix + String.valueOf(minAxisVar) + '/' + String.valueOf(maxAxisVar)}"
+            android:layout_margin="16dp"
+            app:layout_constraintTop_toBottomOf="@id/avgAxisTextView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/exampleImageView"/>
+
+        <TextView style="@style/Text.ListItemAnalysis"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/cvAxisTextView"
+            android:text="@{@string/list_item_analysis_axis_cv_prefix + String.valueOf(minAxisCv) + '/' + String.valueOf(maxAxisCv)}"
+            android:layout_margin="16dp"
+            app:layout_constraintTop_toBottomOf="@id/varAxisTextView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/exampleImageView"/>
+
+        <ImageView style="@style/Text.ListItemAnalysis"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/exampleImageView"
+            android:layout_margin="16dp"
+            app:layout_constraintStart_toEndOf="@id/avgAxisTextView"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/nameTextView"/>
+
+        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+            android:id="@+id/countButton"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="@{String.valueOf(count)}"
+            android:layout_margin="16dp"
+            tools:text="75"
             android:gravity="center"
-            android:layout_margin="16dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/nameTextView"
-            app:layout_constraintBottom_toTopOf="@id/avgMinAxisTextView"
-            app:layout_constraintEnd_toStartOf="@id/listWeightEditText"/>
+            android:textSize="26sp"
+            android:backgroundTint="@color/colorPrimary"
+            android:drawableEnd="@drawable/ic_calculator"
+            app:layout_constraintTop_toBottomOf="@id/cvAxisTextView"
+            app:layout_constraintEnd_toStartOf="@id/weighButton"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
-        <Button
-            android:layout_width="0dp"
+        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+            android:id="@+id/weighButton"
             android:layout_height="wrap_content"
-            android:id="@+id/listWeightEditText"
-            android:text="@{weight + ' ' + @string/list_item_analysis_weight_unit}"
+            android:layout_width="wrap_content"
             android:layout_margin="16dp"
-            app:layout_constraintTop_toBottomOf="@id/nameTextView"
-            app:layout_constraintBottom_toTopOf="@id/avgMaxAxisTextView"
-            app:layout_constraintStart_toEndOf="@id/countTextView"
-            app:layout_constraintEnd_toEndOf="parent"/>
-
-        <Button
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:id="@+id/avgMinAxisTextView"
-            android:text="@{minAxisAvg}"
-            android:layout_margin="16dp"
-            app:layout_constraintTop_toBottomOf="@id/countTextView"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/avgMaxAxisTextView"/>
-
-        <Button
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:id="@+id/avgMaxAxisTextView"
-            android:text="@{maxAxisAvg}"
-            android:layout_margin="16dp"
-            app:layout_constraintTop_toBottomOf="@id/listWeightEditText"
-            app:layout_constraintStart_toEndOf="@id/avgMinAxisTextView"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            tools:text="100g"
+            android:textSize="26sp"
+            android:gravity="center"
+            android:backgroundTint="@color/colorPrimary"
+            android:text="@{weight}"
+            android:drawableEnd="@drawable/ic_scale"
+            app:layout_constraintTop_toBottomOf="@id/cvAxisTextView"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

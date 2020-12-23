@@ -46,6 +46,7 @@ import org.wheatgenetics.utils.Dialogs
 import org.wheatgenetics.utils.FileUtil
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.properties.Delegates
 
 class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, CoroutineScope by MainScope() {
 
@@ -71,11 +72,9 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
 
         with(mBinding) {
 
-            this?.recyclerView?.adapter = AnalysisAdapter(this@AnalysisFragment)
             this?.recyclerView?.layoutManager = LinearLayoutManager(requireContext())
 
             this?.updateUi()
-
         }
 
         setHasOptionsMenu(true)
@@ -91,19 +90,26 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
 
     private fun FragmentAnalysisManagerBinding.updateUi() {
 
-        viewModel.analysis().observeOnce(this@AnalysisFragment, {
+        viewModel.getExampleImages().observeForever { uri ->
 
-            if (it.isEmpty()) {
+            uri?.let { images ->
 
-                Toast.makeText(requireContext(), R.string.frag_analysis_table_empty_message, Toast.LENGTH_LONG).show()
+                viewModel.analysis().observeOnce(this@AnalysisFragment, {
 
-                findNavController().popBackStack()
+                    if (it.isEmpty()) {
+
+                        Toast.makeText(requireContext(), R.string.frag_analysis_table_empty_message, Toast.LENGTH_SHORT).show()
+
+                        findNavController().popBackStack()
+                    }
+
+                    this?.recyclerView?.adapter = AnalysisAdapter(images, this@AnalysisFragment)
+
+                    (this.recyclerView.adapter as? AnalysisAdapter)?.submitList(
+                            it.sortedByDescending { analyses -> analyses.date })
+                })
             }
-
-            (this.recyclerView.adapter as? AnalysisAdapter)?.submitList(
-                    it.sortedByDescending { it.date })
-
-        })
+        }
     }
 
     private fun exportSamples(fileName: String, analysis: List<AnalysisEntity>) {

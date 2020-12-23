@@ -104,7 +104,7 @@ class ExperimentViewModel(
     suspend fun switchSelectedContour(aid: Int, id: Int, choice: Boolean) = repo.switchSelectedContour(aid, id, choice)
 
     fun getSourceImage(aid: Int) = repo.selectSourceImage(aid)
-
+    fun getExampleImages() = repo.selectExampleImages()
     fun getAnalysis(aid: Int) = repo.getAnalysis(aid)
 
     suspend fun insert(analysis: AnalysisEntity): Long = viewModelScope.async {

@@ -36,6 +36,7 @@ import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.ActivityMainBinding
 import org.wheatgenetics.onekk.fragments.CameraFragment
 import org.wheatgenetics.onekk.fragments.CameraFragmentDirections
+import org.wheatgenetics.onekk.observeOnce
 import org.wheatgenetics.utils.ImageProcessingUtil
 import org.wheatgenetics.utils.SnackbarQueue
 import java.io.File
@@ -253,27 +254,37 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
                 R.id.action_to_import -> {
 
-                    mNavController.navigate(CameraFragmentDirections.actionToImport(mode = "import"))
+                    mNavController.navigate(CameraFragmentDirections.globalActionToImport(mode = "import"))
 
                 }
                 R.id.action_coin_manager -> {
 
-                    mNavController.navigate(CameraFragmentDirections.actionToCoinManager())
+                    mNavController.navigate(CameraFragmentDirections.globalActionToCoinManager())
 
                 }
                 R.id.action_nav_settings -> {
 
-                    mNavController.navigate(CameraFragmentDirections.actionToSettings())
+                    mNavController.navigate(CameraFragmentDirections.globalActionToSettings())
 
                 }
                 R.id.action_to_analysis -> {
 
-                    mNavController.navigate(CameraFragmentDirections.actionToAnalysis())
+                    viewModel.analysis().observeOnce(this, {
+
+                        it?.let { analyses ->
+
+                            if (analyses.isNotEmpty()) {
+
+                                mNavController.navigate(CameraFragmentDirections.globalActionToAnalysis())
+
+                            }
+                        }
+                    })
 
                 }
                 R.id.action_nav_about -> {
 
-                    mNavController.navigate(CameraFragmentDirections.actionToAbout())
+                    mNavController.navigate(CameraFragmentDirections.globalActionToAbout())
 
                 }
             }

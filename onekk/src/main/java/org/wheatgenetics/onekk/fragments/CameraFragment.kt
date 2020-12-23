@@ -79,7 +79,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
     private val barcodeViewModel: BarcodeSharedViewModel by activityViewModels()
 
     private val mPreferences by lazy {
-        requireContext().getSharedPreferences(getString(R.string.onekk_preference_key), Context.MODE_PRIVATE)
+        context?.getSharedPreferences(getString(R.string.onekk_preference_key), Context.MODE_PRIVATE)
     }
 
     private val mBluetoothManager by lazy {
@@ -121,9 +121,9 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
             } else {
                 //TODO show message saying camera/bluetooth/storage is required to start camera preview
-                with(requireActivity()) {
-                    setResult(android.app.Activity.RESULT_CANCELED)
-                    finish()
+                activity?.let {
+                    it.setResult(android.app.Activity.RESULT_CANCELED)
+                    it.finish()
                 }
             }
         }
@@ -145,7 +145,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
                 } else path
 
                 initiateDetector(BitmapFactory.decodeStream(requireContext()
-                        .contentResolver.openInputStream(nonNullDoc)), name)
+                        .contentResolver.openInputStream(nonNullDoc)), name, save = false)
             }
         }
     }
@@ -174,7 +174,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
         with(mBinding) {
 
-            this?.weightEditText?.visibility = when(mPreferences.getString("org.wheatgenetics.onekk.SCALE_STEPS", "1")) {
+            this?.weightEditText?.visibility = when(mPreferences?.getString("org.wheatgenetics.onekk.SCALE_STEPS", "1")) {
                 "1" -> View.VISIBLE
                 else -> View.GONE
             }
@@ -202,7 +202,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
             }
         }
 
-        when (mPreferences.getBoolean(getString(R.string.onekk_first_load_ask_mac_address), true)) {
+        when (mPreferences?.getBoolean(getString(R.string.onekk_first_load_ask_mac_address), true)) {
 
             true -> {
                 Dialogs.onOk(AlertDialog.Builder(requireContext()),
@@ -212,14 +212,14 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
                     if (theyWantToSetAddress) {
 
-                        findNavController().navigate(CameraFragmentDirections.actionToSettings())
+                        findNavController().navigate(CameraFragmentDirections.globalActionToSettings())
 
                     }
                 }
             }
         }
 
-        mPreferences.edit().putBoolean(getString(R.string.onekk_first_load_ask_mac_address), false).apply()
+        mPreferences?.edit()?.putBoolean(getString(R.string.onekk_first_load_ask_mac_address), false)?.apply()
 
         checkPermissions.launch(arrayOf(android.Manifest.permission.CAMERA,
                 android.Manifest.permission.ACCESS_FINE_LOCATION,
@@ -238,7 +238,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
     private fun startMacAddressSearch() {
 
-        val macAddress = mPreferences.getString(getString(R.string.preferences_enable_bluetooth_key), null)
+        val macAddress = mPreferences?.getString(getString(R.string.preferences_enable_bluetooth_key), null)
 
         if (macAddress != null) {
 
@@ -283,9 +283,9 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
     /**
      * Reads the preferences for the current selected reference and runs the detector.
      */
-    private fun initiateDetector(image: Bitmap, name: String? = null) {
+    private fun initiateDetector(image: Bitmap, name: String? = null, save: Boolean = false) {
 
-        requireActivity().runOnUiThread {
+        activity?.runOnUiThread {
 
             mBinding?.toggleDetectorProgress(true)
 
@@ -294,32 +294,43 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
         }
 
         //default is the size for a quarter
-        val diameter = mPreferences.getString(getString(R.string.onekk_coin_pref_key), "24.26")?.toDoubleOrNull() ?: 24.26
+        val diameter = mPreferences?.getString(getString(R.string.onekk_coin_pref_key), "24.26")?.toDoubleOrNull() ?: 24.26
 
-        val algorithm = mPreferences.getString(getString(R.string.onekk_preference_algorithm_mode_key), "1") ?: "1"
+        val algorithm = mPreferences?.getString(getString(R.string.onekk_preference_algorithm_mode_key), "1") ?: "1"
 
-        try {
+        launch(Dispatchers.IO) {
 
-            if (name != null) {
+            try {
 
-                val file = File(captureDirectory.path.toString(), "${name}.png")
+                if (name != null && save) {
 
-                FileOutputStream(file).use { stream ->
+                    val file = File(captureDirectory.path.toString(), "${name}.png")
 
-                    image.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                    launch {
+                        FileOutputStream(file).use { stream ->
 
+                            image.compress(Bitmap.CompressFormat.PNG, 100, stream)
+
+                        }
+                    }
+
+                    context?.let {
+
+                        Detector(algorithm, it.externalMediaDirs.first(), this@CameraFragment, diameter, imported = file).scan(image)
+
+                    }
+
+                } else context?.let {
+                    Detector(algorithm, it.externalMediaDirs.first(), this@CameraFragment, diameter).scan(image)
                 }
 
-                Detector(algorithm, requireContext().externalMediaDirs.first(), this@CameraFragment, diameter, imported = file).scan(image)
+            } catch (e: Exception) {
 
-            } else Detector(algorithm, requireContext().externalMediaDirs.first(), this@CameraFragment, diameter).scan(image)
+                e.printStackTrace()
 
-        } catch (e: Exception) {
+                mBinding?.toggleDetectorProgress(false)
 
-            e.printStackTrace()
-
-            mBinding?.toggleDetectorProgress(false)
-
+            }
         }
     }
 
@@ -377,6 +388,11 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
     }
 
+    override fun onResume() {
+        super.onResume()
+        startCameraAnalysis()
+    }
+
     /**
      * Basic CameraX initialization. This hooks together the image preview and the background
      * running camera analysis. Various camera configurations can happen here s.a torch light enabled.
@@ -389,7 +405,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
         //starts camera thread executor, which must be destroyed/stopped in onDestroy
         cameraExecutor = Executors.newSingleThreadExecutor()
 
-        requireContext().let { ctx ->
+        context?.let { ctx ->
 
             val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
 
@@ -421,7 +437,9 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
                                     override fun onCaptureSuccess(image: ImageProxy) {
                                         image.use {
 
-                                            initiateDetector(it.toBitmap(), name)
+                                            mBinding?.toggleDetectorProgress(true)
+
+                                            initiateDetector(it.toBitmap(), name, save = true)
 
                                         }
                                         super.onCaptureSuccess(image)
@@ -433,7 +451,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
                                     }
                                 })
                     } else {
-                        requireActivity().runOnUiThread {
+                        activity?.runOnUiThread {
                             Toast.makeText(requireContext(), R.string.frag_camera_no_sample_name_message, Toast.LENGTH_LONG).show()
                         }
                     }
@@ -549,49 +567,39 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
             isShowingDialog = true
 
-            mBinding?.let { ui ->
+            try {
 
-                try {
+                if (mPreferences?.getBoolean("org.wheatgenetics.onekk.DISPLAY_ANALYSIS", true) != false) {
 
-                    this@CameraFragment.activity?.let { activity ->
+                    activity?.runOnUiThread {
 
-                        activity.runOnUiThread {
+                        Dialogs.askAcceptableImage(
+                                requireActivity(),
+                                AlertDialog.Builder(requireActivity()),
+                                getString(R.string.ask_coin_recognition_ok),
+                                result, { success ->
 
-                            val src = result.src
-                            val dst = result.dst
+                            savePipelineToDatabase(result, imported)
 
-                            if (mPreferences.getBoolean("org.wheatgenetics.onekk.DISPLAY_ANALYSIS", true)) {
+                            isShowingDialog = false
 
-                                Dialogs.askAcceptableImage(
-                                        activity,
-                                        AlertDialog.Builder(activity),
-                                        getString(R.string.ask_coin_recognition_ok),
-                                        srcBitmap = src, dstBitmap = dst, { success ->
+                        }) {
 
-                                    savePipelineToDatabase(result, imported)
+                            isShowingDialog = false
 
-                                    isShowingDialog = false
-
-                                }) {
-
-                                    mBinding?.nameEditText?.setText(String())
-                                    
-                                    isShowingDialog = false
-
-                                }
-
-                            } else {
-
-                                savePipelineToDatabase(result, imported)
-                            }
                         }
                     }
 
-                } catch (e: IOException) {
+                } else {
 
-                    e.printStackTrace()
-
+                    savePipelineToDatabase(result, imported)
                 }
+
+
+            } catch (e: IOException) {
+
+                e.printStackTrace()
+
             }
         }
     }
@@ -645,25 +653,27 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
         launch(Dispatchers.IO) {
 
-            val weight = when(mPreferences.getString("org.wheatgenetics.onekk.SCALE_STEPS", "1")) {
-                "1" -> mBinding?.weightEditText?.text?.toString()?.toDoubleOrNull()
-                else -> null
-            }
+            try {
+                val weight = when (mPreferences?.getString("org.wheatgenetics.onekk.SCALE_STEPS", "1")) {
+                    "1" -> mBinding?.weightEditText?.text?.toString()?.toDoubleOrNull()
+                    else -> null
+                }
 
-            val collector = mPreferences.getString(getString(R.string.onekk_preference_collector_key), "") ?: ""
+                val collector = mPreferences?.getString(getString(R.string.onekk_preference_collector_key), "")
+                        ?: ""
 
-            val name = mBinding?.nameEditText?.text?.toString() ?: String()
+                val name = mBinding?.nameEditText?.text?.toString() ?: String()
 
-            if (name.isNotBlank()) {
+                if (name.isNotBlank()) {
 
-                val rowid = viewModel.insert(AnalysisEntity(
-                        name = name,
-                        collector = collector,
-                        uri = imported?.toUri().toString(),
-                        date = DateUtil().getTime(),
-                        weight = weight)).toInt()
+                    mBinding?.nameEditText?.setText("")
 
-                launch {
+                    val rowid = viewModel.insert(AnalysisEntity(
+                            name = name,
+                            collector = collector,
+                            uri = imported?.toUri().toString(),
+                            date = DateUtil().getTime(),
+                            weight = weight)).toInt()
 
                     with(viewModel) {
 
@@ -716,52 +726,75 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
                         updateAnalysisData(rowid, minAxisAvg, minAxisVar, minAxisCv, maxAxisAvg, maxAxisVar, maxAxisCv)
 
-                        result.dst.let { image ->
+                        val resultBitmap = result.dst.toFile(UUID.randomUUID().toString())
 
-                            val file = File(outputDirectory.path.toString(), "${UUID.randomUUID()}.png")
+                        val example = result.example.toFile("example_${UUID.randomUUID().toString()}")
 
-                            FileOutputStream(file).use { stream ->
+                        val dstUri = Uri.fromFile(resultBitmap).path.toString()
+                        val exampleUri = Uri.fromFile(example).path.toString()
 
-                                image.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                        viewModel.insert(ImageEntity(Image(dstUri, exampleUri, DateUtil().getTime()), rowid.toInt()))
 
-                            }
+                    }
 
-                            try {
+                    activity?.runOnUiThread {
 
-                                Glide.with(requireContext()).asBitmap().load(file.toUri()).fitCenter().preload()
+                        barcodeViewModel.lastScan.value = ""
 
-                            } catch (e: Exception) {
+                        Toast.makeText(requireContext(), R.string.frag_camera_sample_saved, Toast.LENGTH_SHORT).show()
 
-                                e.printStackTrace()
-
-                            }
-
-                            viewModel.insert(ImageEntity(Image(Uri.fromFile(file).path.toString(), DateUtil().getTime()), rowid.toInt()))
+                        val mode = mPreferences?.getString(getString(R.string.onekk_preference_mode_key), "1")
+                        when (mode) {
+                            "2", "3" -> findNavController().navigate(CameraFragmentDirections.actionToContours(rowid))
                         }
-                    }
-                }
 
-                requireActivity().runOnUiThread {
-
-                    barcodeViewModel.lastScan.value = ""
-
-                    mBinding?.nameEditText?.setText(String())
-
-                    val mode = mPreferences.getString(getString(R.string.onekk_preference_mode_key), "1")
-                    when(mode) {
-                        "2", "3" -> findNavController().navigate(CameraFragmentDirections.actionToContours(rowid))
                     }
 
+                } else {
+
+                    activity?.runOnUiThread {
+
+                        Toast.makeText(requireContext(), R.string.frag_camera_no_sample_name_message, Toast.LENGTH_LONG).show()
+                    }
+                }
+            } catch (e: Exception) {
+
+                e.printStackTrace()
+
+                activity?.runOnUiThread {
+                    mBinding?.nameEditText?.setText("")
                 }
 
-            } else {
-
-                requireActivity().runOnUiThread {
-
-                    Toast.makeText(requireContext(), R.string.frag_camera_no_sample_name_message, Toast.LENGTH_LONG).show()
-                }
             }
         }
+    }
+
+    private fun Bitmap.toFile(name: String) = this.let { image ->
+
+        val file = File(outputDirectory.path.toString(), "$name.png")
+
+        FileOutputStream(file).use { stream ->
+
+            image.compress(Bitmap.CompressFormat.PNG, 100, stream)
+
+        }
+
+//        try {
+//
+//            context?.let {
+//
+//                Glide.with(it).asBitmap().load(file.toUri()).fitCenter().preload()
+//
+//            }
+//
+//
+//        } catch (e: Exception) {
+//
+//            e.printStackTrace()
+//
+//        }
+
+        file
     }
 
     private fun variance(population: List<Double>, mean: Double, n: Int) =
@@ -792,17 +825,17 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
     /**
      * Simple UI method for toggling the progress bar and button.
      */
-    private fun FragmentCameraBinding.toggleDetectorProgress(toggle: Boolean) = requireActivity().runOnUiThread {
+    private fun FragmentCameraBinding.toggleDetectorProgress(toggle: Boolean) = activity?.runOnUiThread {
 
         when (toggle) {
 
             true -> {
                 progressBar.visibility = View.VISIBLE
-                cameraCaptureButton.visibility = View.GONE
+                cameraCaptureButton.visibility = View.INVISIBLE
             }
 
             else -> {
-                progressBar.visibility = View.GONE
+                progressBar.visibility = View.INVISIBLE
                 cameraCaptureButton.visibility = View.VISIBLE
             }
         }
