@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_to_cam"
+        android:icon="@drawable/ic_camera_iris"
+        android:title="@string/nav_cam_title"/>
+    <item
+        android:id="@+id/action_to_analysis"
+        android:icon="@drawable/ic_data_view"
+        android:title="@string/menu_action_to_analysis_manager"/>
+    <item
+        android:id="@+id/action_to_import"
+        android:icon="@drawable/ic_nv_import"
+        android:title="@string/nav_drawer_title_import"/>
+    <item
+        android:id="@+id/action_nav_settings"
+        android:icon="@drawable/ic_nv_settings"
+        android:title="@string/settings" />
+    <item
+        android:id="@+id/action_nav_about"
+        android:icon="@drawable/ic_nv_about"
+        android:title="@string/nav_bot_about" />
+</menu>

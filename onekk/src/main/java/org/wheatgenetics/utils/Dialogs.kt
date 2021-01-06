@@ -19,19 +19,22 @@ class Dialogs {
 
     companion object {
 
-        fun chooseBleDevice(builder: AlertDialog.Builder, title: String, devices: Array<BluetoothDevice>, function: (String) -> Unit) {
+        fun chooseBleDevice(builder: AlertDialog.Builder, title: String, devices: Array<BluetoothDevice>, function: (BluetoothDevice?) -> Unit) {
 
             if (devices.isNotEmpty()) {
 
                 builder.setTitle(title)
 
                 //bluetooth devices might have a null name
-                builder.setSingleChoiceItems(devices.map { it.name }.toTypedArray(), -1) { dialog, choice ->
+                builder.setSingleChoiceItems(devices.map { it.name }.toTypedArray() + "None", -1) { dialog, choice ->
 
-                    if (choice > -1) {
+                    if (choice > -1 && choice < devices.size) {
 
-                        function(devices[choice].address)
+                        function(devices[choice])
 
+                    } else if (choice >= devices.size) {
+
+                        function(null)
                     }
 
                     dialog.dismiss()

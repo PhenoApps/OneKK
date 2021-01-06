@@ -1,0 +1,11 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="org.wheatgenetics.onekk.deprecated.ViewDataActivity">
+
+    <item
+        android:id="@+id/action_coin_reset_db"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/ic_reset_coin_database"
+        android:title="@string/menu_title_coin_editor_reset"/>
+</menu>

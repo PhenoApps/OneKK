@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import com.bumptech.glide.Glide
+import com.google.android.material.tabs.TabLayout
 import com.jjoe64.graphview.GraphView
 import com.jjoe64.graphview.GridLabelRenderer
 import com.jjoe64.graphview.series.*
@@ -22,6 +23,7 @@ import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
 import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentGraphBinding
 import kotlin.math.exp
+import kotlin.math.log2
 import kotlin.math.pow
 import kotlin.math.sqrt
 import kotlin.properties.Delegates
@@ -57,24 +59,73 @@ class GraphFragment : Fragment(), CoroutineScope by MainScope() {
 
         mBinding = DataBindingUtil.inflate(localInflater, R.layout.fragment_graph, null, false)
 
-        loadGraph()
+        /**
+         * Setup graph refresh whenever a tab is selected.
+         */
+        mBinding?.graphTabLayout?.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+
+            override fun onTabReselected(tab: TabLayout.Tab?) {
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab?) {
+            }
+
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+
+                tab?.let {
+
+                    loadGraph(it.text.toString())
+                }
+            }
+        })
+
+        //force area graph to be ch
+        loadGraph(getString(R.string.graph_tab_area))
 
         return mBinding?.root
     }
 
-    private fun loadGraph() {
+    /**
+     * Loads the Graph View given the variable to use as data-points. Could be area, length or width.
+     */
+    private fun loadGraph(variable: String) {
+
+        val areaOption = getString(R.string.graph_tab_area)
+        val widthOption = getString(R.string.graph_tab_width)
+        val lengthOption = getString(R.string.graph_tab_length)
 
         sViewModel.contours(aid).observe(viewLifecycleOwner, {
 
-            it?.let { data ->
+            it?.let { sample ->
 
-                if (data.isNotEmpty()) {
+                if (sample.isNotEmpty()) {
 
-                    val areas = data.filter { it.contour?.count ?: 0 == 1 }.mapNotNull { it?.contour?.area }.sortedBy { it }
+                    //collect all contours that are not clusters
+                    val nonEmpty = sample.filter { (it.contour?.count ?: 0) == 1 }
 
-                    val mean = areas.reduceRight { x, y -> x + y } / areas.size
+                    //sort by the given variable (from the parameter)
+                    val data = when (variable) {
 
-                    val variance = variance(areas, mean, areas.size)
+                        areaOption -> {
+
+                            nonEmpty.mapNotNull { it.contour?.area }.sortedBy { it }
+
+                        }
+                        widthOption -> {
+
+                            nonEmpty.mapNotNull { it.contour?.minAxis }.sortedBy { it }
+
+                        }
+                        else -> {
+
+                            nonEmpty.mapNotNull { it.contour?.maxAxis }.sortedBy { it }
+
+                        }
+                    }
+
+                    val mean = data.reduceRight { x, y -> x + y } / data.size
+
+                    val variance = variance(data, mean, data.size)
 
                     val stdDev = sqrt(variance)
 
@@ -90,11 +141,13 @@ class GraphFragment : Fragment(), CoroutineScope by MainScope() {
 
                     //renderNormal(mBinding!!.graphView, points)
 
-                    displayHistogram(mBinding!!.graphView, BarGraphSeries(), 32, areas.toDoubleArray())
+                    displayHistogram(mBinding!!.graphView, BarGraphSeries(), sturgeRule(data.size.toDouble()).toInt(), data.toDoubleArray())
                 }
             }
         })
     }
+
+    private fun sturgeRule(n: Double) = 1 + 3.3 * log2(n)
 
     private fun getHistogramX(minimum: Double, histogram: Int, bins: Double): DoubleArray {
 
@@ -133,12 +186,15 @@ class GraphFragment : Fragment(), CoroutineScope by MainScope() {
 
         }
 
-        val binSize = (data.max()!!.toDouble() - data.min()!!.toDouble()) / numBins
+        val min = data.minByOrNull { it } ?: 0
+        val max = data.maxByOrNull { it } ?: 0
+
+        val binSize = (max.toDouble() - min.toDouble()) / numBins
 
         for (i in histogram.indices) {
 
             series.appendData(
-                    DataPoint(getHistogramX(data.min()!!.toDouble(), histogram.size, binSize)[i], histogram[i]
+                    DataPoint(getHistogramX(min.toDouble(), histogram.size, binSize)[i], histogram[i]
             ), false, histogram.count())
         }
 

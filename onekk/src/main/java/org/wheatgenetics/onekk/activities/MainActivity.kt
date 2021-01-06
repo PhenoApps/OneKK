@@ -108,10 +108,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     private lateinit var mSnackbar: SnackbarQueue
 
-    private lateinit var mDrawerLayout: DrawerLayout
-
-    private lateinit var mDrawerToggle: ActionBarDrawerToggle
-
     private lateinit var mBinding: ActivityMainBinding
 
     private lateinit var mNavController: NavController
@@ -168,7 +164,21 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
         setupActivity()
 
-        viewModel.loadCoinDatabase(assets.open("coin_database.csv"))
+        viewModel.coins().observeOnce(this, {
+
+            it?.let {
+
+                if (it.isEmpty()) {
+
+                    launch {
+
+                        viewModel.loadCoinDatabase(assets.open("coin_database.csv")).await()
+
+                    }
+                }
+            }
+
+        })
     }
 
     private fun setupActivity() {
@@ -184,12 +194,15 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         setupNavController()
 
         supportActionBar.apply {
+
+            this?.hide()
+
             title = ""
-            this?.let {
-                it.themedContext
-                setDisplayHomeAsUpEnabled(true)
-                setHomeButtonEnabled(true)
-            }
+//            this?.let {
+//                it.themedContext
+//                setDisplayHomeAsUpEnabled(true)
+//                setHomeButtonEnabled(true)
+//            }
         }
 
     }
@@ -202,56 +215,32 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
             when (destination.id) {
 
-                R.id.camera_preview_fragment -> {
+                R.id.camera_preview_fragment, R.id.settings_fragment -> {
 
-                    mDrawerToggle.isDrawerIndicatorEnabled = true
-
-                    mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
-
+                    supportActionBar?.hide()
                 }
                 else -> {
 
-                    mDrawerToggle.isDrawerIndicatorEnabled = false
-
-                    mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
-
+                    supportActionBar?.show()
                 }
             }
         }
-
     }
 
     private fun setupNavDrawer() {
 
-        mDrawerLayout = mBinding.drawerLayout
+        val botNavView = mBinding.bottomNavView
 
-        mDrawerToggle = object : ActionBarDrawerToggle(this, mDrawerLayout, R.string.drawer_open, R.string.drawer_close) {
+        botNavView.inflateMenu(R.menu.menu_bot_nav)
 
-            override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
+        botNavView.setOnNavigationItemSelectedListener { menuItem ->
 
-                super.onDrawerSlide(drawerView, slideOffset)
-
-                closeKeyboard()
-            }
-        }
-
-        mDrawerToggle.isDrawerIndicatorEnabled = true
-
-        mDrawerLayout.addDrawerListener(mDrawerToggle)
-
-        // Setup drawer view
-        val nvDrawer = findViewById<NavigationView>(R.id.nvView)
-
-        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
-
-//        nvDrawer.getHeaderView(0).apply {
-//            findViewById<TextView>(R.id.navHeaderText)
-//                    .text = prefs.getString(OPERATOR, "")
-//        }
-
-        nvDrawer.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
 
+                R.id.action_to_cam -> {
+
+                    mNavController.navigate(CameraFragmentDirections.globalActionToImport(mode = "default"))
+                }
                 R.id.action_to_import -> {
 
                     mNavController.navigate(CameraFragmentDirections.globalActionToImport(mode = "import"))
@@ -289,10 +278,79 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 }
             }
 
-            mDrawerLayout.closeDrawers()
-
             true
         }
+
+//        mDrawerLayout = mBinding.drawerLayout
+//
+//        mDrawerToggle = object : ActionBarDrawerToggle(this, mDrawerLayout, R.string.drawer_open, R.string.drawer_close) {
+//
+//            override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
+//
+//                super.onDrawerSlide(drawerView, slideOffset)
+//
+//                closeKeyboard()
+//            }
+//        }
+//
+//        mDrawerToggle.isDrawerIndicatorEnabled = true
+//
+//        mDrawerLayout.addDrawerListener(mDrawerToggle)
+//
+//        // Setup drawer view
+//        val nvDrawer = findViewById<NavigationView>(R.id.nvView)
+//
+//        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+//
+////        nvDrawer.getHeaderView(0).apply {
+////            findViewById<TextView>(R.id.navHeaderText)
+////                    .text = prefs.getString(OPERATOR, "")
+////        }
+//
+//        nvDrawer.setNavigationItemSelectedListener { menuItem ->
+//            when (menuItem.itemId) {
+//
+//                R.id.action_to_import -> {
+//
+//                    mNavController.navigate(CameraFragmentDirections.globalActionToImport(mode = "import"))
+//
+//                }
+//                R.id.action_coin_manager -> {
+//
+//                    mNavController.navigate(CameraFragmentDirections.globalActionToCoinManager())
+//
+//                }
+//                R.id.action_nav_settings -> {
+//
+//                    mNavController.navigate(CameraFragmentDirections.globalActionToSettings())
+//
+//                }
+//                R.id.action_to_analysis -> {
+//
+//                    viewModel.analysis().observeOnce(this, {
+//
+//                        it?.let { analyses ->
+//
+//                            if (analyses.isNotEmpty()) {
+//
+//                                mNavController.navigate(CameraFragmentDirections.globalActionToAnalysis())
+//
+//                            }
+//                        }
+//                    })
+//
+//                }
+//                R.id.action_nav_about -> {
+//
+//                    mNavController.navigate(CameraFragmentDirections.globalActionToAbout())
+//
+//                }
+//            }
+//
+//            mDrawerLayout.closeDrawers()
+//
+//            true
+//        }
     }
 
     private fun closeKeyboard() {
@@ -302,63 +360,35 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         imm.hideSoftInputFromWindow(currentFocus?.windowToken, 0)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+    /**
+     * Hack to update the options menu selected item by re inflating the menu
+     * By default, the bottom nav bar does not update the selected item when back button is pressed.
+     */
+    private fun invalidateMenu() {
 
-        val dl = findViewById<DrawerLayout>(R.id.drawer_layout)
+        launch {
 
-        closeKeyboard()
+            async {
 
-        if (mDrawerToggle.onOptionsItemSelected(item)) {
+                mBinding.bottomNavView.visibility = View.INVISIBLE
 
-            return true
-        }
+                mBinding.bottomNavView.menu.clear()
 
-        when (item.itemId) {
+                mBinding.bottomNavView.inflateMenu(R.menu.menu_bot_nav)
 
-            android.R.id.home -> {
+            }.await()
 
-                mNavController.currentDestination?.let {
-
-                    when (it.id) {
-
-                        R.id.camera_preview_fragment -> {
-
-                            dl.openDrawer(GravityCompat.START)
-
-                        }
-
-                        //go back to the last fragment instead of opening the navigation drawer
-                        else -> mNavController.popBackStack()
-                    }
-                }
-            }
-            else -> return super.onOptionsItemSelected(item)
-        }
-
-        return true
-    }
-
-    override fun onPostCreate(savedInstanceState: Bundle?) {
-        super.onPostCreate(savedInstanceState)
-
-        if (::mDrawerToggle.isInitialized) {
-
-            mDrawerToggle.syncState()
+            mBinding.bottomNavView.visibility = View.VISIBLE
 
         }
-
-    }
-
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-
-        mDrawerToggle.onConfigurationChanged(newConfig)
     }
 
     /**
      * Uses nav controller to change what the back press does depending on the fragment id.
      */
     override fun onBackPressed() {
+
+        invalidateMenu()
 
         mNavController.currentDestination?.let { it ->
 

@@ -25,6 +25,7 @@ import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.mikepenz.fastadapter.dsl.genericFastAdapter
 import com.polidea.rxandroidble2.helpers.ValueInterpreter
 import kotlinx.coroutines.*
 import org.wheatgenetics.onekk.R
@@ -63,6 +64,9 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
     }
 
+    //variable to track if select all button deselects or selects
+    private var mSelectMode = true
+
     private var mBinding: FragmentAnalysisManagerBinding? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -75,6 +79,13 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
             this?.recyclerView?.layoutManager = LinearLayoutManager(requireContext())
 
             this?.updateUi()
+        }
+
+        //deselect all analysis before view is created
+        launch {
+
+            viewModel.updateSelectAllAnalysis(false)
+
         }
 
         setHasOptionsMenu(true)
@@ -103,7 +114,7 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
                         findNavController().popBackStack()
                     }
 
-                    this?.recyclerView?.adapter = AnalysisAdapter(images, this@AnalysisFragment)
+                    this?.recyclerView?.adapter = AnalysisAdapter(this@AnalysisFragment)
 
                     (this.recyclerView.adapter as? AnalysisAdapter)?.submitList(
                             it.sortedByDescending { analyses -> analyses.date })
@@ -201,7 +212,9 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
 
             R.id.action_select_all -> {
 
-                viewModel.updateSelectAllAnalysis()
+                viewModel.updateSelectAllAnalysis(mSelectMode)
+
+                mSelectMode = !mSelectMode
 
                 mBinding?.updateUi()
             }
@@ -246,6 +259,12 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
     override fun onClickCount(aid: Int) {
 
         findNavController().navigate(AnalysisFragmentDirections.actionToContours(aid))
+
+    }
+
+    override fun onClickGraph(aid: Int) {
+
+        findNavController().navigate(AnalysisFragmentDirections.actionToGraph(aid))
 
     }
 

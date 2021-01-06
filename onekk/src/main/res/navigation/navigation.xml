@@ -35,7 +35,9 @@
         <action android:id="@+id/action_to_contours"
             app:popUpTo="@id/analysis_fragment"
             app:destination="@id/contour_fragment"/>
-
+        <action android:id="@+id/action_to_graph"
+            app:popUpTo="@id/contour_fragment"
+            app:destination="@id/graph_fragment"/>
         <action android:id="@+id/action_to_scale"
             app:popUpTo="@id/analysis_fragment"
             app:destination="@id/scale_fragment"/>
@@ -52,9 +54,6 @@
 
         <action android:id="@+id/action_to_camera"
             app:destination="@id/camera_preview_fragment"/>
-        <action android:id="@+id/action_to_graph"
-            app:popUpTo="@id/contour_fragment"
-            app:destination="@id/graph_fragment"/>
         <action android:id="@+id/action_to_scale"
             app:popUpTo="@id/camera_preview_fragment"
             app:destination="@id/scale_fragment"/>

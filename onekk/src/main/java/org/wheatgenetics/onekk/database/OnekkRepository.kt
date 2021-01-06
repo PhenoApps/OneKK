@@ -15,14 +15,15 @@ class OnekkRepository
     fun selectSourceImage(aid: Int) = dao.selectSourceImage(aid)
     fun selectExampleImages() = dao.selectExampleImages()
     fun getAnalysis(aid: Int) = dao.getAnalysis(aid)
-
     fun selectAllAnalysis() = dao.getAllAnalysis()
+
+    suspend fun selectAllCoins() = coinDao.selectAllCoins()
 
     suspend fun deleteAnalysis(aid: Int) = dao.deleteAnalysis(aid)
 
     suspend fun deleteAllAnalysis() = dao.deleteAllAnalysis()
 
-    suspend fun updateSelectAllAnalysis() = dao.updateSelectAllAnalysis()
+    suspend fun updateSelectAllAnalysis(selected: Boolean) = dao.updateSelectAllAnalysis(selected)
 
     suspend fun selectAllCountries(): List<String> {
 

@@ -31,7 +31,6 @@
     <string name="coin_diameter">Coin Diameter</string>
 
     <!-- Navigation Menu strings -->
-    <string name="settings">Settings</string>
     <string name="view_data">View Data</string>
     <string name="coinrecognition">Coin recognition</string>
     <string name="samples">Samples</string>
@@ -273,6 +272,7 @@
     <string name="frag_setting_scale_settings">Scale Settings</string>
     <string name="enable_bluetooth">Available Devices</string>
     <string name="preferences_enable_bluetooth_key">org.wheatgenetics.onekk.BLUETOOTH_ENABLED</string>
+    <string name="preferences_saved_device_name_key">org.wheatgenetics.onekk.BLUETOOTH_DEVICE</string>
     <string name="devices">devices</string>
     <string name="onekk_preference_key">ONEKK_PREFERENCES</string>
     <string name="onekk_preference_mode_key">org.wheatgenetics.onekk.SCALE_STEPS</string>
@@ -312,7 +312,6 @@
     <string name="menu_contour_list_sort">Sort</string>
     <string name="list_item_analysis_seed_unit">seeds</string>
     <string name="list_item_analysis_weight_unit">g</string>
-    <string name="menu_action_to_analysis_manager">Sample Manager</string>
     <string name="menu_analysis_manager_delete_all">Delete All</string>
     <string name="frag_analysis_ask_delete_all">Delete all selected analyses from database?</string>
     <string name="frag_analysis_ask_delete_cancel_button">Cancel</string>
@@ -378,9 +377,8 @@
     <string name="frag_scale_weight_button_text">Weigh</string>
     <string name="list_item_analysis_weight_action_text">Weigh sample.</string>
     <string name="list_item_analysis_count_action_text">Count sample.</string>
-    <string name="nav_drawer_title_import">Import a file</string>
     <string name="frag_setting_coin_title">Coin</string>
-    <string name="frag_settings_coin_manager_title">Coin Manager</string>
+    <string name="frag_settings_coin_manager_title">Coin Editor</string>
     <string name="onekk_coin_manager_key">org.wheatgenetics.onekk.COIN_MANAGER_NAVIGATE</string>
     <string name="frag_settings_algorithm_title">Algorithm</string>
     <string name="frag_settings_display_analysis_summary">Displays an analysis preview prior to saving sample.</string>
@@ -396,15 +394,33 @@
     <string name="menu_scale_fragment_ble">Establish a BLE connection.</string>
     <string name="graph_fragment_label">Graph contour stats.</string>
     <string name="menu_contour_list_graph">Graph contour stats.</string>
-    <string name="header_contour_area">Area (mm²)</string>
+    <string name="header_contour_area">Area</string>
     <string name="header_contour_count">Count</string>
     <string name="header_contour_width">Width</string>
     <string name="header_contour_length">Length</string>
-    <string name="frag_contour_list_total_count_prefix">"Total: "</string>
+    <string name="frag_contour_list_total_count_prefix">Total: </string>
 
-    <string name="list_item_analysis_axis_prefix">μ (mm):\t</string>
-    <string name="list_item_analysis_axis_var_prefix">σ²:\t\t</string>
-    <string name="list_item_analysis_axis_cv_prefix">σ²/μ:\t\t</string>
+    <string name="list_item_analysis_width_prefix">Width: </string>
+    <string name="list_item_analysis_length_prefix">Length: </string>
     <string name="frag_camera_sample_saved">Sample saved.</string>
+    <string name="graph_tab_width">Width</string>
+    <string name="graph_tab_length">Length</string>
+    <string name="graph_tab_area">Area</string>
+
+    <!--- bottom nav bar titles -->
+    <string name="nav_cam_title">Camera</string>
+    <string name="menu_action_to_analysis_manager">Samples</string>
+    <string name="nav_drawer_title_import">Import</string>
+    <string name="settings">Settings</string>
+    <string name="nav_bot_about">About</string>
+    <string name="frag_settings_ask_connect_device">Always ask to connect to a device.</string>
+    <string name="ask_connect_device">Prompt Connection</string>
+    <string name="frag_settings_no_devices_found">Searching for devices...</string>
+    <string name="preferences_device_searching">Click to choose a device.</string>
+    <string name="frag_coin_editor_reset_button">Reset Coin Database</string>
+    <string name="menu_title_coin_editor_reset">Reset Coin Database</string>
+    <string name="frag_coin_dialog_title_reset">This will reset any edits made by the user.</string>
+    <string name="frag_coin_dialog_cancel_reset">Cancel</string>
+    <string name="frag_coin_dialog_ok_reset">OK</string>
 
 </resources>

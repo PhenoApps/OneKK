@@ -163,7 +163,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
         startMacAddressSearch()
 
-        setHasOptionsMenu(true)
+//        setHasOptionsMenu(true)
 
     }
 
@@ -173,11 +173,6 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
         mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_camera, container, false)
 
         with(mBinding) {
-
-            this?.weightEditText?.visibility = when(mPreferences?.getString("org.wheatgenetics.onekk.SCALE_STEPS", "1")) {
-                "1" -> View.VISIBLE
-                else -> View.GONE
-            }
 
             getOutputDirectory()?.let { output ->
 
@@ -296,7 +291,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
         //default is the size for a quarter
         val diameter = mPreferences?.getString(getString(R.string.onekk_coin_pref_key), "24.26")?.toDoubleOrNull() ?: 24.26
 
-        val algorithm = mPreferences?.getString(getString(R.string.onekk_preference_algorithm_mode_key), "1") ?: "1"
+//        val algorithm = mPreferences?.getString(getString(R.string.onekk_preference_algorithm_mode_key), "1") ?: "1"
 
         launch(Dispatchers.IO) {
 
@@ -304,7 +299,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
                 if (name != null && save) {
 
-                    val file = File(captureDirectory.path.toString(), "${name}.png")
+                    val file = File(captureDirectory.path.toString(), "${name}_${DateUtil().getTime()}.png")
 
                     launch {
                         FileOutputStream(file).use { stream ->
@@ -316,12 +311,12 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
                     context?.let {
 
-                        Detector(algorithm, it.externalMediaDirs.first(), this@CameraFragment, diameter, imported = file).scan(image)
+                        Detector("", it.externalMediaDirs.first(), this@CameraFragment, diameter, imported = file).scan(image)
 
                     }
 
                 } else context?.let {
-                    Detector(algorithm, it.externalMediaDirs.first(), this@CameraFragment, diameter).scan(image)
+                    Detector("", it.externalMediaDirs.first(), this@CameraFragment, diameter).scan(image)
                 }
 
             } catch (e: Exception) {
@@ -388,11 +383,6 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
     }
 
-    override fun onResume() {
-        super.onResume()
-        startCameraAnalysis()
-    }
-
     /**
      * Basic CameraX initialization. This hooks together the image preview and the background
      * running camera analysis. Various camera configurations can happen here s.a torch light enabled.
@@ -416,14 +406,16 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
                 //Preview
                 val preview = Preview.Builder()
-                        .setTargetResolution(metrics)
+//                        .setTargetResolution(metrics)
+                        .setTargetAspectRatio(AspectRatio.RATIO_4_3)
                         .build()
                         .also {
                             it.setSurfaceProvider(mBinding?.viewFinder?.createSurfaceProvider())
                         }
 
                 val highResImageCapture = ImageCapture.Builder()
-                        .setTargetResolution(metrics)
+//                        .setTargetResolution(metrics)
+                        .setTargetAspectRatio(AspectRatio.RATIO_4_3)
                         .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
                         .build()
 
@@ -655,7 +647,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
             try {
                 val weight = when (mPreferences?.getString("org.wheatgenetics.onekk.SCALE_STEPS", "1")) {
-                    "1" -> mBinding?.weightEditText?.text?.toString()?.toDoubleOrNull()
+                    "1", "2" -> mBinding?.weightEditText?.text?.toString()?.toDoubleOrNull()
                     else -> null
                 }
 
@@ -667,6 +659,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
                 if (name.isNotBlank()) {
 
                     mBinding?.nameEditText?.setText("")
+                    mBinding?.weightEditText?.setText("")
 
                     val rowid = viewModel.insert(AnalysisEntity(
                             name = name,

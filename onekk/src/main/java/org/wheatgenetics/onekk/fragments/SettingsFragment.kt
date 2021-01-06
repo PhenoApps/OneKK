@@ -58,8 +58,8 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
             mDevices.add(device)
 
             //crash if this is called before this preference is created
-            findPreference<Preference>(getString(R.string.preferences_enable_bluetooth_key))
-                    ?.summary = "${mDevices.size} ${getString(R.string.devices)}"
+//            findPreference<Preference>(getString(R.string.preferences_enable_bluetooth_key))
+//                    ?.summary = "${mDevices.size} ${getString(R.string.devices)}"
         }
     }
 
@@ -110,6 +110,15 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
             }
         }
 
+        findPreference<Preference>("org.wheatgenetics.onekk.ASK_CONNECT")!!
+                .setOnPreferenceChangeListener { preference, newValue ->
+                    mPreferences.edit().apply {
+                        putBoolean("org.wheatgenetics.onekk.ASK_CONNECT", (newValue as? Boolean) ?: true)
+                    }.apply()
+
+                    true
+                }
+
         findPreference<Preference>("org.wheatgenetics.onekk.DISPLAY_ANALYSIS")!!
                 .setOnPreferenceChangeListener { preference, newValue ->
                     mPreferences.edit().apply {
@@ -158,24 +167,35 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
                 }
 
         //crash if this is called before this preference is created
-        findPreference<Preference>(getString(R.string.preferences_enable_bluetooth_key))!!
-                .setOnPreferenceClickListener {
+        findPreference<Preference>(getString(R.string.preferences_enable_bluetooth_key)).apply {
 
-                    if (mDevices.isNotEmpty()) {
-                        Dialogs.chooseBleDevice(AlertDialog.Builder(requireContext()),
-                                getString(R.string.dialog_choose_ble_device_title),
-                                mDevices.toTypedArray()) { device ->
+            this?.summary = mPreferences.getString(getString(R.string.preferences_saved_device_name_key), getString(R.string.preferences_device_searching))
 
-                            mPreferences.edit().apply {
+            this?.setOnPreferenceClickListener {
 
-                                putString(getString(R.string.preferences_enable_bluetooth_key), device)
+                if (mDevices.isNotEmpty()) {
+                    Dialogs.chooseBleDevice(AlertDialog.Builder(requireContext()),
+                            getString(R.string.dialog_choose_ble_device_title),
+                            mDevices.toTypedArray()) { device ->
 
-                            }.apply()
-                        }
+                        it.summary = device?.name ?: "None"
+
+                        mPreferences.edit().apply {
+
+                            putString(getString(R.string.preferences_enable_bluetooth_key), device?.address ?: String())
+
+                            putString(getString(R.string.preferences_saved_device_name_key), device?.name ?: String())
+
+                        }.apply()
                     }
+                } else {
 
-                    true
+                    it.summary = getString(R.string.frag_settings_no_devices_found)
                 }
+
+                true
+            }
+        }
 
         return super.onCreateView(inflater, container, savedInstanceState)
     }

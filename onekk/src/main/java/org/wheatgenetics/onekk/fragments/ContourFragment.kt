@@ -315,11 +315,11 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
         when (item.itemId) {
 
-            R.id.action_graph -> {
-
-                findNavController().navigate(ContourFragmentDirections.actionToGraph(aid))
-
-            }
+//            R.id.action_graph -> {
+//
+//                findNavController().navigate(ContourFragmentDirections.actionToGraph(aid))
+//
+//            }
 
             else -> return super.onOptionsItemSelected(item)
         }

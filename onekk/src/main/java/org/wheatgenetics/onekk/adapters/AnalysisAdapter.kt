@@ -17,12 +17,13 @@ import org.wheatgenetics.onekk.database.models.ImageEntity
 import org.wheatgenetics.onekk.databinding.ListItemAnalysisBinding
 import org.wheatgenetics.onekk.interfaces.OnClickAnalysis
 import org.wheatgenetics.onekk.shortenString
+import kotlin.math.sqrt
 
-class AnalysisAdapter(private val uris: List<ImageEntity>, private val listener: OnClickAnalysis) : ListAdapter<AnalysisEntity, RecyclerView.ViewHolder>(DiffCallback()), CoroutineScope by MainScope() {
+class AnalysisAdapter(private val listener: OnClickAnalysis) : ListAdapter<AnalysisEntity, RecyclerView.ViewHolder>(DiffCallback()), CoroutineScope by MainScope() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
 
-        return ViewHolder(this, uris, DataBindingUtil.inflate(
+        return ViewHolder(DataBindingUtil.inflate(
                         LayoutInflater.from(parent.context),
                         R.layout.list_item_analysis, parent, false))
     }
@@ -41,26 +42,19 @@ class AnalysisAdapter(private val uris: List<ImageEntity>, private val listener:
         }
     }
 
-    class ViewHolder(private val coroutineScope: CoroutineScope, private val images: List<ImageEntity>, private val binding: ListItemAnalysisBinding) : RecyclerView.ViewHolder(binding.root) {
+    class ViewHolder(private val binding: ListItemAnalysisBinding) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(position: Int, listener: OnClickAnalysis, model: AnalysisEntity) {
 
             with(binding) {
 
-                coroutineScope.launch {
+                //this is required to force marquee
+                nameTextView.isSelected = true
 
-                    val bmp = BitmapFactory.decodeFile(images.find { it.aid == (itemView.tag as Int) }?.image?.example)
+                graphButton.setOnClickListener {
 
-                    try {
+                    listener.onClickGraph(model.aid!!)
 
-                        exampleImageView.setImageBitmap(bmp)
-
-                    } catch (e: CvException) {
-
-                        e.printStackTrace()
-
-                        bmp
-                    }
                 }
 
                 weighButton.setOnClickListener {
@@ -90,13 +84,13 @@ class AnalysisAdapter(private val uris: List<ImageEntity>, private val listener:
 
 //                avgWeight = shortenString(model.weight ?: 1.0 / (model.count ?: 1).toDouble())
 
-                maxAxisCv = shortenString(model.maxAxisCv ?: 1.0)
+//                maxAxisCv = shortenString(model.maxAxisCv ?: 1.0)
+//
+//                minAxisCv = shortenString(model.minAxisCv ?: 1.0)
 
-                minAxisCv = shortenString(model.minAxisCv ?: 1.0)
+                maxAxisVar = shortenString(sqrt(model.maxAxisVar ?: 1.0))
 
-                maxAxisVar = shortenString(model.maxAxisVar ?: 1.0)
-
-                minAxisVar = shortenString(model.minAxisVar ?: 1.0)
+                minAxisVar = shortenString(sqrt(model.minAxisVar ?: 1.0))
 
                 weight = shortenString(model.weight ?: 0.0) + "g"
 

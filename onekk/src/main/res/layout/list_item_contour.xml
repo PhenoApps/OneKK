@@ -36,9 +36,9 @@
 
         <CheckBox
             android:id="@+id/viewButton"
-            android:background="@drawable/cell"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
+            android:layout_marginStart="8dp"
             android:checked="@{selected}"
             android:onClick="@{highlight}"
             app:layout_constraintTop_toTopOf="parent"
@@ -89,6 +89,8 @@
             android:layout_height="wrap_content"
             android:text="@{String.valueOf(count)}"
             android:inputType="number"
+            android:gravity="end"
+            android:selectAllOnFocus="true"
             tools:text="42"
             android:onClick="@{viewCluster}"
             app:layout_constraintEnd_toEndOf="parent"

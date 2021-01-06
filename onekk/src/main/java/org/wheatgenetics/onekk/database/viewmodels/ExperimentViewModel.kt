@@ -31,8 +31,8 @@ class ExperimentViewModel(
         repo.deleteAnalysis(aid)
     }
 
-    fun updateSelectAllAnalysis() = viewModelScope.launch {
-        repo.updateSelectAllAnalysis()
+    fun updateSelectAllAnalysis(selected: Boolean) = viewModelScope.launch {
+        repo.updateSelectAllAnalysis(selected)
     }
 
     fun deleteAllAnalysis() = viewModelScope.launch {
@@ -85,6 +85,14 @@ class ExperimentViewModel(
 
     }
 
+    fun coins() = liveData {
+
+        val result = repo.selectAllCoins()
+
+        emit(result)
+
+    }
+
     fun coinModels(country: String) = liveData {
 
         val result = repo.selectAllCoinModels(country)
@@ -115,7 +123,7 @@ class ExperimentViewModel(
         lines of the csv file are expected to have 7 values like:
         UK,Pound,0.01,Penny,1,20.3,1 Penny
      */
-    fun loadCoinDatabase(csv: InputStream) = viewModelScope.launch {
+    fun loadCoinDatabase(csv: InputStream) = viewModelScope.async {
 
         csv.reader().readLines().forEach {
 

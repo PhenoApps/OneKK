@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.*
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -12,6 +13,7 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.adapters.CoinManagerAdapter
@@ -21,6 +23,7 @@ import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
 import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentCoinManagerBinding
 import org.wheatgenetics.onekk.interfaces.CoinValueChangedListener
+import org.wheatgenetics.utils.Dialogs
 
 class CoinManagerFragment : Fragment(), CoinValueChangedListener, CoroutineScope by MainScope() {
 
@@ -32,11 +35,10 @@ class CoinManagerFragment : Fragment(), CoinValueChangedListener, CoroutineScope
         requireContext().getSharedPreferences(getString(R.string.onekk_preference_key), Context.MODE_PRIVATE)
     }
 
-    private val sViewModel: ExperimentViewModel by viewModels {
-
-        OnekkViewModelFactory(
-                OnekkRepository.getInstance(db.dao(), db.coinDao()))
-
+    private val viewModel by viewModels<ExperimentViewModel> {
+        with(db) {
+            OnekkViewModelFactory(OnekkRepository.getInstance(this.dao(), this.coinDao()))
+        }
     }
 
     private var mBinding: FragmentCoinManagerBinding? = null
@@ -55,32 +57,50 @@ class CoinManagerFragment : Fragment(), CoinValueChangedListener, CoroutineScope
 
             ui.setupEditTextSearch()
 
-            return ui.root
-
         }
 
         setHasOptionsMenu(true)
 
-        return null
+        return mBinding?.root
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
 
-//        inflater.inflate(R.menu.activity_main_toolbar, menu)
-
         super.onCreateOptionsMenu(menu, inflater)
+
+        inflater.inflate(R.menu.menu_coin_editor_view, menu)
+
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
 
-//        when(item.itemId) {
-//
-//        }
+        when(item.itemId) {
+
+            R.id.action_coin_reset_db -> {
+
+                Dialogs.onOk(AlertDialog.Builder(requireContext()),
+                        title = getString(R.string.frag_coin_dialog_title_reset),
+                        cancel = getString(R.string.frag_coin_dialog_cancel_reset),
+                        ok = getString(R.string.frag_coin_dialog_ok_reset)) {
+
+                    if (it) {
+
+                        activity?.assets?.let { assets ->
+
+                            launch {
+
+                                viewModel.loadCoinDatabase(assets.open("coin_database.csv")).await()
+
+                                mBinding?.setupRecyclerView(mPreferences.getString(getString(R.string.onekk_country_pref_key), "USA") ?: "USA")
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         return super.onOptionsItemSelected(item)
-    }
-
-    private fun setupButtons() {
-
     }
 
     /**
@@ -95,7 +115,7 @@ class CoinManagerFragment : Fragment(), CoinValueChangedListener, CoroutineScope
             override fun afterTextChanged(newText: Editable?) {
                 newText?.let { nonNullText ->
 
-                    sViewModel.countries().observeForever {
+                    viewModel.countries().observeForever {
 
                         it?.let { countryListResult ->
 
@@ -123,7 +143,7 @@ class CoinManagerFragment : Fragment(), CoinValueChangedListener, CoroutineScope
 
     private fun updateUi(country: String) {
 
-        sViewModel.coinModels(country).observeForever { coins ->
+        viewModel.coinModels(country).observeForever { coins ->
 
             (mBinding?.recyclerView?.adapter as? CoinManagerAdapter)?.submitList(coins)
 
@@ -134,7 +154,7 @@ class CoinManagerFragment : Fragment(), CoinValueChangedListener, CoroutineScope
 
         launch {
 
-            sViewModel.updateCoinValue(country, name, value)
+            viewModel.updateCoinValue(country, name, value)
         }
     }
 }

@@ -74,9 +74,6 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss.SSS"
     }
 
-    //global references to the menu, allows the swapping of icons when connecting/disconnecting from bt
-    private var mMenu: Menu? = null
-
     private var mBinding: FragmentScaleBinding? = null
 
 
@@ -101,23 +98,49 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
 
         aid = requireArguments().getInt("analysis", -1)
 
-        when (mPreferences.getBoolean(getString(R.string.onekk_first_scale_fragment_ask_mac_address), true)) {
+        //if a device is already chosen, then start the service search/connection
+        if (mPreferences.getString(getString(R.string.preferences_enable_bluetooth_key), String())?.isEmpty() == true) {
 
-            true -> {
-                Dialogs.onOk(AlertDialog.Builder(requireContext()),
-                        getString(R.string.camera_fragment_dialog_first_load_ask_address),
-                        getString(R.string.camera_fragment_dialog_first_load_cancel),
-                        getString(R.string.camera_fragment_dialog_first_load_ok)) { theyWantToSetAddress ->
+            //if a device is not already chosen and its the first time loading this fragment, ask if the user wants to connect to a device
+            when (mPreferences.getBoolean(getString(R.string.onekk_first_scale_fragment_ask_mac_address), true)) {
 
-                    if (theyWantToSetAddress) {
+                true -> {
 
-                        startMacAddressSearch()
+                    callAskConnectDialog()
+
+                    //set first time dialog to false so it is only ever asked once
+                    mPreferences.edit().putBoolean(getString(R.string.onekk_first_scale_fragment_ask_mac_address), false).apply()
+
+                }
+                else ->  {
+
+                    //finally, if it's not the first time, check the ask connect preference to ask anyways
+                    if (mPreferences.getBoolean("org.wheatgenetics.onekk.ASK_CONNECT", true)) {
+
+                        callAskConnectDialog()
 
                     }
                 }
             }
-            else ->  {
-                mPreferences.edit().putBoolean(getString(R.string.onekk_first_load_ask_mac_address), false).apply()
+        } else {
+
+            //if a device is already preferred, try connecting to it
+            startMacAddressSearch()
+
+        }
+    }
+
+    private fun callAskConnectDialog() {
+
+        Dialogs.onOk(AlertDialog.Builder(requireContext()),
+                getString(R.string.camera_fragment_dialog_first_load_ask_address),
+                getString(R.string.camera_fragment_dialog_first_load_cancel),
+                getString(R.string.camera_fragment_dialog_first_load_ok)) { theyWantToSetAddress ->
+
+            if (theyWantToSetAddress) {
+
+                startMacAddressSearch()
+
             }
         }
     }
