@@ -27,7 +27,6 @@ import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.polidea.rxandroidble2.RxBleClient
 import com.polidea.rxandroidble2.helpers.ValueInterpreter
-import kotlinx.android.synthetic.main.fragment_image.view.*
 import kotlinx.coroutines.*
 import org.wheatgenetics.imageprocess.DetectWithReferences
 import org.wheatgenetics.onekk.R
@@ -202,7 +201,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
             true -> {
                 Dialogs.onOk(AlertDialog.Builder(requireContext()),
                         getString(R.string.camera_fragment_dialog_first_load_ask_address),
-                        getString(R.string.camera_fragment_dialog_first_load_cancel),
+                        getString(android.R.string.cancel),
                         getString(R.string.camera_fragment_dialog_first_load_ok)) { theyWantToSetAddress ->
 
                     if (theyWantToSetAddress) {

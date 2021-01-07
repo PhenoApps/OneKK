@@ -1,6 +1,5 @@
 package org.wheatgenetics.onekk.adapters
 
-import android.graphics.BitmapFactory
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
@@ -9,11 +8,8 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
-import org.opencv.core.CvException
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.database.models.AnalysisEntity
-import org.wheatgenetics.onekk.database.models.ImageEntity
 import org.wheatgenetics.onekk.databinding.ListItemAnalysisBinding
 import org.wheatgenetics.onekk.interfaces.OnClickAnalysis
 import org.wheatgenetics.onekk.shortenString
@@ -87,6 +83,8 @@ class AnalysisAdapter(private val listener: OnClickAnalysis) : ListAdapter<Analy
 //                maxAxisCv = shortenString(model.maxAxisCv ?: 1.0)
 //
 //                minAxisCv = shortenString(model.minAxisCv ?: 1.0)
+
+                tkw = shortenString(model.tkw ?: 0.0)
 
                 maxAxisVar = shortenString(sqrt(model.maxAxisVar ?: 1.0))
 

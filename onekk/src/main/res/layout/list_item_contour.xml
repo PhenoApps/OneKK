@@ -93,6 +93,7 @@
             android:selectAllOnFocus="true"
             tools:text="42"
             android:onClick="@{viewCluster}"
+            android:hint="@string/list_item_contour_count_hint"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/widthTextView"
             app:layout_constraintTop_toTopOf="parent"/>

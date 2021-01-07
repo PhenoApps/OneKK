@@ -21,7 +21,7 @@
             android:id="@+id/resultView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:contentDescription="TODO"
+            android:contentDescription="@string/post_analysis_image_result"
             android:visibility="@{visible ? View.VISIBLE : View.INVISIBLE }"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

@@ -1,12 +1,7 @@
 package org.wheatgenetics.imageprocess.renderscript
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.renderscript.*
-import android.util.Log
-import androidx.core.graphics.scale
-
-import org.wheatgenetics.imageprocess.ScriptC_singlesource
+import android.renderscript.RenderScript
 
 //renderscript support library
 //import android.support.v8.renderscript.*

@@ -16,6 +16,7 @@
             android:layout_height="match_parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/areaTextView"
+            android:contentDescription="@string/header_contours_placeholder_description"
             android:src="@drawable/ic_info"/>
 
         <TextView style="@style/Text.ContourListTableText"

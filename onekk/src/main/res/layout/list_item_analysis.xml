@@ -14,6 +14,9 @@
             name="count"
             type="String" />
         <variable
+            name="tkw"
+            type="String" />
+        <variable
             name="minAxisVar"
             type="String"/>
         <variable
@@ -27,7 +30,7 @@
             type="boolean" />
         <variable
             name="minAxisAvg"
-            type = "String"/>
+            type="String"/>
         <variable
             name="maxAxisAvg"
             type="String" />
@@ -53,6 +56,7 @@
             app:layout_constraintTop_toTopOf="parent"/>
 
         <TextView style="@style/Text.ListItemAnalysis"
+            tools:text="Length: [1.0]([0.5])"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:id="@+id/maxAxisTextView"
@@ -64,12 +68,24 @@
             app:layout_constraintBottom_toTopOf="@id/minAxisTextView"/>
 
         <TextView style="@style/Text.ListItemAnalysis"
+            tools:text="Width: [9.0]([1.0])"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:id="@+id/minAxisTextView"
             android:text="@{@string/list_item_analysis_width_prefix + '[' + String.valueOf(minAxisAvg) + ']' + '(' + '[' + String.valueOf(minAxisVar) + ']' + ')'}"
             android:layout_margin="2dp"
             app:layout_constraintTop_toBottomOf="@id/maxAxisTextView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <TextView style="@style/Text.ListItemAnalysis"
+            tools:text="Tkw: 0.9"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/tkwTextView"
+            android:text="@{@string/list_item_analysis_tkw_prefix + tkw}"
+            android:layout_margin="2dp"
+            app:layout_constraintTop_toBottomOf="@id/minAxisTextView"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
 
@@ -81,9 +97,10 @@
             android:gravity="center"
             android:backgroundTint="@color/colorPrimary"
             android:src="@drawable/ic_bar_chart_24px"
+            android:contentDescription="@string/list_item_analysis_graph_content_description"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/minAxisTextView"
+            app:layout_constraintTop_toBottomOf="@id/tkwTextView"
             app:layout_constraintEnd_toStartOf="@id/countButton"/>
 <!--            app:layout_constraintEnd_toEndOf="parent"-->
 <!--            app:layout_constraintTop_toBottomOf="@id/weighButton"-->
@@ -101,7 +118,7 @@
             android:backgroundTint="@color/colorPrimary"
             android:drawableEnd="@drawable/ic_calculator"
             app:layout_constraintStart_toEndOf="@id/graph_button"
-            app:layout_constraintTop_toBottomOf="@id/minAxisTextView"
+            app:layout_constraintTop_toBottomOf="@id/tkwTextView"
             app:layout_constraintEnd_toStartOf="@id/weighButton"
             app:layout_constraintBottom_toBottomOf="parent"/>
 
@@ -116,7 +133,7 @@
             android:backgroundTint="@color/colorPrimary"
             android:text="@{weight}"
             android:drawableEnd="@drawable/ic_scale"
-            app:layout_constraintTop_toBottomOf="@id/minAxisTextView"
+            app:layout_constraintTop_toBottomOf="@id/tkwTextView"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/countButton"
             app:layout_constraintBottom_toBottomOf="parent"/>

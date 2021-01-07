@@ -252,7 +252,7 @@
     <string name="action_cancel">Cancel</string>
     <string name="action_reply">Reply</string>
     <string name="title_activity_report">Report</string>
-    <string name="intro_title_1">Intro Title1</string>
+    <string name="intro_title_1">Intro Title 1</string>
     <string name="intro_title_2">Intro Title 2</string>
     <string name="intro_title_3">Intro Title 3</string>
     <string name="intro_body_1">Intro Body 1</string>
@@ -322,7 +322,6 @@
     <string name="nav_label_barcode_scan">Barcode scan fragment</string>
     <string name="menu_camera_barcode_scan_title">Scan barcode</string>
     <string name="camera_fragment_dialog_first_load_ask_address">Press OK to establish a BLE connection.</string>
-    <string name="camera_fragment_dialog_first_load_cancel">cancel</string>
     <string name="camera_fragment_dialog_first_load_ok">OK</string>
     <string name="onekk_preference_collector_key">org.wheatgenetics.onekk.COLLECTOR</string>
     <string name="frag_analysis_export_button">Export</string>
@@ -400,6 +399,7 @@
     <string name="header_contour_length">Length</string>
     <string name="frag_contour_list_total_count_prefix">Total: </string>
 
+    <string name="list_item_analysis_tkw_prefix">Tkw: </string>
     <string name="list_item_analysis_width_prefix">Width: </string>
     <string name="list_item_analysis_length_prefix">Length: </string>
     <string name="frag_camera_sample_saved">Sample saved.</string>
@@ -415,12 +415,24 @@
     <string name="nav_bot_about">About</string>
     <string name="frag_settings_ask_connect_device">Always ask to connect to a device.</string>
     <string name="ask_connect_device">Prompt Connection</string>
-    <string name="frag_settings_no_devices_found">Searching for devices...</string>
+    <string name="frag_settings_no_devices_found">Searching for devices…</string>
     <string name="preferences_device_searching">Click to choose a device.</string>
     <string name="frag_coin_editor_reset_button">Reset Coin Database</string>
     <string name="menu_title_coin_editor_reset">Reset Coin Database</string>
     <string name="frag_coin_dialog_title_reset">This will reset any edits made by the user.</string>
     <string name="frag_coin_dialog_cancel_reset">Cancel</string>
     <string name="frag_coin_dialog_ok_reset">OK</string>
+    <string name="post_analysis_image_result">Post analysis image</string>
+    <string name="update_analysis_image">Analysis Image</string>
+    <string name="frag_camera_capture_content_description">Capture Image</string>
+    <string name="frag_camera_barcode_scan_button_content_description">Scan Barcode Button</string>
+    <string name="frag_contour_list_image_content_description">Image of counted contours</string>
+    <string name="frag_scale_image_content_description">Analysis picture</string>
+    <string name="header_contours_placeholder_description">Placeholder</string>
+    <string name="list_item_analysis_graph_content_description">Button to visualize graph</string>
+    <string name="frag_scale_autofill_hint_weight">Weight:</string>
+    <string name="list_item_coin_hint">Diameter:</string>
+    <string name="list_item_contour_count_hint">Count:</string>
+    <string name="frag_camera_progress_bar_content_description">Progress bar loading</string>
 
 </resources>

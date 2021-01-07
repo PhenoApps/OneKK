@@ -1,12 +1,9 @@
 package org.wheatgenetics.utils
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import androidx.camera.core.ImageProxy
 import org.opencv.android.Utils
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
-import java.nio.ByteBuffer
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.max
@@ -50,33 +47,20 @@ class ImageProcessingUtil {
          * Computes the circularity of an object using the area and perimeter.
          */
         fun calcCircularity(area: Double, peri: Double):Double {
-            return 4.0 * (Math.PI) * (area / (Math.pow(peri, 2.0)))
-        }
-
-        fun ComputeMaxContour(contours: ArrayList<MatOfPoint?>): Int{
-            var maxArea = 0.0
-            var maxContour = 0
-            for(i in contours.indices){
-                var area = Imgproc.contourArea(contours.get(i))
-                if(maxArea < area){
-                    maxArea = area
-                    maxContour = i
-                }
-            }
-            return maxContour
+            return 4.0 * (Math.PI) * (area / (peri.pow(2.0)))
         }
 
         fun interquartileReduce(pairs: Array<Detections>): ArrayList<Detections> {
-            if (pairs.size > 1) {
-                val range = quartileRange(pairs.mapNotNull { it.area }.toTypedArray())
+            return if (pairs.size > 1) {
+                val range = quartileRange(pairs.map { it.area }.toTypedArray())
                 val output = ArrayList<Detections>()
                 for (p in pairs) {
                     if (p.area >= range.first && p.area <= range.second) {
                         output.add(p)
                     }
                 }
-                return output
-            } else return ArrayList(pairs.toList())
+                output
+            } else ArrayList(pairs.toList())
         }
 
         open class PipelineFunction

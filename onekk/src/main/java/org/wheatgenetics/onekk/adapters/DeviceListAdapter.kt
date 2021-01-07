@@ -1,19 +1,15 @@
 package org.wheatgenetics.onekk.adapters
 
 import android.bluetooth.BluetoothDevice
-import android.graphics.Bitmap
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.databinding.DataBindingUtil
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import org.wheatgenetics.onekk.R
-import org.wheatgenetics.onekk.databinding.ListItemAnalysisBinding
 import org.wheatgenetics.onekk.databinding.ListItemBluetoothDeviceBinding
 import org.wheatgenetics.onekk.interfaces.RecyclerViewClickListener
 

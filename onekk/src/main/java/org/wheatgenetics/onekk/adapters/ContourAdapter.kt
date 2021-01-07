@@ -5,8 +5,6 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
-import androidx.core.widget.addTextChangedListener
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -82,7 +80,7 @@ class ContourAdapter(private val listener: ContourOnTouchListener) : ListAdapter
                     }
                 }
 
-                countTextView?.addTextChangedListener(watcher)
+                countTextView.addTextChangedListener(watcher)
 
                 this.area = shortenString((model.contour?.area ?: 0.0))
 

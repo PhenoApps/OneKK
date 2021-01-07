@@ -8,26 +8,22 @@ import androidx.appcompat.view.ContextThemeWrapper
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
-import com.bumptech.glide.Glide
 import com.google.android.material.tabs.TabLayout
 import com.jjoe64.graphview.GraphView
-import com.jjoe64.graphview.GridLabelRenderer
-import com.jjoe64.graphview.series.*
-import kotlinx.android.synthetic.main.fragment_contour_list.*
-import kotlinx.coroutines.*
+import com.jjoe64.graphview.series.BarGraphSeries
+import com.jjoe64.graphview.series.DataPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
 import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
 import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentGraphBinding
-import kotlin.math.exp
 import kotlin.math.log2
 import kotlin.math.pow
 import kotlin.math.sqrt
 import kotlin.properties.Delegates
-import kotlin.random.Random
 
 class GraphFragment : Fragment(), CoroutineScope by MainScope() {
 
@@ -94,31 +90,31 @@ class GraphFragment : Fragment(), CoroutineScope by MainScope() {
         val widthOption = getString(R.string.graph_tab_width)
         val lengthOption = getString(R.string.graph_tab_length)
 
-        sViewModel.contours(aid).observe(viewLifecycleOwner, {
+        sViewModel.contours(aid).observe(viewLifecycleOwner, { data ->
 
-            it?.let { sample ->
+            data?.let { sample ->
 
                 if (sample.isNotEmpty()) {
 
                     //collect all contours that are not clusters
-                    val nonEmpty = sample.filter { (it.contour?.count ?: 0) == 1 }
+                    val nonEmpty = sample.filter { x -> (x.contour?.count ?: 0) == 1 }
 
                     //sort by the given variable (from the parameter)
                     val data = when (variable) {
 
                         areaOption -> {
 
-                            nonEmpty.mapNotNull { it.contour?.area }.sortedBy { it }
+                            nonEmpty.mapNotNull { x -> x.contour?.area }.sortedBy { it }
 
                         }
                         widthOption -> {
 
-                            nonEmpty.mapNotNull { it.contour?.minAxis }.sortedBy { it }
+                            nonEmpty.mapNotNull { x -> x.contour?.minAxis }.sortedBy { it }
 
                         }
                         else -> {
 
-                            nonEmpty.mapNotNull { it.contour?.maxAxis }.sortedBy { it }
+                            nonEmpty.mapNotNull { x -> x.contour?.maxAxis }.sortedBy { it }
 
                         }
                     }
@@ -211,10 +207,7 @@ class GraphFragment : Fragment(), CoroutineScope by MainScope() {
     }
 
     private fun variance(population: List<Double>, mean: Double, n: Int) =
-            population.map { Math.pow(it - mean, 2.0) }.sum() / (n - 1)
-
-    private fun getY(x: Double, variance: Double, mean: Double, stdDev: Double): Double =
-            exp(-(((x - mean) * (x - mean)) / ((2 * variance)))).pow(1 / (stdDev * sqrt(2 * Math.PI)));
+            population.map { (it - mean).pow(2.0) }.sum() / (n - 1)
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
 
@@ -233,7 +226,7 @@ class GraphFragment : Fragment(), CoroutineScope by MainScope() {
 //        return true
     }
 
-    fun setViewportGrid(graph: GraphView) = with(graph){
+    private fun setViewportGrid(graph: GraphView) = with(graph){
 
 //    this.title = title
 //        gridLabelRenderer.gridStyle = GridLabelRenderer.GridStyle.BOTH

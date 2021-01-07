@@ -1,9 +1,9 @@
 package org.wheatgenetics.onekk.database.models
 
 import androidx.annotation.Keep
-import androidx.room.*
-import org.wheatgenetics.onekk.database.models.embedded.Experiment
-import org.wheatgenetics.onekk.database.models.embedded.Image
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
 @Keep
 @Entity(tableName = "analysis")
@@ -20,6 +20,9 @@ data class AnalysisEntity(
 
         @ColumnInfo(name = "weight")
         var weight: Double? = null,
+
+        @ColumnInfo(name = "tkw")
+        var tkw: Double? = null,
 
         @ColumnInfo(name = "count")
         var count: Int? = null,

@@ -11,10 +11,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.adapters.CoinManagerAdapter
 import org.wheatgenetics.onekk.database.OnekkDatabase
@@ -87,7 +84,7 @@ class CoinManagerFragment : Fragment(), CoinValueChangedListener, CoroutineScope
 
                         activity?.assets?.let { assets ->
 
-                            launch {
+                            launch(Dispatchers.IO) {
 
                                 viewModel.loadCoinDatabase(assets.open("coin_database.csv")).await()
 

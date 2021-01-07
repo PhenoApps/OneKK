@@ -3,9 +3,7 @@ package org.wheatgenetics.onekk.database.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.wheatgenetics.onekk.database.OnekkRepository
 import org.wheatgenetics.onekk.database.models.AnalysisEntity
 import org.wheatgenetics.onekk.database.models.ContourEntity
@@ -19,11 +17,11 @@ class ExperimentViewModel(
 
         coroutineScope {
 
-            async {
+            withContext(Dispatchers.Default) {
 
                 deleteAllAnalysis()
 
-            }.await()
+            }
         }
     }
 
@@ -53,6 +51,10 @@ class ExperimentViewModel(
 
     fun updateAnalysisWeight(aid: Int, weight: Double?) = viewModelScope.launch {
         repo.updateAnalysisWeight(aid, weight)
+    }
+
+    fun updateAnalysisTkw(aid: Int, tkw: Double) = viewModelScope.launch {
+        repo.updateAnalysisTkw(aid, tkw)
     }
 
     fun updateAnalysisCount(aid: Int, count: Int) = viewModelScope.launch {
@@ -113,7 +115,13 @@ class ExperimentViewModel(
 
     fun getSourceImage(aid: Int) = repo.selectSourceImage(aid)
     fun getExampleImages() = repo.selectExampleImages()
-    fun getAnalysis(aid: Int) = repo.getAnalysis(aid)
+
+    fun getAnalysis(aid: Int) = liveData {
+
+        val data = repo.getAnalysis(aid)
+
+        emit(data)
+    }
 
     suspend fun insert(analysis: AnalysisEntity): Long = viewModelScope.async {
         return@async repo.insert(analysis)

@@ -20,7 +20,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="@id/viewFinder"
             android:elevation="5dp"
-            android:contentDescription="TODO" />
+            android:contentDescription="@string/frag_camera_capture_content_description" />
 
         <ImageButton
             android:id="@+id/barcode_scan_button"
@@ -34,7 +34,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toTopOf="@id/camera_capture_button"
             android:elevation="5dp"
-            android:contentDescription="TODO" />
+            android:contentDescription="@string/frag_camera_barcode_scan_button_content_description" />
 
         <ProgressBar
             android:id="@+id/progress_bar"
@@ -48,7 +48,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="@id/viewFinder"
             android:elevation="5dp"
-            android:contentDescription="TODO" />
+            android:contentDescription="@string/frag_camera_progress_bar_content_description" />
 
         <!-- app:layout_constraintDimensionRatio="3:4"-->
         <androidx.camera.view.PreviewView
@@ -67,11 +67,12 @@
             android:visibility="visible"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginLeft="16dp"
+            android:layout_marginStart="16dp"
             android:inputType="numberDecimal"
             android:elevation="5dp"
             android:textSize="24sp"
             android:hint="@string/weight_input_hint"
+            android:autofillHints="none"
             android:background="@drawable/cell_transparent"
             app:layout_constraintTop_toTopOf="@id/camera_capture_button"
             app:layout_constraintBottom_toBottomOf="@id/camera_capture_button"
@@ -83,10 +84,11 @@
             android:visibility="visible"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginLeft="16dp"
+            android:layout_marginStart="16dp"
             android:elevation="5dp"
             android:textSize="24sp"
             android:hint="@string/frag_camera_sample_name_text_hint"
+            android:inputType="text"
             android:background="@drawable/cell_transparent"
             app:layout_constraintTop_toTopOf="@id/barcode_scan_button"
             app:layout_constraintBottom_toBottomOf="@id/barcode_scan_button"

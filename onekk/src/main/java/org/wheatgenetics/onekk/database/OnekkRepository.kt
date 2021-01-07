@@ -14,8 +14,9 @@ class OnekkRepository
 
     fun selectSourceImage(aid: Int) = dao.selectSourceImage(aid)
     fun selectExampleImages() = dao.selectExampleImages()
-    fun getAnalysis(aid: Int) = dao.getAnalysis(aid)
     fun selectAllAnalysis() = dao.getAllAnalysis()
+
+    suspend fun getAnalysis(aid: Int) = dao.getAnalysis(aid)
 
     suspend fun selectAllCoins() = coinDao.selectAllCoins()
 
@@ -90,6 +91,10 @@ class OnekkRepository
 
     suspend fun updateAnalysisWeight(aid: Int, weight: Double?) = withContext(Dispatchers.IO) {
         dao.updateAnalysisWeight(aid, weight)
+    }
+
+    suspend fun updateAnalysisTkw(aid: Int, tkw: Double) = withContext(Dispatchers.IO) {
+        dao.updateAnalysisTkw(aid, tkw)
     }
 
     suspend fun updateAnalysisCount(aid: Int, count: Int) = withContext(Dispatchers.IO) {

@@ -19,6 +19,8 @@ import com.polidea.rxandroidble2.helpers.ValueInterpreter
 import kotlinx.android.synthetic.main.fragment_contour_list.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
@@ -26,6 +28,7 @@ import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
 import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentScaleBinding
 import org.wheatgenetics.onekk.interfaces.BleNotificationListener
+import org.wheatgenetics.onekk.observeOnce
 import org.wheatgenetics.utils.BluetoothUtil
 import org.wheatgenetics.utils.Dialogs
 import java.lang.IllegalStateException
@@ -134,7 +137,7 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
 
         Dialogs.onOk(AlertDialog.Builder(requireContext()),
                 getString(R.string.camera_fragment_dialog_first_load_ask_address),
-                getString(R.string.camera_fragment_dialog_first_load_cancel),
+                getString(R.string.cancel),
                 getString(R.string.camera_fragment_dialog_first_load_ok)) { theyWantToSetAddress ->
 
             if (theyWantToSetAddress) {
@@ -154,9 +157,22 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
 
             this?.scaleCaptureButton?.setOnClickListener {
 
-                viewModel.updateAnalysisWeight(aid, this.scaleFragmentEditText.text?.toString()?.toDoubleOrNull())
+                val weight = this.scaleFragmentEditText.text?.toString()?.toDoubleOrNull()
 
-                findNavController().navigate(ScaleFragmentDirections.actionToCamera())
+                launch {
+
+                    async {
+
+                        viewModel.updateAnalysisWeight(aid, weight)
+
+                    }.await()
+
+                    activity?.runOnUiThread {
+
+                        findNavController().navigate(ScaleFragmentDirections.actionToCamera())
+
+                    }
+                }
             }
 
             viewModel.getSourceImage(aid).observeForever { url ->

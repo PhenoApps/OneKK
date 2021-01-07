@@ -1,18 +1,13 @@
 package org.wheatgenetics.utils
 
-import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.os.ParcelUuid
-import android.widget.Toast
-import androidx.appcompat.app.ActionBar
 import com.polidea.rxandroidble2.RxBleClient
 import com.polidea.rxandroidble2.RxBleConnection
 import com.polidea.rxandroidble2.RxBleDevice
 import com.polidea.rxandroidble2.exceptions.BleScanException
-import com.polidea.rxandroidble2.helpers.ValueInterpreter
 import com.polidea.rxandroidble2.scan.ScanFilter
 import com.polidea.rxandroidble2.scan.ScanSettings
-import io.reactivex.Observable
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import org.wheatgenetics.onekk.fragments.ScaleFragment
@@ -63,7 +58,7 @@ class BluetoothUtil(private val context: Context) {
      */
     private fun setupDeviceComms(listener: BleNotificationListener, device: RxBleDevice?, connection: RxBleConnection) {
 
-        println("Connection established with ${device!!.name} @ ${device!!.macAddress}")
+        println("Connection established with ${device!!.name} @ ${device.macAddress}")
 
         //ohaus defined GATT characteristic id that has the notify property
         val uuid = UUID.fromString("2456e1b9-26e2-8f83-e744-f34f01e9d703")
@@ -126,9 +121,9 @@ class BluetoothUtil(private val context: Context) {
                     .doOnError {  }
                     .switchMap { scan ->
 
-                        device = scan?.bleDevice
+                        device = scan.bleDevice
 
-                        scan?.bleDevice?.establishConnection(false)
+                        scan.bleDevice?.establishConnection(false)
 
                     }
                     .doOnError { }

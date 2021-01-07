@@ -18,7 +18,7 @@ interface OnekkDao {
     fun selectExampleImages(): LiveData<List<ImageEntity>>
 
     @Query("SELECT * FROM analysis WHERE aid = :aid LIMIT 1")
-    fun getAnalysis(aid: Int): LiveData<AnalysisEntity>
+    suspend fun getAnalysis(aid: Int): AnalysisEntity
 
     @Query("SELECT * FROM analysis")
     fun getAllAnalysis(): LiveData<List<AnalysisEntity>>
@@ -39,15 +39,17 @@ interface OnekkDao {
     @Query("UPDATE contour SET count = :count WHERE cid = :cid")
     suspend fun updateContourCount(cid: Int, count: Int)
 
-    @Query("UPDATE analysis SET weight = :weight WHERE aid = :aid")
+    @Query("UPDATE analysis SET weight = :weight, tkw = (:weight / count) * 1000.0 WHERE aid = :aid")
     suspend fun updateAnalysisWeight(aid: Int, weight: Double?)
 
-    @Query("UPDATE analysis SET count = :count WHERE aid = :aid")
+    @Query("UPDATE analysis SET count = :count, tkw = (weight / :count) * 1000.0 WHERE aid = :aid")
     suspend fun updateAnalysisCount(aid: Int, count: Int)
 
+    @Query("UPDATE analysis SET tkw = :tkw WHERE aid = :aid")
+    suspend fun updateAnalysisTkw(aid: Int, tkw: Double)
+
     @Query("UPDATE analysis SET minAxisAvg = :minAxisAvg, minAxisVar = :minAxisVar, minAxisCv = :minAxisCv, maxAxisAvg = :maxAxisAvg, maxAxisVar = :maxAxisVar, maxAxisCv = :maxAxisCv WHERE aid = :aid")
-    suspend fun updateAnalysisData(aid: Int,
-                                   minAxisAvg: Double, minAxisVar: Double, minAxisCv: Double,
+    suspend fun updateAnalysisData(aid: Int, minAxisAvg: Double, minAxisVar: Double, minAxisCv: Double,
                                    maxAxisAvg: Double, maxAxisVar: Double, maxAxisCv: Double)
 
     @Query("UPDATE analysis SET selected = :selected WHERE aid = :aid")

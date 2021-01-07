@@ -39,7 +39,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:contentDescription="TODO" />
+            android:contentDescription="@string/frag_scale_image_content_description" />
 
         <EditText
             android:id="@+id/scaleFragmentEditText"
@@ -55,7 +55,8 @@
             android:inputType="numberDecimal"
             app:layout_constraintBottom_toTopOf="@id/scaleCaptureButton"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"/>
+            app:layout_constraintStart_toStartOf="parent"
+            android:hint="@string/frag_scale_autofill_hint_weight" />
 
         <Button
             android:id="@+id/scaleCaptureButton"

@@ -38,7 +38,7 @@
             app:layout_constraintStart_toEndOf="@id/coinNameTextView"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:autofillHints=""
+            android:hint="@string/list_item_coin_hint"
             android:inputType="numberDecimal" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

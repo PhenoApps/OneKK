@@ -1,6 +1,5 @@
 package org.wheatgenetics.onekk.database.dao
 
-import androidx.lifecycle.LiveData
 import androidx.room.*
 import org.wheatgenetics.onekk.database.models.CoinEntity
 

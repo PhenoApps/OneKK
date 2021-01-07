@@ -345,7 +345,7 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
 
                 val contour = contours[i]// sortedContours[i]
 
-                val approxCurve = MatOfPoint2f();
+                val approxCurve = MatOfPoint2f()
 
                 //contour approximation: https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_contours/py_contour_features/py_contour_features.html
                 //Douglas-Peucker algorithm that approximates a contour with a polygon with less vertices
@@ -353,7 +353,7 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
                 val preciseContour = MatOfPoint2f(*contour.toArray())
                 val epsilon = 0.009*Imgproc.arcLength(preciseContour, true)
 
-                Imgproc.approxPolyDP(preciseContour, approxCurve, epsilon, true);
+                Imgproc.approxPolyDP(preciseContour, approxCurve, epsilon, true)
 
                 //TODO put center point function in ImageProcessingUtils
                 //moment calculation: Cx = M10/M00 and Cy = M01/M00
