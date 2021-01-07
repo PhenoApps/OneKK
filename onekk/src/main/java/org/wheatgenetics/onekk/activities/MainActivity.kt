@@ -1,32 +1,22 @@
 package org.wheatgenetics.onekk.activities
 
-import android.content.res.Configuration
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
-import android.view.MenuItem
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.GravityCompat
 import androidx.databinding.DataBindingUtil
-import androidx.drawerlayout.widget.DrawerLayout
-import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
-import androidx.preference.PreferenceManager
-import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.*
 import org.opencv.android.BaseLoaderCallback
 import org.opencv.android.LoaderCallbackInterface
 import org.opencv.android.OpenCVLoader
-import org.wheatgenetics.imageprocess.DetectWithReferences
 import org.wheatgenetics.onekk.BuildConfig
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.database.OnekkDatabase
@@ -34,18 +24,10 @@ import org.wheatgenetics.onekk.database.OnekkRepository
 import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
 import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.ActivityMainBinding
-import org.wheatgenetics.onekk.fragments.CameraFragment
 import org.wheatgenetics.onekk.fragments.CameraFragmentDirections
 import org.wheatgenetics.onekk.observeOnce
-import org.wheatgenetics.utils.ImageProcessingUtil
 import org.wheatgenetics.utils.SnackbarQueue
 import java.io.File
-import java.io.FileOutputStream
-
-typealias LumaListener = (luma: Double) -> Unit
-//typealias BitmapListener = (bmp: Bitmap?, detections: ImageProcessingUtil.Companion.Detections>) -> Unit
-typealias CoinAnalysisListener = (analysis: DetectWithReferences.Result) -> Unit
-typealias SeedAnalysisListener = (analysis: ImageProcessingUtil.Companion.ContourResult) -> Unit
 
 /**
  * Basic main activity class that holds the navigation drawer view and all other fragments.
@@ -112,27 +94,27 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     private lateinit var mNavController: NavController
 
-    private val permissionCheck by lazy {
-
-        (this as ComponentActivity).registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-
-            setupActivity()
-
-        }
-    }
-
-    private fun writeStream(file: File, resourceId: Int) {
-
-        if (!file.isFile) {
-
-            val stream = resources.openRawResource(resourceId)
-
-            file.writeBytes(stream.readBytes())
-
-            stream.close()
-        }
-
-    }
+//    private val permissionCheck by lazy {
+//
+//        (this as ComponentActivity).registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+//
+//            setupActivity()
+//
+//        }
+//    }
+//
+//    private fun writeStream(file: File, resourceId: Int) {
+//
+//        if (!file.isFile) {
+//
+//            val stream = resources.openRawResource(resourceId)
+//
+//            file.writeBytes(stream.readBytes())
+//
+//            stream.close()
+//        }
+//
+//    }
 
     private fun setupDirs() {
 
@@ -266,6 +248,10 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
                                 mNavController.navigate(CameraFragmentDirections.globalActionToAnalysis())
 
+                            } else {
+
+                                Toast.makeText(this, R.string.frag_analysis_table_empty_message, Toast.LENGTH_SHORT).show()
+
                             }
                         }
                     })
@@ -299,7 +285,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
             async {
 
-                mBinding.bottomNavView.visibility = View.INVISIBLE
+                mBinding.bottomNavView.visibility = View.GONE
 
                 mBinding.bottomNavView.menu.clear()
 
@@ -328,14 +314,14 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
                     if (doubleBackToExitPressedOnce) {
 
-                        super.onBackPressed();
+                        super.onBackPressed()
 
                         return
                     }
 
-                    this.doubleBackToExitPressedOnce = true;
+                    this.doubleBackToExitPressedOnce = true
 
-                    Toast.makeText(this, getString(R.string.double_back_press), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, getString(R.string.double_back_press), Toast.LENGTH_SHORT).show()
 
                     Handler().postDelayed({ doubleBackToExitPressedOnce = false }, 2000)
                 }

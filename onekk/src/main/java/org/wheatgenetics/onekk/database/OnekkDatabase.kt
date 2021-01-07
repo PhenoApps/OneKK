@@ -9,7 +9,10 @@ import androidx.room.RoomDatabase
 import org.wheatgenetics.onekk.DB_NAME
 import org.wheatgenetics.onekk.database.dao.CoinDao
 import org.wheatgenetics.onekk.database.dao.OnekkDao
-import org.wheatgenetics.onekk.database.models.*
+import org.wheatgenetics.onekk.database.models.AnalysisEntity
+import org.wheatgenetics.onekk.database.models.CoinEntity
+import org.wheatgenetics.onekk.database.models.ContourEntity
+import org.wheatgenetics.onekk.database.models.ImageEntity
 import java.io.File
 
 

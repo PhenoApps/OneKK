@@ -1,32 +1,15 @@
 package org.wheatgenetics.onekk.fragments
 
-import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.util.Log
 import android.view.*
-import android.widget.EditText
-import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
-import androidx.core.net.toUri
 import androidx.databinding.DataBindingUtil
-import androidx.documentfile.provider.DocumentFile
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
-import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.mikepenz.fastadapter.dsl.genericFastAdapter
-import com.polidea.rxandroidble2.helpers.ValueInterpreter
 import kotlinx.coroutines.*
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.adapters.AnalysisAdapter
@@ -38,16 +21,12 @@ import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
 import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentAnalysisManagerBinding
 import org.wheatgenetics.onekk.interfaces.AnalysisUpdateListener
-import org.wheatgenetics.onekk.interfaces.BleNotificationListener
 import org.wheatgenetics.onekk.interfaces.OnClickAnalysis
 import org.wheatgenetics.onekk.observeOnce
-import org.wheatgenetics.utils.BluetoothUtil
 import org.wheatgenetics.utils.DateUtil
 import org.wheatgenetics.utils.Dialogs
 import org.wheatgenetics.utils.FileUtil
 import java.util.*
-import kotlin.collections.ArrayList
-import kotlin.properties.Delegates
 
 class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, CoroutineScope by MainScope() {
 

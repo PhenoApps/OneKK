@@ -1,5 +1,4 @@
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<menu>
 <!--    <item-->
 <!--        android:id="@+id/action_graph"-->
 <!--        android:icon="@drawable/ic_bar_chart_24px"-->

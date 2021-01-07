@@ -3,12 +3,8 @@ package org.wheatgenetics.onekk.fragments
 import android.content.Context.MODE_PRIVATE
 import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.util.Log
 import android.view.*
 import android.widget.EditText
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
@@ -28,12 +24,8 @@ import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
 import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentScaleBinding
 import org.wheatgenetics.onekk.interfaces.BleNotificationListener
-import org.wheatgenetics.onekk.observeOnce
 import org.wheatgenetics.utils.BluetoothUtil
 import org.wheatgenetics.utils.Dialogs
-import java.lang.IllegalStateException
-import java.lang.IndexOutOfBoundsException
-import java.util.*
 import kotlin.properties.Delegates
 
 //TODO rework scale message queue / handler

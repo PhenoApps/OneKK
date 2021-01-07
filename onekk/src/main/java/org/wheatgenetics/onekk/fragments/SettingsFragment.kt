@@ -3,21 +3,18 @@ package org.wheatgenetics.onekk.fragments
 import android.bluetooth.BluetoothDevice
 import android.content.Context.MODE_PRIVATE
 import android.os.Bundle
-import android.os.LocaleList
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
-import androidx.preference.EditTextPreference
 import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import org.wheatgenetics.onekk.BuildConfig
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
@@ -26,7 +23,6 @@ import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.interfaces.DeviceDiscoveredListener
 import org.wheatgenetics.utils.BluetoothUtil
 import org.wheatgenetics.utils.Dialogs
-import kotlin.math.absoluteValue
 
 class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat(), DeviceDiscoveredListener {
 

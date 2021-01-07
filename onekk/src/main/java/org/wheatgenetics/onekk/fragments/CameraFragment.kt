@@ -24,7 +24,6 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.fragment.findNavController
-import com.bumptech.glide.Glide
 import com.polidea.rxandroidble2.RxBleClient
 import com.polidea.rxandroidble2.helpers.ValueInterpreter
 import kotlinx.coroutines.*
@@ -300,7 +299,8 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
                     val file = File(captureDirectory.path.toString(), "${name}_${DateUtil().getTime()}.png")
 
-                    launch {
+                    launch (Dispatchers.IO) {
+
                         FileOutputStream(file).use { stream ->
 
                             image.compress(Bitmap.CompressFormat.PNG, 100, stream)
@@ -409,7 +409,7 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
                         .setTargetAspectRatio(AspectRatio.RATIO_4_3)
                         .build()
                         .also {
-                            it.setSurfaceProvider(mBinding?.viewFinder?.createSurfaceProvider())
+                            it.setSurfaceProvider(mBinding?.viewFinder?.surfaceProvider)
                         }
 
                 val highResImageCapture = ImageCapture.Builder()
@@ -423,12 +423,13 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
                     val name = mBinding?.nameEditText?.text?.toString() ?: String()
 
                     if (name.isNotBlank()) {
+
+                        mBinding?.toggleDetectorProgress(true)
+
                         highResImageCapture.takePicture(cameraExecutor,
                                 object : ImageCapture.OnImageCapturedCallback() {
                                     override fun onCaptureSuccess(image: ImageProxy) {
                                         image.use {
-
-                                            mBinding?.toggleDetectorProgress(true)
 
                                             initiateDetector(it.toBitmap(), name, save = true)
 

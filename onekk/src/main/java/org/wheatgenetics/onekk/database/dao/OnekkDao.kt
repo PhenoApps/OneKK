@@ -1,8 +1,12 @@
 package org.wheatgenetics.onekk.database.dao
 
 import androidx.lifecycle.LiveData
-import androidx.room.*
-import org.wheatgenetics.onekk.database.models.*
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.Query
+import org.wheatgenetics.onekk.database.models.AnalysisEntity
+import org.wheatgenetics.onekk.database.models.ContourEntity
+import org.wheatgenetics.onekk.database.models.ImageEntity
 
 @Dao
 interface OnekkDao {
