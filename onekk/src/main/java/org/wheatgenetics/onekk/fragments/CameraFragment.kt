@@ -24,6 +24,8 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.fragment.findNavController
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkRequest
 import com.polidea.rxandroidble2.RxBleClient
 import com.polidea.rxandroidble2.helpers.ValueInterpreter
 import kotlinx.coroutines.*
@@ -48,6 +50,7 @@ import org.wheatgenetics.utils.BluetoothUtil
 import org.wheatgenetics.utils.DateUtil
 import org.wheatgenetics.utils.Dialogs
 import org.wheatgenetics.utils.toBitmap
+import org.wheatgenetics.workers.ImageSaveWorker
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -153,6 +156,8 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
         final val TAG = "Onekk.CameraFragment"
 
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
+
+        private val scope = CoroutineScope(Dispatchers.IO)
     }
 
     private fun setupFragment() {
@@ -291,41 +296,37 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
 //        val algorithm = mPreferences?.getString(getString(R.string.onekk_preference_algorithm_mode_key), "1") ?: "1"
 
-        launch(Dispatchers.IO) {
+        context?.let { ctx ->
 
-            try {
+            scope.launch {
 
-                if (name != null && save) {
+                try {
 
-                    val file = File(captureDirectory.path.toString(), "${name}_${DateUtil().getTime()}.png")
+                    if (name != null && save) {
 
-                    launch (Dispatchers.IO) {
+                        val file = File(captureDirectory.path.toString(), "${name}_${DateUtil().getTime()}.png")
 
                         FileOutputStream(file).use { stream ->
 
                             image.compress(Bitmap.CompressFormat.PNG, 100, stream)
 
                         }
-                    }
 
-                    context?.let {
+                        Detector("", ctx.externalMediaDirs.first(), this@CameraFragment, diameter, imported = file).scan(image)
 
-                        Detector("", it.externalMediaDirs.first(), this@CameraFragment, diameter, imported = file).scan(image)
 
-                    }
+                    } else Detector("", ctx.externalMediaDirs.first(), this@CameraFragment, diameter).scan(image)
 
-                } else context?.let {
-                    Detector("", it.externalMediaDirs.first(), this@CameraFragment, diameter).scan(image)
+                } catch (e: Exception) {
+
+                    e.printStackTrace()
+
+                    mBinding?.toggleDetectorProgress(false)
+
                 }
-
-            } catch (e: Exception) {
-
-                e.printStackTrace()
-
-                mBinding?.toggleDetectorProgress(false)
-
             }
         }
+
     }
 
     /**
@@ -721,12 +722,12 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
                         val resultBitmap = result.dst.toFile(UUID.randomUUID().toString())
 
-                        val example = result.example.toFile("example_${UUID.randomUUID().toString()}")
+//                        val example = result.example.toFile("example_${UUID.randomUUID().toString()}")
 
                         val dstUri = Uri.fromFile(resultBitmap).path.toString()
-                        val exampleUri = Uri.fromFile(example).path.toString()
+//                        val exampleUri = Uri.fromFile(example).path.toString()
 
-                        viewModel.insert(ImageEntity(Image(dstUri, exampleUri, DateUtil().getTime()), rowid.toInt()))
+                        viewModel.insert(ImageEntity(Image(dstUri, null, DateUtil().getTime()), rowid.toInt()))
 
                     }
 
