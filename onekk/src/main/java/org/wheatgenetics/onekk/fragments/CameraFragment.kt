@@ -306,11 +306,16 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
 
                         val file = File(captureDirectory.path.toString(), "${name}_${DateUtil().getTime()}.png")
 
-                        FileOutputStream(file).use { stream ->
+                        scope.launch {
 
-                            image.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                            FileOutputStream(file).use { stream ->
+
+                                image.compress(Bitmap.CompressFormat.PNG, 100, stream)
+
+                            }
 
                         }
+
 
                         Detector("", ctx.externalMediaDirs.first(), this@CameraFragment, diameter, imported = file).scan(image)
 
@@ -840,6 +845,8 @@ class CameraFragment : Fragment(), DetectorListener, BleStateListener, BleNotifi
      * the output of the detection algorithm including src/dst images, and detected contours with stats.
      */
     override fun onDetectorCompleted(result: DetectWithReferences.Result, imported: File?) {
+
+        System.gc()
 
         mBinding?.toggleDetectorProgress(false)
 

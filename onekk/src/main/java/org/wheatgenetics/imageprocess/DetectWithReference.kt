@@ -18,7 +18,7 @@ import kotlin.math.*
 class DetectWithReferences(private val dir: File, private val coinReferenceDiameter: Double): DetectorAlgorithm {
 
     data class Contour(val x: Double, val y: Double, val minAxis: Double?, val maxAxis: Double?, val area: Double, val count: Int)
-    data class Result(val src: Bitmap, val dst: Bitmap, val example: Bitmap, val contours: List<Contour>)
+    data class Result(val src: Bitmap, val dst: Bitmap, val example: Bitmap?, val contours: List<Contour>)
 
     private fun process(original: Mat): Result {
 
@@ -163,9 +163,20 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
 //
 //        Imgproc.line(roi, points[1], points[2], Scalar(0.0, 0.0, 255.0, 255.0), 3)
 
-        val example = Mat(roi, rect.boundingRect())
+//        val example = Mat(roi, rect.boundingRect())
 
-        return Result(original.toBitmap(), dst.toBitmap(), example.toBitmap(), objects)
+        val originalOutput = original.toBitmap()
+        original.release()
+
+        val dstOutput = dst.toBitmap()
+        dst.release()
+
+        original.release()
+        roi.release()
+        mask.release()
+        src.release()
+
+        return Result(originalOutput, dstOutput, null, objects)
 
     }
 
