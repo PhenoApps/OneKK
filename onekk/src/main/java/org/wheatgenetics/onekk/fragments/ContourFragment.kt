@@ -235,9 +235,13 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
                 sViewModel.updateContourCount(cid, count)
 
-                updateTotal()
+                activity?.runOnUiThread {
 
-                updateUi(aid)
+                    updateTotal()
+
+                    updateUi(aid)
+                }
+
             }
 
         } catch (e: Exception) {

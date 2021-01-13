@@ -63,6 +63,7 @@ dependencies {
     implementation files('libs/opencsv-3.1.jar')
     implementation files('libs/opencv.jar')
     implementation 'org.apache.commons:commons-math3:3.6.1'
+    implementation 'androidx.work:work-runtime:2.4.0'
 
     def lifecycle_version = "2.3.0-rc01"
 
@@ -153,7 +154,7 @@ dependencies {
     implementation 'com.github.daniel-stoneuk:material-about-library:2.4.2'
 
     // CameraX core library using the camera2 implementation
-    def camerax_version = "1.0.0-rc01"
+    def camerax_version = "1.0.0-beta08"
     // The following line is optional, as the core library is included indirectly by camera-camera2
     implementation "androidx.camera:camera-core:${camerax_version}"
     implementation "androidx.camera:camera-camera2:${camerax_version}"
@@ -163,6 +164,15 @@ dependencies {
     implementation "androidx.camera:camera-view:1.0.0-alpha20"
     // If you want to additionally use the CameraX Extensions library
     implementation "androidx.camera:camera-extensions:1.0.0-alpha20"
+
+    //jetpack workmanager dependencies
+    def work_version = "2.4.0"
+
+    // Kotlin + coroutines
+    implementation "androidx.work:work-runtime-ktx:$work_version"
+
+    // optional - Test helpers
+    androidTestImplementation "androidx.work:work-testing:$work_version"
 
 }
 

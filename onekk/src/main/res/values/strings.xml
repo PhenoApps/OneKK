@@ -261,7 +261,7 @@
     <string name="nav_label_settings">Settings Fragment</string>
     <string name="nav_label_camera_preview">Camera Preview Fragment</string>
     <string name="double_back_press">Double press back button to exit.</string>
-    <string name="ask_coin_recognition_ok">Check coin recognition.</string>
+    <string name="ask_coin_recognition_ok">Analysis Complete</string>
     <string name="decline">Decline</string>
     <string name="accept">Accept</string>
     <string name="analysis_fragment_label">Analysis Fragment</string>
@@ -434,5 +434,10 @@
     <string name="list_item_coin_hint">Diameter:</string>
     <string name="list_item_contour_count_hint">Count:</string>
     <string name="frag_camera_progress_bar_content_description">Progress bar loading</string>
+    <string name="frag_camera_dialog_post_analysis_details">Details</string>
+    <string name="frag_camera_dialog_post_analysis_ok">OK</string>
+    <string name="frag_camera_sample_cancelled">Sample cancelled.</string>
+    <string name="frag_camera_sample_failed">Sample failed.</string>
+    <string name="frag_camera_no_weight_message">Please enter a weight.</string>
 
 </resources>

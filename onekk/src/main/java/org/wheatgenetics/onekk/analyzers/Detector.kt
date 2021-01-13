@@ -1,6 +1,7 @@
 package org.wheatgenetics.onekk.analyzers
 
 import android.graphics.Bitmap
+import androidx.work.Data
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import org.wheatgenetics.imageprocess.DetectWithReferences
@@ -8,14 +9,14 @@ import org.wheatgenetics.onekk.interfaces.DetectorAlgorithm
 import org.wheatgenetics.onekk.interfaces.DetectorListener
 import java.io.File
 
-class Detector(private val algorithm: String, private val dir: File, private val listener: DetectorListener, referenceDiameter: Double, private val imported: File? = null): CoroutineScope by MainScope() {
+class Detector(referenceDiameter: Double, private val imported: File? = null, private val algorithm: String? = null): CoroutineScope by MainScope() {
 
 //    private var frames = 0.0
 //    private var startAnalysisTime = System.currentTimeMillis()
 
-    val detector: DetectorAlgorithm = DetectWithReferences(File(dir, "Temp").also { it.mkdir() }, referenceDiameter)
+    val detector: DetectorAlgorithm = DetectWithReferences(referenceDiameter)
 
-    fun scan(src: Bitmap) {
+    fun scan(src: Bitmap): DetectWithReferences.Result? {
 
 //        val startTime = System.currentTimeMillis()
 
@@ -23,7 +24,9 @@ class Detector(private val algorithm: String, private val dir: File, private val
 
 //            println("${System.currentTimeMillis() - startTime}")
 
-            listener.onDetectorCompleted(result, imported)
+            //listener.onDetectorCompleted(result, imported)
+
+            return result
         }
     }
 }

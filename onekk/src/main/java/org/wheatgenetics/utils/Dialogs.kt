@@ -73,22 +73,6 @@ class Dialogs {
             }
         }
 
-        /**
-         * Simple alert dialog to notify the user of a message.
-         */
-        fun notify(builder: AlertDialog.Builder, title: String) {
-
-            builder.apply {
-
-                setPositiveButton("OK") { _, _ ->
-
-                }
-            }
-
-            builder.setTitle(title)
-            builder.show()
-        }
-
         fun onOk(builder: AlertDialog.Builder, title: String, cancel: String, ok: String, function: (Boolean) -> Unit) {
 
             builder.apply {
@@ -115,7 +99,8 @@ class Dialogs {
             }
         }
 
-        fun askAcceptableImage(activity: Activity, builder: AlertDialog.Builder, title: String, result: DetectWithReferences.Result, function: ((Bitmap?) -> Unit)? = null, onDecline: (() -> Unit)? = null) {
+        fun askAcceptableImage(activity: Activity, builder: AlertDialog.Builder, title: String,
+                               dst: Bitmap, function: (() -> Unit)? = null, onDecline: (() -> Unit)? = null) {
 
             val binding = DataBindingUtil.inflate<DialogCoinRecognitionBinding>(activity.layoutInflater, R.layout.dialog_coin_recognition, null, false)
 
@@ -123,24 +108,21 @@ class Dialogs {
 
             binding.resultView.rotation = 90f
 
-            binding.resultView.setImageBitmap(result.dst)
+            binding.resultView.setImageBitmap(dst)
 
             builder.setTitle(title)
 
-            builder.setPositiveButton(R.string.accept) { dialog, which ->
+            builder.setPositiveButton(R.string.frag_camera_dialog_post_analysis_ok) { dialog, which ->
 
-                result.src.let { src ->
-
-                    if (function != null) {
-                        function(src)
-                    }
-
-                    dialog.dismiss()
+                if (function != null) {
+                    function()
                 }
+
+                dialog.dismiss()
 
             }
 
-            builder.setNegativeButton(R.string.decline) { dialog, which ->
+            builder.setNegativeButton(R.string.frag_camera_dialog_post_analysis_details) { dialog, which ->
 
                 if (onDecline != null) {
                     onDecline()

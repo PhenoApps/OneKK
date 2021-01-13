@@ -15,7 +15,7 @@ import kotlin.collections.ArrayList
 import kotlin.math.*
 
 
-class DetectWithReferences(private val dir: File, private val coinReferenceDiameter: Double): DetectorAlgorithm {
+class DetectWithReferences(private val coinReferenceDiameter: Double): DetectorAlgorithm {
 
     data class Contour(val x: Double, val y: Double, val minAxis: Double?, val maxAxis: Double?, val area: Double, val count: Int)
     data class Result(val src: Bitmap, val dst: Bitmap, val example: Bitmap?, val contours: List<Contour>)
@@ -122,6 +122,7 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
 
         val axisEstimates = estimateAxis(singles, coins, coinReferenceDiameter)
 
+        val outputData = ArrayList<Double>()
         //transform the seed/cluster contours to counted/estimated results
         val objects = singles.map {
 
@@ -144,19 +145,19 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
 
         }
 
-        val exampleContour = singles.first()
-        val mask = Mat.zeros(dst.size(), dst.type())
-        Imgproc.drawContours(mask, listOf(exampleContour), -1, Scalar.all(255.0), -1)
-
-        val rect = Imgproc.minAreaRect(exampleContour.toMatOfPoint2f())
-
-        val points = arrayOfNulls<Point>(4)
-
-        rect.points(points)
-
-        val roi = Mat()
-
-        original.copyTo(roi, mask)
+//        val exampleContour = singles.first()
+//        val mask = Mat.zeros(dst.size(), dst.type())
+//        Imgproc.drawContours(mask, listOf(exampleContour), -1, Scalar.all(255.0), -1)
+//
+//        val rect = Imgproc.minAreaRect(exampleContour.toMatOfPoint2f())
+//
+//        val points = arrayOfNulls<Point>(4)
+//
+//        rect.points(points)
+//
+//        val roi = Mat()
+//
+//        original.copyTo(roi, mask)
 
 //draw axes
 //        Imgproc.line(roi, points[0], points[1], Scalar(255.0, 0.0, 255.0, 255.0), 3)
@@ -172,8 +173,8 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
         dst.release()
 
         original.release()
-        roi.release()
-        mask.release()
+//        roi.release()
+//        mask.release()
         src.release()
 
         return Result(originalOutput, dstOutput, null, objects)
@@ -420,12 +421,16 @@ class DetectWithReferences(private val dir: File, private val coinReferenceDiame
     /*
     OpenCV Debug version, output frame is the opencv result.
      */
-    override fun process(inputBitmap: Bitmap?): Result {
+    override fun process(bitmap: Bitmap?): Result {
+
         val frame = Mat()
-//        val copy = inputBitmap?.copy(inputBitmap.config, true)
-        Utils.bitmapToMat(inputBitmap, frame)
+
+        Utils.bitmapToMat(bitmap, frame)
+
         val result = process(frame)
-        //Utils.matToBitmap(frame, inputBitmap)
+
+        frame.release()
+
         return result
     }
 }
