@@ -551,83 +551,37 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
         }
     }
 
+//    https://stackoverflow.com/questions/63202209/camerax-how-to-add-pinch-to-zoom-and-tap-to-focus-onclicklistener-and-ontouchl
     @SuppressLint("ClickableViewAccessibility")
-    private fun enableOneTapFocus(cam: Camera) {
-
-        mBinding?.viewFinder?.afterMeasured {
-
-            mBinding?.viewFinder?.let { preview ->
-                preview.setOnTouchListener { _, event ->
-                    return@setOnTouchListener when (event.action) {
-                        MotionEvent.ACTION_DOWN -> {
-                            true
-                        }
-                        MotionEvent.ACTION_UP -> {
-                            val factory: MeteringPointFactory = SurfaceOrientedMeteringPointFactory(
-                                    preview.width.toFloat(), preview.height.toFloat()
-                            )
-                            val autoFocusPoint = factory.createPoint(event.x, event.y)
-                            try {
-                                cam.cameraControl.startFocusAndMetering(
-                                        FocusMeteringAction.Builder(
-                                                autoFocusPoint,
-                                                FocusMeteringAction.FLAG_AF
-                                        ).apply {
-                                            //focus only when the user tap the preview
-                                            disableAutoCancel()
-                                        }.build()
-                                )
-                            } catch (e: CameraInfoUnavailableException) {
-                                Log.d("ERROR", "cannot access camera", e)
-                            }
-                            true
-                        }
-                        else -> false // Unhandled event.
-                    }
-                }
-            }
-        }
-    }
-
-    private fun enableAutoFocus(cam: Camera) {
-
-        mBinding?.viewFinder?.let { preview ->
-            preview.afterMeasured {
-                val factory: MeteringPointFactory = SurfaceOrientedMeteringPointFactory(
-                        preview.width.toFloat(), preview.height.toFloat())
-                val centerWidth = preview.width.toFloat() / 2
-                val centerHeight = preview.height.toFloat() / 2
-                //create a point on the center of the view
-                val autoFocusPoint = factory.createPoint(centerWidth, centerHeight)
-                try {
-                    cam.cameraControl.startFocusAndMetering(
-                            FocusMeteringAction.Builder(
-                                    autoFocusPoint,
-                                    FocusMeteringAction.FLAG_AF
-                            ).apply {
-                                //auto-focus every 1 seconds
-                                setAutoCancelDuration(1, TimeUnit.SECONDS)
-                            }.build()
-                    )
-                } catch (e: CameraInfoUnavailableException) {
-                    Log.d("ERROR", "cannot access camera", e)
-                }
-            }
-        }
-    }
-
-    /**
-     * Sets up auto focus and tap-to-focus functionality for the current camera instance.
-     * https://stackoverflow.com/questions/58159891/how-to-auto-focus-with-android-camerax
-     */
     private fun setupCamera(cam: Camera) {
 
         mCamera = cam
 
-        enableOneTapFocus(cam)
+        mBinding?.viewFinder?.let { preview ->
 
-        enableAutoFocus(cam)
+            val listener = object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+                override fun onScale(detector: ScaleGestureDetector): Boolean {
+                    val currentZoomRatio: Float = cam.cameraInfo.zoomState.value?.zoomRatio ?: 1F
+                    val delta = detector.scaleFactor
+                    cam.cameraControl.setZoomRatio(currentZoomRatio * delta)
+                    return true
+                }
+            }
 
+            val scaleGestureDetector = ScaleGestureDetector(preview.context, listener)
+
+            preview.setOnTouchListener { _, event ->
+                scaleGestureDetector.onTouchEvent(event)
+                if (event.action == MotionEvent.ACTION_DOWN) {
+                    val point = preview.meteringPointFactory.createPoint(event.x, event.y)
+                    val action = FocusMeteringAction.Builder(point, FocusMeteringAction.FLAG_AF)
+                            .setAutoCancelDuration(5, TimeUnit.SECONDS)
+                            .build()
+                    cam.cameraControl.startFocusAndMetering(action)
+                }
+                true
+            }
+        }
     }
 
     private fun callDialog(dst: Bitmap, rowid: Int) {
