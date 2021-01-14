@@ -31,10 +31,12 @@ class DrawSelectedContour {
 
         val frame = Mat()
 
-        val copy = inputBitmap?.copy(inputBitmap.config, true)
+        Utils.bitmapToMat(inputBitmap, frame)
 
-        Utils.bitmapToMat(copy, frame)
+        val result = process(frame, x, y, cluster, minAxis, maxAxis)
 
-        return process(frame, x, y, cluster, minAxis, maxAxis)
+        frame.release()
+
+        return result
     }
 }

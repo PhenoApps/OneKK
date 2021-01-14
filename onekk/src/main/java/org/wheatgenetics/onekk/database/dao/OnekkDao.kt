@@ -81,4 +81,5 @@ interface OnekkDao {
 
     @Query("DELETE FROM analysis WHERE selected = 1")
     suspend fun deleteAllAnalysis()
+
 }

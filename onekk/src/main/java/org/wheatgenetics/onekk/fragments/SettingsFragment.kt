@@ -144,7 +144,12 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
         findPreference<Preference>(getString(R.string.onekk_preference_mode_key))!!
                 .setOnPreferenceChangeListener { preference, newValue ->
 
-                    preference.summary = newValue.toString()
+                    preference.summary = when(newValue.toString()) {
+                        "1" -> getString(R.string.frag_setting_scale_mode_1)
+                        "2" -> getString(R.string.frag_setting_scale_mode_2)
+                        else -> getString(R.string.frag_setting_scale_mode_3)
+
+                    }
 
                     mPreferences.edit().apply {
                         putString(getString(R.string.onekk_preference_mode_key), (newValue as? String) ?: "1")

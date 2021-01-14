@@ -12,9 +12,9 @@
     </string-array>
 
     <string-array name="scale_steps">
-        <item>Don\'t collect weight</item>
-        <item>Collect weight and image together</item>
-        <item>Collect weight after image</item>
+        <item>@string/frag_setting_scale_mode_1</item>
+        <item>@string/frag_setting_scale_mode_2</item>
+        <item>@string/frag_setting_scale_mode_3</item>
     </string-array>
 
     <string-array name="scale_steps_values">

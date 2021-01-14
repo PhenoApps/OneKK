@@ -439,5 +439,9 @@
     <string name="frag_camera_sample_cancelled">Sample cancelled.</string>
     <string name="frag_camera_sample_failed">Sample failed.</string>
     <string name="frag_camera_no_weight_message">Please enter a weight.</string>
+    <string name="frag_setting_scale_mode_1">Don\'t collect weight.</string>
+    <string name="frag_setting_scale_mode_2">Collect weight and image together.</string>
+    <string name="frag_setting_scale_mode_3">Collect weight after image.</string>
+    <string name="frag_coin_manager_diff_title_dialog">List of changed coins.</string>
 
 </resources>

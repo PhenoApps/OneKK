@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
 import org.wheatgenetics.onekk.database.OnekkRepository
 import org.wheatgenetics.onekk.database.models.AnalysisEntity
+import org.wheatgenetics.onekk.database.models.CoinEntity
 import org.wheatgenetics.onekk.database.models.ContourEntity
 import org.wheatgenetics.onekk.database.models.ImageEntity
 import java.io.InputStream
@@ -133,12 +134,57 @@ class ExperimentViewModel(
      */
     fun loadCoinDatabase(csv: InputStream) = viewModelScope.async {
 
+        repo.deleteAllCoins()
+
+        var skipHeaders = true
+
         csv.reader().readLines().forEach {
 
-            val tokens = it.split(",")
+            if (!skipHeaders) {
 
-            //country, diameter, and name respectively
-            repo.insert(tokens[0], tokens[5], tokens[6])
+                val tokens = it.split(",")
+
+                println(tokens[0])
+                //country, diameter, and name respectively
+                repo.insert(tokens[0], tokens[5], tokens[6])
+
+            }
+
+            skipHeaders = false
         }
+    }
+
+    fun diffCoinDatabase(csv: InputStream) = viewModelScope.async {
+
+        val changedCoins = ArrayList<String>()
+
+        val coins = repo.coins()
+
+        var skipHeaders = true
+
+        csv.reader().readLines().forEach {
+
+            if (!skipHeaders) {
+
+                val tokens = it.split(",")
+
+                val changed = coins.find { coin ->
+                    coin.country == tokens[0]
+                            && coin.name == tokens[6]
+                            && coin.diameter != "NA"
+                            && coin.diameter.toDouble() != tokens[5].toDouble()
+                }
+
+                if (changed != null) {
+
+                    changedCoins.add("${changed.country} ${changed.name} ${changed.diameter} -> ${tokens[5]}")
+
+                }
+            }
+
+            skipHeaders = false
+        }
+
+        return@async changedCoins
     }
 }

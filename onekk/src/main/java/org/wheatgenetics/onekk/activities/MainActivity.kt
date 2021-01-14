@@ -152,7 +152,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
                 if (it.isEmpty()) {
 
-                    launch {
+                    launch(Dispatchers.IO) {
 
                         viewModel.loadCoinDatabase(assets.open("coin_database.csv")).await()
 

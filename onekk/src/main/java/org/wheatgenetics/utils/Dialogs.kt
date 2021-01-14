@@ -3,6 +3,7 @@ package org.wheatgenetics.utils
 import android.app.Activity
 import android.bluetooth.BluetoothDevice
 import android.graphics.Bitmap
+import android.widget.ArrayAdapter
 import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
 import org.wheatgenetics.imageprocess.DetectWithReferences
@@ -12,6 +13,32 @@ import org.wheatgenetics.onekk.databinding.DialogCoinRecognitionBinding
 class Dialogs {
 
     companion object {
+
+        fun showCoinDiffDialog(adapter: ArrayAdapter<String>,
+                               builder: AlertDialog.Builder,
+                               title: String,
+                               onSuccess: () -> Unit) {
+
+            builder.setTitle(title)
+
+            builder.setPositiveButton(android.R.string.ok) { dialog, _ ->
+
+                onSuccess()
+
+            }
+
+            builder.setNegativeButton(android.R.string.cancel) { dialog, _ ->
+
+
+            }
+
+            builder.setAdapter(adapter, null)
+
+            builder.create()
+
+            builder.show()
+
+        }
 
         fun chooseBleDevice(builder: AlertDialog.Builder, title: String, devices: Array<BluetoothDevice>, function: (BluetoothDevice?) -> Unit) {
 

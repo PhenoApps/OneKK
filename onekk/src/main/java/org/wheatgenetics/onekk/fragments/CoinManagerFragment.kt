@@ -5,11 +5,13 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.*
+import android.widget.ArrayAdapter
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.*
 import org.wheatgenetics.onekk.R
@@ -20,6 +22,7 @@ import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
 import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentCoinManagerBinding
 import org.wheatgenetics.onekk.interfaces.CoinValueChangedListener
+import org.wheatgenetics.onekk.observeOnce
 import org.wheatgenetics.utils.Dialogs
 
 class CoinManagerFragment : Fragment(), CoinValueChangedListener, CoroutineScope by MainScope() {
@@ -37,6 +40,8 @@ class CoinManagerFragment : Fragment(), CoinValueChangedListener, CoroutineScope
             OnekkViewModelFactory(OnekkRepository.getInstance(this.dao(), this.coinDao()))
         }
     }
+
+    private val scope = CoroutineScope(Dispatchers.IO)
 
     private var mBinding: FragmentCoinManagerBinding? = null
 
@@ -58,6 +63,19 @@ class CoinManagerFragment : Fragment(), CoinValueChangedListener, CoroutineScope
 
         setHasOptionsMenu(true)
 
+        viewModel.countries().observeOnce(viewLifecycleOwner, {
+
+            it?.let { countryListResult ->
+
+                activity?.runOnUiThread {
+
+                    mBinding?.countrySearchEditText?.setAdapter(
+                            ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1,
+                                    countryListResult))
+                }
+            }
+        })
+
         return mBinding?.root
     }
 
@@ -75,21 +93,35 @@ class CoinManagerFragment : Fragment(), CoinValueChangedListener, CoroutineScope
 
             R.id.action_coin_reset_db -> {
 
-                Dialogs.onOk(AlertDialog.Builder(requireContext()),
-                        title = getString(R.string.frag_coin_dialog_title_reset),
-                        cancel = getString(R.string.frag_coin_dialog_cancel_reset),
-                        ok = getString(R.string.frag_coin_dialog_ok_reset)) {
+                activity?.assets?.let { assets ->
 
-                    if (it) {
+                    scope.launch {
 
-                        activity?.assets?.let { assets ->
+                        val adapter = assets.open("coin_database.csv").use {
+                            ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1,
+                                    viewModel.diffCoinDatabase(it)
+                                            .await().toTypedArray())
+                        }
 
-                            launch(Dispatchers.IO) {
+                        activity?.runOnUiThread {
 
-                                viewModel.loadCoinDatabase(assets.open("coin_database.csv")).await()
+                            Dialogs.showCoinDiffDialog(adapter,
+                                    AlertDialog.Builder(requireContext()),
+                                    getString(R.string.frag_coin_manager_diff_title_dialog)) {
 
-                                mBinding?.setupRecyclerView(mPreferences.getString(getString(R.string.onekk_country_pref_key), "USA") ?: "USA")
+                                scope.launch {
 
+                                    assets.open("coin_database.csv").use {
+
+                                        viewModel.loadCoinDatabase(it).await()
+
+                                    }
+                                    activity?.runOnUiThread {
+
+                                        findNavController().navigate(SettingsFragmentDirections.globalActionToSettings())
+
+                                    }
+                                }
                             }
                         }
                     }
@@ -112,7 +144,7 @@ class CoinManagerFragment : Fragment(), CoinValueChangedListener, CoroutineScope
             override fun afterTextChanged(newText: Editable?) {
                 newText?.let { nonNullText ->
 
-                    viewModel.countries().observeForever {
+                    viewModel.countries().observeOnce(viewLifecycleOwner, {
 
                         it?.let { countryListResult ->
 
@@ -123,7 +155,7 @@ class CoinManagerFragment : Fragment(), CoinValueChangedListener, CoroutineScope
                                 updateUi(searchCountry)
                             }
                         }
-                    }
+                    })
                 }
             }
         })
@@ -149,7 +181,7 @@ class CoinManagerFragment : Fragment(), CoinValueChangedListener, CoroutineScope
 
     override fun onCoinValueChanged(country: String, name: String, value: Double) {
 
-        launch {
+        scope.launch {
 
             viewModel.updateCoinValue(country, name, value)
         }

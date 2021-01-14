@@ -20,9 +20,13 @@ class OnekkRepository
 
     suspend fun selectAllCoins() = coinDao.selectAllCoins()
 
+    suspend fun coins() = coinDao.coins()
+
     suspend fun deleteAnalysis(aid: Int) = dao.deleteAnalysis(aid)
 
     suspend fun deleteAllAnalysis() = dao.deleteAllAnalysis()
+
+    suspend fun deleteAllCoins() = coinDao.deleteAllCoin()
 
     suspend fun updateSelectAllAnalysis(selected: Boolean) = dao.updateSelectAllAnalysis(selected)
 

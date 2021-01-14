@@ -12,6 +12,9 @@ interface CoinDao {
     @Query("SELECT DISTINCT name FROM coin")
     suspend fun selectAllCoins(): List<String>
 
+    @Query("SELECT DISTINCT * FROM coin")
+    suspend fun coins(): List<CoinEntity>
+
     @Query("SELECT DISTINCT country FROM coin")
     suspend fun selectAllCountries(): List<String>
 
@@ -31,4 +34,6 @@ interface CoinDao {
      * Deletes
      */
 
+    @Query("DELETE FROM coin")
+    suspend fun deleteAllCoin()
 }
