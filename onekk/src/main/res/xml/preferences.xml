@@ -17,13 +17,13 @@
         android:key="org.wheatgenetics.onekk.PROCESSING"
         android:title="Workflow">
 
-        <!--        <ListPreference-->
-        <!--            android:defaultValue="1"-->
-        <!--            android:entries="@array/analysis_algorithm"-->
-        <!--            android:entryValues="@array/analysis_algorithm_values"-->
-        <!--            android:icon="@drawable/ic_android_studio"-->
-        <!--            android:key="org.wheatgenetics.onekk.ANALYSIS_ALGORITHM"-->
-        <!--            android:title="@string/frag_settings_algorithm_title" />-->
+        <ListPreference
+            android:defaultValue="0"
+            android:entries="@array/analysis_algorithm"
+            android:entryValues="@array/analysis_algorithm_values"
+            android:icon="@drawable/ic_android_studio"
+            android:key="org.wheatgenetics.onekk.ANALYSIS_ALGORITHM"
+            android:title="@string/frag_settings_algorithm_title" />
 
         <CheckBoxPreference
             android:defaultValue="true"

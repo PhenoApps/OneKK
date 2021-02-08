@@ -303,12 +303,15 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
             "1", "2" -> mBinding?.weightEditText?.text?.toString()?.toDoubleOrNull()
             else -> null
         }
-//        val algorithm = mPreferences?.getString(getString(R.string.onekk_preference_algorithm_mode_key), "1") ?: "1"
+
+        val key = getString(R.string.onekk_preference_algorithm_mode_key)
+        val algorithm = mPreferences?.getString(key, "0") ?: "0"
 
         //parse the name if its an imported file
         val savedFileName = name ?: path.toUri().parseName()
 
         val data = workDataOf(
+                "algorithm" to algorithm,
                 "name" to savedFileName,
                 "path" to path,
                 "weight" to weight,

@@ -17,10 +17,7 @@ import kotlin.math.*
 
 class DetectWithReferences(private val coinReferenceDiameter: Double): DetectorAlgorithm {
 
-    data class Contour(val x: Double, val y: Double, val minAxis: Double?, val maxAxis: Double?, val area: Double, val count: Int)
-    data class Result(val src: Bitmap, val dst: Bitmap, val example: Bitmap?, val contours: List<Contour>)
-
-    private fun process(original: Mat): Result {
+    private fun process(original: Mat): DetectorAlgorithm.Result {
 
         val kernel = Mat.ones(Size(3.0, 3.0), CvType.CV_8U)
 
@@ -130,7 +127,7 @@ class DetectWithReferences(private val coinReferenceDiameter: Double): DetectorA
 
             val (minAxis, maxAxis) = axisEstimates[it] ?: 0.0 to 0.0
 
-            Contour(center.x, center.y, minAxis, maxAxis, singleEstimates[it] ?: error(""), 1)
+            DetectorAlgorithm.Contour(center.x, center.y, minAxis, maxAxis, singleEstimates[it] ?: error(""), 1)
 
         } + clusters.map {
 
@@ -141,7 +138,7 @@ class DetectWithReferences(private val coinReferenceDiameter: Double): DetectorA
             Imgproc.drawContours(mask, listOf(it), -1, Scalar.all(255.0), -1)
             val count = watershed(Mat(mask, box))
 
-            Contour(center.x, center.y, null, null, clusterEstimates[it] ?: error(""), count)
+            DetectorAlgorithm.Contour(center.x, center.y, null, null, clusterEstimates[it] ?: error(""), count)
 
         }
 
@@ -177,7 +174,7 @@ class DetectWithReferences(private val coinReferenceDiameter: Double): DetectorA
 //        mask.release()
         src.release()
 
-        return Result(originalOutput, dstOutput, null, objects)
+        return DetectorAlgorithm.Result(originalOutput, dstOutput, null, objects)
 
     }
 
@@ -421,7 +418,7 @@ class DetectWithReferences(private val coinReferenceDiameter: Double): DetectorA
     /*
     OpenCV Debug version, output frame is the opencv result.
      */
-    override fun process(bitmap: Bitmap?): Result {
+    override fun process(bitmap: Bitmap?): DetectorAlgorithm.Result {
 
         val frame = Mat()
 

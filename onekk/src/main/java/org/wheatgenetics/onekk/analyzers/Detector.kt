@@ -5,18 +5,24 @@ import androidx.work.Data
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import org.wheatgenetics.imageprocess.DetectWithReferences
+import org.wheatgenetics.imageprocess.PotatoDetector
 import org.wheatgenetics.onekk.interfaces.DetectorAlgorithm
 import org.wheatgenetics.onekk.interfaces.DetectorListener
 import java.io.File
 
-class Detector(referenceDiameter: Double, private val imported: File? = null, private val algorithm: String? = null): CoroutineScope by MainScope() {
+class Detector(referenceDiameter: Double, private val imported: File? = null, algorithm: String? = null): CoroutineScope by MainScope() {
 
 //    private var frames = 0.0
 //    private var startAnalysisTime = System.currentTimeMillis()
 
-    val detector: DetectorAlgorithm = DetectWithReferences(referenceDiameter)
+    val detector: DetectorAlgorithm = when (algorithm?.toIntOrNull() ?: 0) {
 
-    fun scan(src: Bitmap): DetectWithReferences.Result? {
+        DetectorAlgorithm.LSS -> PotatoDetector(referenceDiameter)
+
+        else -> DetectWithReferences(referenceDiameter)
+    }
+
+    fun scan(src: Bitmap): DetectorAlgorithm.Result? {
 
 //        val startTime = System.currentTimeMillis()
 

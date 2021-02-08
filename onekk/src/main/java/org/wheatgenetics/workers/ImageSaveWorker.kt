@@ -23,6 +23,7 @@ import org.wheatgenetics.onekk.database.models.embedded.Contour
 import org.wheatgenetics.onekk.database.models.embedded.Image
 import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
 import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
+import org.wheatgenetics.onekk.interfaces.DetectorAlgorithm
 import org.wheatgenetics.onekk.toFile
 import org.wheatgenetics.utils.DateUtil
 import java.io.File
@@ -50,6 +51,7 @@ class ImageSaveWorker(appContext: Context, workerParams: WorkerParameters):
 
         /***
          * example input data
+         *  "algorithm" to "potato"
          *  "path" to path,
          *  "weight" to weight
             "imported" to (name == null),
@@ -62,6 +64,8 @@ class ImageSaveWorker(appContext: Context, workerParams: WorkerParameters):
         val name = inputData.getString("name")!!
 
         val path = inputData.getString("path")!!
+
+        val algorithm = inputData.getString("algorithm") ?: "0"
 
         //check if file was imported, this will need content resolver to load bitmap
         val bmp = withContext(CoroutineScope(Dispatchers.IO).coroutineContext) {
@@ -82,7 +86,7 @@ class ImageSaveWorker(appContext: Context, workerParams: WorkerParameters):
 
         val result = try {
 
-            runDetector(bmp, diameter)
+            runDetector(bmp, algorithm, diameter)
 
         } catch (e: Exception) {
 
@@ -103,12 +107,12 @@ class ImageSaveWorker(appContext: Context, workerParams: WorkerParameters):
                 "imported" to imported))
     }
 
-    private fun runDetector(src: Bitmap, diameter: Double): DetectWithReferences.Result? {
+    private fun runDetector(src: Bitmap, algorithm: String, diameter: Double): DetectorAlgorithm.Result? {
 
-        return Detector(diameter).scan(src)
+        return Detector(diameter, algorithm = algorithm).scan(src)
     }
 
-    private suspend fun commitToDatabase(dst: String, name: String, weight: Double, result: DetectWithReferences.Result): Int {
+    private suspend fun commitToDatabase(dst: String, name: String, weight: Double, result: DetectorAlgorithm.Result): Int {
 
         val collector = mPreferences?.getString(
                 applicationContext.getString(R.string.onekk_preference_collector_key), "") ?: ""
