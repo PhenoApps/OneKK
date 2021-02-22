@@ -50,26 +50,29 @@ class PotatoDetector(private val coinReferenceDiameter: Double): DetectorAlgorit
         Imgproc.findContours(dst, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE)
 
         //finds the four contours closest to the corners
-        val coin = findCoins(contours, imageWidth, imageHeight).sortedByDescending { Imgproc.contourArea(it) }.first()
+        val coins = findCoins(contours, imageWidth, imageHeight)
+        val coin = coins.sortedByDescending { Imgproc.contourArea(it) }.first()
 
         //draw the coins as filled contours green
         Imgproc.drawContours(src, listOf(coin), 0, Scalar(0.0, 255.0, 0.0, 255.0), -1)
 
-        val largestSample = listOf(contours.sortedBy { Imgproc.contourArea(it) }.last())
+        val largestSample = findLargestCenter(coins, contours-coins)
+
+        val approxSample = listOf(largestSample)
 
         //red
-        Imgproc.drawContours(src, largestSample, 0, Scalar(255.0, 0.0, 0.0, 255.0), -1)
+        Imgproc.drawContours(src, approxSample, 0, Scalar(255.0, 0.0, 0.0, 255.0), -1)
 
 //        val avgArea = singles.map { Imgproc.contourArea(it) }.reduceRight { x, y -> x + y } / seeds.size
 
         val coinAreaMilli = Math.PI * (coinReferenceDiameter / 2).pow(2)
 
-        val singleEstimates = estimateSeedArea(largestSample, listOf(coin), coinAreaMilli)
+        val singleEstimates = estimateSeedArea(approxSample, listOf(coin), coinAreaMilli)
 
-        val axisEstimates = estimateAxis(largestSample, listOf(coin), coinReferenceDiameter)
+        val axisEstimates = estimateAxis(approxSample, listOf(coin), coinReferenceDiameter)
 
         //transform the seed/cluster contours to counted/estimated results
-        val objects = largestSample.map {
+        val objects = approxSample.map {
 
             val center = it.center()
 
@@ -91,6 +94,20 @@ class PotatoDetector(private val coinReferenceDiameter: Double): DetectorAlgorit
 
         return DetectorAlgorithm.Result(originalOutput, dstOutput, null, objects)
 
+    }
+
+    private fun findLargestCenter(coins: List<MatOfPoint>, list: List<MatOfPoint>): MatOfPoint {
+
+        list.sortedByDescending { Imgproc.contourArea(it) }.forEach { contour ->
+
+            if (calculateRoi(coins)?.contains(contour.center()) == true) {
+
+                return contour
+            }
+
+        }
+
+        return list.first() //if no contours are found just return the first
     }
 
     /**
@@ -167,6 +184,20 @@ class PotatoDetector(private val coinReferenceDiameter: Double): DetectorAlgorit
             estimateMillis(avgCoinDiameter, coinDiameterMilli, it.minMaxAxis().first) to
                     estimateMillis(avgCoinDiameter, coinDiameterMilli, it.minMaxAxis().second)
         }
+    }
+
+    private fun MatOfPoint.approximate(e: Double) = MatOfPoint().apply {
+        //contour approximation: https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_contours/py_contour_features/py_contour_features.html
+        //Douglas-Peucker algorithm that approximates a contour with a polygon with less vertices
+        //epsilon is the maximum distance from the contour and the approximation
+        val preciseContour = MatOfPoint2f(*this@approximate.toArray())
+        val epsilon = e * Imgproc.arcLength(preciseContour, true)
+
+        val approx = MatOfPoint2f()
+
+        Imgproc.approxPolyDP(preciseContour, approx, epsilon, true)
+
+        approx.convertTo(this, CvType.CV_32S)
     }
 
     /**

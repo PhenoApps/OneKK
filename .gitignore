@@ -39,3 +39,16 @@ proguard/
 .idea/modules.xml
 .idea/scopes/scope_settings.xml
 .idea/vcs.xml
+/openCV/.cxx/cmake/debug/x86/.ninja_deps
+/openCV/.cxx/cmake/debug/x86/.ninja_log
+/openCV/.cxx/abi_configuration_6i5g3o2f.json
+/openCV/.cxx/abi_configuration_6i5g3o2f_key.json
+/openCV/.cxx/cmake/debug/x86/android_gradle_build_opencv_jni_shared_x86.command.txt
+/openCV/.cxx/cmake/debug/x86/android_gradle_build_opencv_jni_shared_x86.stderr.txt
+/openCV/.cxx/cmake/debug/x86/android_gradle_build_opencv_jni_shared_x86.stdout.txt
+/openCV/.cxx/cmake/debug/x86/CMakeFiles/opencv_jni_shared.dir/dummy.cpp.o
+/openCV/.cxx/cmake/debug/x86/libopencv_jni_shared.a
+/openCV/.cxx/ndk_locator_record_3j706vk4.json
+/openCV/.cxx/ndk_locator_record_3j706vk4_key.json
+/openCV/.cxx/ndk_locator_record_34c2b602.json
+/openCV/.cxx/ndk_locator_record_34c2b602_key.json
