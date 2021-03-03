@@ -118,13 +118,20 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     private fun setupDirs() {
 
-        val directory = this.externalMediaDirs[0]
+        try {
 
-        //create separate subdirectory foreach type of import
-        val scans = File(directory, "Images")
+            val directory = this.externalMediaDirs[0]
 
-        scans.mkdir()
+            //create separate subdirectory foreach type of import
+            val scans = File(directory, "Images")
 
+            scans.mkdir()
+
+        } catch (iob: ArrayIndexOutOfBoundsException) {
+
+            iob.printStackTrace()
+
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -1,2 +1,0 @@
-ninja: Entering directory `/home/chaneylc/AndroidStudioProjects/OneKK/openCV/.cxx/cmake/debug/x86_64'
-ninja: no work to do.

@@ -31,7 +31,7 @@ import java.util.*
 import kotlin.math.sqrt
 
 
-class ImageSaveWorker(appContext: Context, workerParams: WorkerParameters):
+class ImageSaveWorker(val appContext: Context, workerParams: WorkerParameters):
         CoroutineWorker(appContext, workerParams) {
 
     private val db by lazy {

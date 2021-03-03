@@ -102,37 +102,39 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
         }
     }
 
-    private fun exportSamples(fileName: String, analysis: List<AnalysisEntity>) {
+    private val exportSamples = registerForActivityResult(ActivityResultContracts.CreateDocument()) { it?.let { uri ->
 
-        registerForActivityResult(ActivityResultContracts.CreateDocument()) { it?.let { uri ->
+        launch {
 
-            launch {
+            withContext(Dispatchers.IO) {
 
-                withContext(Dispatchers.IO) {
+                (mBinding?.recyclerView?.adapter as? AnalysisAdapter)
+                    ?.currentList?.filter { it.selected }?.let { data ->
 
-                    FileUtil(requireContext()).export(uri, analysis)
-
-                }
-            }
-        }}.launch(fileName)
-
-    }
-
-    private fun exportSeeds(fileName: String, analysis: List<AnalysisEntity>, contours: List<ContourEntity>) {
-
-        registerForActivityResult(ActivityResultContracts.CreateDocument()) { it?.let { uri ->
-
-            launch {
-
-                withContext(Dispatchers.IO) {
-
-                    FileUtil(requireContext()).exportSeeds(uri, analysis, contours)
+                        FileUtil(requireContext()).export(uri, data)
 
                 }
             }
-        }}.launch(fileName)
+        }
+    }}
 
-    }
+    private val exportSeeds = registerForActivityResult(ActivityResultContracts.CreateDocument()) { it?.let { uri ->
+
+        (mBinding?.recyclerView?.adapter as? AnalysisAdapter)?.currentList?.filter { it.selected }?.let { analysis ->
+
+            viewModel.selectAllContours().observeOnce(viewLifecycleOwner, { contours ->
+
+                launch {
+
+                    withContext(Dispatchers.IO) {
+
+                        FileUtil(requireContext()).exportSeeds(uri, analysis, contours)
+
+                    }
+                }
+            })
+        }
+    }}
 
     /**
      * Uses activity results contracts to create a document and call the export function
@@ -151,14 +153,12 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
 
             if (option) {
 
-                exportSamples(fileName, analysis)
+                exportSamples.launch(fileName)
 
             } else {
 
-                viewModel.selectAllContours().observeOnce(viewLifecycleOwner, {
-                    exportSeeds(fileName, analysis, it)
+                exportSeeds.launch(fileName)
 
-                })
             }
         }
     }

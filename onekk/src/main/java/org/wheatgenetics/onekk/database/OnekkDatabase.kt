@@ -92,5 +92,10 @@ abstract class OnekkDatabase : RoomDatabase() {
                     .build()
 
         }
+
+        //used for testing
+        fun buildMemoryDatabase(ctx: Context): OnekkDatabase =
+            Room.inMemoryDatabaseBuilder(ctx, OnekkDatabase::class.java).build()
+
     }
 }

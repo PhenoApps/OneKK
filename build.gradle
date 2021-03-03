@@ -13,7 +13,6 @@ buildscript {
         classpath 'com.android.tools.build:gradle:4.0.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "androidx.navigation:navigation-safe-args-gradle-plugin:$nav_version"
-
     }
 }
 allprojects {
@@ -22,6 +21,4 @@ allprojects {
         maven { url "https://jitpack.io" }
         google()
     }
-}
-dependencies {
 }
