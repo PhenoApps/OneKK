@@ -39,7 +39,7 @@ android {
             //disable this if you want to run tests on provided datasets
             //otherwise these assets will be erased (unless you want a 1Gb app)
             aaptOptions {
-                ignoreAssetsPattern "!samples"
+                ignoreAssetsPattern "!datasets"
             }
         }
 

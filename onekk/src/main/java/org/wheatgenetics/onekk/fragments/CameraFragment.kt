@@ -46,6 +46,7 @@ import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentCameraBinding
 import org.wheatgenetics.onekk.interfaces.BleNotificationListener
 import org.wheatgenetics.onekk.interfaces.BleStateListener
+import org.wheatgenetics.onekk.interfaces.DetectorAlgorithm
 import org.wheatgenetics.onekk.interfaces.DetectorListener
 import org.wheatgenetics.onekk.toBitmap
 import org.wheatgenetics.onekk.toFile
@@ -87,13 +88,13 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
     }
 
     private val mBluetoothManager by lazy {
-        BluetoothUtil(requireContext()).also {
-//            it.deviceStateListener(this)
-        }
+        BluetoothUtil(requireContext())
     }
 
     private lateinit var outputDirectory: File
     private lateinit var captureDirectory: File
+
+    private val scope by lazy { CoroutineScope(Dispatchers.IO) }
 
     //starts camera thread executor, which must be destroyed/stopped in onDestroy
     private var cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
@@ -163,7 +164,7 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
     companion object {
 
-        final val TAG = "Onekk.CameraFragment"
+        val TAG = "Onekk.CameraFragment"
 
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
 
@@ -340,6 +341,7 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
             }
 
+
             manager.getWorkInfoByIdLiveData(request.id).observe(this@CameraFragment, {
 
                 if (it != null) {
@@ -498,7 +500,10 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
                                         val fileName = "${name}_${DateUtil().getTime()}.png"
 
-                                        val file = proxy.toBitmap().toFile(context?.externalCacheDir?.path.toString(), fileName)!!
+                                        val file = proxy.toBitmap().toFile(
+                                            context?.externalCacheDir?.path.toString(),
+                                            fileName
+                                        )
 
                                         proxy.close()
 

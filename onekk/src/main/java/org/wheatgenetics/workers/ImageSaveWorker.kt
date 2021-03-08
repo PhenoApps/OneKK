@@ -70,7 +70,7 @@ class ImageSaveWorker(val appContext: Context, workerParams: WorkerParameters):
         //check if file was imported, this will need content resolver to load bitmap
         val bmp = withContext(CoroutineScope(Dispatchers.IO).coroutineContext) {
             if (imported) {
-                BitmapFactory.decodeStream(applicationContext.contentResolver.openInputStream(Uri.parse(path)))
+                BitmapFactory.decodeStream(appContext.contentResolver.openInputStream(Uri.parse(path)))
             } else {
                 BitmapFactory.decodeFile(path)
             }
@@ -134,8 +134,8 @@ class ImageSaveWorker(val appContext: Context, workerParams: WorkerParameters):
 
             var singles = 0
 
-            var minAxisSingles = ArrayList<Double>()
-            var maxAxisSingles = ArrayList<Double>()
+            val minAxisSingles = ArrayList<Double>()
+            val maxAxisSingles = ArrayList<Double>()
 
             result.contours.forEach { contour ->
 

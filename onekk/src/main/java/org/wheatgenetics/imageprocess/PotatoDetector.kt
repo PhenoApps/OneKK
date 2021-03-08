@@ -1,15 +1,14 @@
 package org.wheatgenetics.imageprocess
 
 import android.graphics.Bitmap
+import android.util.Log
 import org.opencv.android.Utils
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
 import org.wheatgenetics.onekk.interfaces.DetectorAlgorithm
 import org.wheatgenetics.utils.ImageProcessingUtil.Companion.euclideanDistance
-import org.wheatgenetics.utils.ImageProcessingUtil.Companion.quartileRange
 import org.wheatgenetics.utils.ImageProcessingUtil.Companion.toBitmap
 import org.wheatgenetics.utils.ImageProcessingUtil.Companion.toMatOfPoint2f
-import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.*
@@ -41,7 +40,8 @@ class PotatoDetector(private val coinReferenceDiameter: Double): DetectorAlgorit
 
         Imgproc.threshold(dst, dst, 0.0, 255.0, Imgproc.THRESH_OTSU + Imgproc.THRESH_BINARY_INV)
 
-        Imgproc.morphologyEx(dst, dst, Imgproc.MORPH_ELLIPSE, kernel, Point(-1.0, -1.0), 3)
+        //better results with 8 iterations but much slower
+        Imgproc.morphologyEx(dst, dst, Imgproc.MORPH_ELLIPSE, kernel, Point(-1.0, -1.0), 5)
 
         /**
          * TODO: we can improve this by parsing the hierarchy, sometimes seeds might be 'split'
@@ -141,9 +141,10 @@ class PotatoDetector(private val coinReferenceDiameter: Double): DetectorAlgorit
     }
 
     //function that returns the min/max axis stats
-    private fun MatOfPoint.minMaxAxis(): Pair<Double, Double> {
+    private fun MatOfPoint.minMaxAxis(ellipse: Boolean = false): Pair<Double, Double> {
 
-        val rect = Imgproc.minAreaRect(this.toMatOfPoint2f())
+        val rect = if (!ellipse) Imgproc.minAreaRect(this.toMatOfPoint2f())
+            else Imgproc.fitEllipse(this.toMatOfPoint2f())
 
         val minAxis = min(rect.size.width, rect.size.height)
 

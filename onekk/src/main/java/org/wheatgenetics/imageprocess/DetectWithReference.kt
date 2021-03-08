@@ -137,7 +137,7 @@ class DetectWithReferences(private val coinReferenceDiameter: Double): DetectorA
             val mask = Mat.zeros(original.size(), original.type())
             Imgproc.drawContours(mask, listOf(it), -1, Scalar.all(255.0), -1)
             val count = watershed(Mat(mask, box))
-
+            mask.release()
             DetectorAlgorithm.Contour(center.x, center.y, null, null, clusterEstimates[it] ?: error(""), count)
 
         }
@@ -277,6 +277,15 @@ class DetectWithReferences(private val coinReferenceDiameter: Double): DetectorA
 
         Imgproc.findContours(sure_fg, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE)
 
+        unknown.release()
+        sure_bg.release()
+        sure_fg.release()
+        dt.release()
+        opening.release()
+        hierarchy.release()
+        gray.release()
+        thresh.release()
+        cropped.release()
 //        org.opencv.imgcodecs.Imgcodecs.imwrite(dir.path + "/${contours.size}COUNTED${UUID.randomUUID()}output.png", sure_fg)
 
         //subtract the background label and border label
