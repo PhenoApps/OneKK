@@ -33,7 +33,8 @@
             app:layout_constraintTop_toBottomOf="@+id/nameHeader"
             tools:listitem="@layout/list_item_coin_manager" />
 
-        <TextView style="@style/Text.ExperimentListHeader"
+        <TextView
+            style="?attr/textAppearanceHeadline6"
             android:id="@+id/nameHeader"
             android:hint="@string/frag_coin_manager_search_hint"
             android:layout_width="wrap_content"

@@ -399,9 +399,9 @@
     <string name="header_contour_length">Length</string>
     <string name="frag_contour_list_total_count_prefix">Total: </string>
 
-    <string name="list_item_analysis_tkw_prefix">Tkw: </string>
-    <string name="list_item_analysis_width_prefix">Width: </string>
-    <string name="list_item_analysis_length_prefix">Length: </string>
+    <string name="list_item_analysis_tkw_prefix">TKW:</string>
+    <string name="list_item_analysis_width_prefix">Width:</string>
+    <string name="list_item_analysis_length_prefix">Length:</string>
     <string name="frag_camera_sample_saved">Sample saved.</string>
     <string name="graph_tab_width">Width</string>
     <string name="graph_tab_length">Length</string>

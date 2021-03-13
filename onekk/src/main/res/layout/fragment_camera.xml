@@ -9,9 +9,9 @@
 
         <ImageButton
             android:id="@+id/camera_capture_button"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_margin="16dp"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_margin="8dp"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_camera"
             android:background="@drawable/camera_button_background_emphasized"
@@ -23,24 +23,38 @@
 
         <ImageButton
             android:id="@+id/barcode_scan_button"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_margin="16dp"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_margin="8dp"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_barcode_scan"
             android:background="@drawable/camera_button_background_emphasized"
-            app:layout_constraintStart_toEndOf="@id/nameEditText"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/camera_capture_button"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/nameEditText"
+            app:layout_constraintBottom_toTopOf="@id/weight_lock_button"
+            android:elevation="5dp"
+            android:contentDescription="@string/frag_camera_barcode_scan_button_content_description" />
+
+        <ImageButton
+            android:id="@+id/weight_lock_button"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_margin="8dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_weight_unlock"
+            android:background="@drawable/camera_button_background_emphasized"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/weightEditText"
+            app:layout_constraintBottom_toBottomOf="@id/viewFinder"
             android:elevation="5dp"
             android:contentDescription="@string/frag_camera_barcode_scan_button_content_description" />
 
         <ProgressBar
             android:id="@+id/progress_bar"
             android:visibility="gone"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_margin="16dp"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_margin="8dp"
             android:scaleType="fitCenter"
             android:background="@drawable/camera_button_background_emphasized"
             app:layout_constraintStart_toEndOf="@id/weightEditText"
@@ -62,38 +76,36 @@
             app:layout_constraintBottom_toBottomOf="parent"/>
 
         <EditText
-            android:id="@+id/weightEditText"
-            android:visibility="visible"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_marginStart="16dp"
-            android:inputType="numberDecimal"
-            android:elevation="5dp"
-            android:textSize="24sp"
-            android:hint="@string/weight_input_hint"
-            android:autofillHints="none"
-            android:background="@drawable/cell_transparent"
-            app:layout_constraintTop_toTopOf="@id/camera_capture_button"
-            app:layout_constraintBottom_toBottomOf="@id/camera_capture_button"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/camera_capture_button"/>
-
-        <EditText
             android:id="@+id/nameEditText"
             android:visibility="visible"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginStart="16dp"
             android:elevation="5dp"
-            android:textSize="24sp"
+            android:textSize="20sp"
             android:hint="@string/frag_camera_sample_name_text_hint"
             android:inputType="text"
             android:background="@drawable/cell_transparent"
             app:layout_constraintTop_toTopOf="@id/barcode_scan_button"
             app:layout_constraintBottom_toBottomOf="@id/barcode_scan_button"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/barcode_scan_button"/>
+            app:layout_constraintStart_toEndOf="@id/barcode_scan_button"
+            app:layout_constraintEnd_toEndOf="@id/camera_capture_button"/>
 
+
+        <EditText
+            android:id="@+id/weightEditText"
+            android:visibility="visible"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:inputType="numberDecimal"
+            android:elevation="5dp"
+            android:textSize="20sp"
+            android:hint="@string/weight_input_hint"
+            android:autofillHints="none"
+            android:background="@drawable/cell_transparent"
+            app:layout_constraintTop_toTopOf="@id/camera_capture_button"
+            app:layout_constraintBottom_toBottomOf="@id/camera_capture_button"
+            app:layout_constraintStart_toEndOf="@id/weight_lock_button"
+            app:layout_constraintEnd_toStartOf="@id/camera_capture_button"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </layout>
