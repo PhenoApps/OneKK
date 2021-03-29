@@ -1,7 +1,7 @@
 package org.wheatgenetics.imageprocess
 
+import android.content.Context
 import android.graphics.Bitmap
-import android.util.Log
 import org.opencv.android.Utils
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
@@ -14,7 +14,7 @@ import kotlin.collections.ArrayList
 import kotlin.math.*
 
 
-class PotatoDetector(private val coinReferenceDiameter: Double): DetectorAlgorithm {
+class PotatoDetector(context: Context, private val coinReferenceDiameter: Double): OpenCVTransformation(context), DetectorAlgorithm {
 
     private fun process(original: Mat): DetectorAlgorithm.Result {
 

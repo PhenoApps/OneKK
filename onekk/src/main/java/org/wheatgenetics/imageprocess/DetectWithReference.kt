@@ -1,5 +1,6 @@
 package org.wheatgenetics.imageprocess
 
+import android.content.Context
 import android.graphics.Bitmap
 import org.opencv.android.Utils
 import org.opencv.core.*
@@ -9,13 +10,12 @@ import org.wheatgenetics.utils.ImageProcessingUtil.Companion.euclideanDistance
 import org.wheatgenetics.utils.ImageProcessingUtil.Companion.quartileRange
 import org.wheatgenetics.utils.ImageProcessingUtil.Companion.toBitmap
 import org.wheatgenetics.utils.ImageProcessingUtil.Companion.toMatOfPoint2f
-import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.*
 
 
-class DetectWithReferences(private val coinReferenceDiameter: Double): DetectorAlgorithm {
+class DetectWithReference(context: Context, private val coinReferenceDiameter: Double): OpenCVTransformation(context), DetectorAlgorithm {
 
     private fun process(original: Mat): DetectorAlgorithm.Result {
 

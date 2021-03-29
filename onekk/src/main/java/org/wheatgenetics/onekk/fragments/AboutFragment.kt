@@ -4,9 +4,11 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import androidx.navigation.fragment.findNavController
 import com.danielstone.materialaboutlibrary.ConvenienceBuilder
 import com.danielstone.materialaboutlibrary.MaterialAboutFragment
 import com.danielstone.materialaboutlibrary.items.MaterialAboutActionItem
@@ -18,6 +20,7 @@ import com.michaelflisar.changelog.ChangelogBuilder
 import com.michaelflisar.changelog.classes.ImportanceChangelogSorter
 import com.mikepenz.aboutlibraries.LibsBuilder
 import org.wheatgenetics.onekk.R
+import org.wheatgenetics.onekk.activities.MainActivity
 
 
 class AboutFragment : MaterialAboutFragment() {
@@ -25,8 +28,16 @@ class AboutFragment : MaterialAboutFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        requireContext().setTheme(R.style.AppTheme)
+        context?.setTheme(R.style.AppTheme)
 
+        with((activity as? MainActivity)?.supportActionBar) {
+            this?.setCustomView(R.layout.about_toolbar)
+            this?.setDisplayShowCustomEnabled(true)
+
+            this?.customView?.findViewById<ImageButton>(R.id.backButton)?.setOnClickListener {
+                findNavController().popBackStack()
+            }
+        }
     }
 
     public override fun getMaterialAboutList(c: Context): MaterialAboutList {
@@ -53,11 +64,11 @@ class AboutFragment : MaterialAboutFragment() {
                 null
         ))
         //TODO: Add new translation project
-        appCardBuilder.addItem(MaterialAboutActionItem.Builder()
-                .text(R.string.about_help_translate_title)
-                .icon(R.drawable.ic_about_help_translate)
-                //.setOnClickAction(ConvenienceBuilder.createWebsiteOnClickAction(c, Uri.parse("https://osij6hx.oneskyapp.com/collaboration/project?id=28259")))
-                .build())
+//        appCardBuilder.addItem(MaterialAboutActionItem.Builder()
+//                .text(R.string.about_help_translate_title)
+//                .icon(R.drawable.ic_about_help_translate)
+//                //.setOnClickAction(ConvenienceBuilder.createWebsiteOnClickAction(c, Uri.parse("https://osij6hx.oneskyapp.com/collaboration/project?id=28259")))
+//                .build())
         val authorCardBuilder = MaterialAboutCard.Builder()
         authorCardBuilder.title(getString(R.string.about_project_lead_title))
         authorCardBuilder.addItem(MaterialAboutActionItem.Builder()
@@ -105,7 +116,7 @@ class AboutFragment : MaterialAboutFragment() {
         technicalCardBuilder.addItem(MaterialAboutActionItem.Builder()
                 .text(R.string.about_github_title)
                 .icon(R.drawable.ic_about_github)
-                .setOnClickAction(ConvenienceBuilder.createWebsiteOnClickAction(c, Uri.parse("https://github.com/PhenoApps/Intercross")))
+                .setOnClickAction(ConvenienceBuilder.createWebsiteOnClickAction(c, Uri.parse("https://github.com/PhenoApps/Onekk")))
                 .build())
         technicalCardBuilder.addItem(MaterialAboutActionItem.Builder()
                 .text(R.string.libraries_title)

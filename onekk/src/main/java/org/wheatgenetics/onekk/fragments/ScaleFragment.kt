@@ -5,8 +5,10 @@ import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.*
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.graphics.rotationMatrix
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -18,12 +20,14 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import org.wheatgenetics.onekk.R
+import org.wheatgenetics.onekk.activities.MainActivity
 import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
 import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
 import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentScaleBinding
 import org.wheatgenetics.onekk.interfaces.BleNotificationListener
+import org.wheatgenetics.onekk.observeOnce
 import org.wheatgenetics.utils.BluetoothUtil
 import org.wheatgenetics.utils.Dialogs
 import kotlin.properties.Delegates
@@ -85,7 +89,6 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
             scaleTextUpdateUi(stringResult)
 
         }
-
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -125,6 +128,18 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
         }
     }
 
+    //when the view is loaded, update the edit text with the saved weight
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        viewModel.getAnalysis(aid).observeOnce(viewLifecycleOwner, { analysis ->
+            activity?.runOnUiThread {
+                analysis?.weight?.let {
+                    mBinding?.scaleFragmentEditText?.setText(it.toString())
+                }
+            }
+        })
+    }
+
     private fun callAskConnectDialog() {
 
         Dialogs.onOk(AlertDialog.Builder(requireContext()),
@@ -159,10 +174,14 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
 
                     }.await()
 
+                    //When the save button is pressed, go to the analysis fragment or the camera fragment
                     activity?.runOnUiThread {
 
-                        findNavController().navigate(ScaleFragmentDirections.actionToCamera())
-
+                        with (findNavController()) {
+                            if (previousBackStackEntry?.destination?.id == R.id.analysis_fragment) {
+                                popBackStack()
+                            } else navigate(ScaleFragmentDirections.actionToCamera())
+                        }
                     }
                 }
             }
@@ -173,35 +192,20 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
 
             }
 
+            //custom support action toolbar
+            with(mBinding?.toolbar) {
+                this?.findViewById<ImageButton>(R.id.backButton)?.setOnClickListener {
+                    findNavController().popBackStack()
+                }
+                this?.findViewById<ImageButton>(R.id.connectButton)?.setOnClickListener {
+                    startMacAddressSearch()
+                }
+            }
         }
 
         setHasOptionsMenu(true)
 
         return mBinding?.root
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-
-        super.onCreateOptionsMenu(menu, inflater)
-
-        inflater.inflate(R.menu.menu_scale_view, menu)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-
-        when (item.itemId) {
-
-            //toggle the torch when the option is clicked
-            R.id.action_ble_connect -> {
-
-                startMacAddressSearch()
-
-            }
-
-            else -> return super.onOptionsItemSelected(item)
-        }
-
-        return true
     }
 
     private fun startMacAddressSearch() {

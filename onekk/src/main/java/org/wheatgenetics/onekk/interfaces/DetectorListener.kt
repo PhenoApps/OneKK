@@ -1,6 +1,5 @@
 package org.wheatgenetics.onekk.interfaces
 
-import org.wheatgenetics.imageprocess.DetectWithReferences
 import java.io.File
 
 interface DetectorListener {

@@ -9,10 +9,6 @@
         android:icon="@drawable/ic_data_view"
         android:title="@string/menu_action_to_analysis_manager"/>
     <item
-        android:id="@+id/action_to_import"
-        android:icon="@drawable/ic_nv_import"
-        android:title="@string/nav_drawer_title_import"/>
-    <item
         android:id="@+id/action_nav_settings"
         android:icon="@drawable/ic_nv_settings"
         android:title="@string/settings" />

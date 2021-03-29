@@ -1,5 +1,6 @@
 package org.wheatgenetics.imageprocess
 
+import android.content.Context
 import android.graphics.Bitmap
 import org.opencv.android.Utils
 import org.opencv.core.Mat
@@ -9,7 +10,7 @@ import org.opencv.core.Scalar
 import org.opencv.imgproc.Imgproc
 import org.wheatgenetics.utils.ImageProcessingUtil.Companion.toBitmap
 
-class DrawSelectedContour {
+class DrawSelectedContour(context: Context?): OpenCVTransformation(context) {
 
     private val boundary = 256
 

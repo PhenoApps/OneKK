@@ -7,11 +7,9 @@ import android.net.Uri
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import com.bumptech.glide.Glide
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.wheatgenetics.imageprocess.DetectWithReferences
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.analyzers.Detector
 import org.wheatgenetics.onekk.database.OnekkDatabase
@@ -45,6 +43,15 @@ class ImageSaveWorker(val appContext: Context, workerParams: WorkerParameters):
 
     private val mPreferences by lazy {
         appContext.getSharedPreferences(appContext.getString(R.string.onekk_preference_key), Context.MODE_PRIVATE)
+    }
+
+    private fun getOutputDirectory(): File? {
+
+        val mediaDir = appContext.externalMediaDirs?.firstOrNull()?.let {
+            File(it, "analyzed").apply { mkdirs() } }
+
+        return if (mediaDir != null && mediaDir.exists())
+            mediaDir else appContext.filesDir
     }
 
     override suspend fun doWork(): Result {
@@ -96,23 +103,29 @@ class ImageSaveWorker(val appContext: Context, workerParams: WorkerParameters):
 
         } ?: return Result.failure()
 
-        val output = result.dst.toFile(applicationContext.externalMediaDirs.first().path, name = "$name-${DateUtil().getTime()}.png")
+        getOutputDirectory()?.path?.let { analyzedDir ->
 
-        val rowid = commitToDatabase(output.path, name, weight, result)
+            val output = result.dst.toFile(analyzedDir, name = "$name-${DateUtil().getTime()}.png")
 
-        // Indicate whether the work finished successfully with the Result
-        return Result.success(workDataOf(
+            val rowid = commitToDatabase(output.path, path, name, weight, result)
+
+            // Indicate whether the work finished successfully with the Result
+            return Result.success(workDataOf(
                 "dst" to output.path,
                 "rowid" to rowid,
                 "imported" to imported))
+        }
+
+        return Result.failure()
+
     }
 
     private fun runDetector(src: Bitmap, algorithm: String, diameter: Double): DetectorAlgorithm.Result? {
 
-        return Detector(diameter, algorithm = algorithm).scan(src)
+        return Detector(appContext, diameter, algorithm = algorithm).scan(src)
     }
 
-    private suspend fun commitToDatabase(dst: String, name: String, weight: Double, result: DetectorAlgorithm.Result): Int {
+    private suspend fun commitToDatabase(dst: String, src: String, name: String, weight: Double, result: DetectorAlgorithm.Result): Int {
 
         val collector = mPreferences?.getString(
                 applicationContext.getString(R.string.onekk_preference_collector_key), "") ?: ""
@@ -121,12 +134,14 @@ class ImageSaveWorker(val appContext: Context, workerParams: WorkerParameters):
                 name = name,
                 collector = collector,
                 uri = dst,
+                src = src,
                 date = DateUtil().getTime(),
                 weight = weight)).toInt()
 
         with(viewModel) {
 
             var totalCount = 0.0
+            var totalArea = 0.0
 
             var minAxisAvg = 0.0
 
@@ -145,6 +160,8 @@ class ImageSaveWorker(val appContext: Context, workerParams: WorkerParameters):
                 val area = contour.area
                 val minAxis = contour.minAxis
                 val maxAxis = contour.maxAxis
+
+                totalArea += area
 
                 insert(ContourEntity(
                         Contour(x, y, count, area, minAxis, maxAxis),
@@ -180,7 +197,7 @@ class ImageSaveWorker(val appContext: Context, workerParams: WorkerParameters):
 
             updateAnalysisCount(rowid, totalCount.toInt())
 
-            updateAnalysisData(rowid, minAxisAvg, minAxisVar, minAxisCv, maxAxisAvg, maxAxisVar, maxAxisCv)
+            updateAnalysisData(rowid, totalArea, minAxisAvg, minAxisVar, minAxisCv, maxAxisAvg, maxAxisVar, maxAxisCv)
 
             //val resultBitmap = result.dst.toFile(outputDirectory.path, UUID.randomUUID().toString())
 

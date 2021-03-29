@@ -64,13 +64,13 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
         val countryPreference = findPreference<ListPreference>("org.wheatgenetics.onekk.REFERENCE_COUNTRY")
         val namePreference = findPreference<ListPreference>("org.wheatgenetics.onekk.REFERENCE_NAME")
 
-        val country = mPreferences.getString(getString(R.string.onekk_country_pref_key), "USA")
+        val country = mPreferences.getString(getString(R.string.onekk_country_pref_key), "USA") ?: "USA"
         countryPreference?.summary = country
 
-        val coin = mPreferences.getString(getString(R.string.onekk_coin_pref_key), "1 Cent")
+        val coin = mPreferences.getString(getString(R.string.onekk_coin_pref_key), "25 cents") ?: "25 cents"
         namePreference?.summary = coin
 
-        updateCoinList(country!!)
+        updateCoinList(country)
 
         try {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
@@ -132,40 +132,62 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
                     true
                 }
 
-        findPreference<Preference>(getString(R.string.onekk_preference_collector_key))!!
-                .setOnPreferenceChangeListener { preference, newValue ->
-                    mPreferences.edit().apply {
-                        putString(getString(R.string.onekk_preference_collector_key), (newValue as? String) ?: "1")
-                    }.apply()
+        with(findPreference<Preference>(getString(R.string.onekk_preference_collector_key))!!) {
+            setOnPreferenceChangeListener { preference, newValue ->
+                mPreferences.edit().apply {
+                    putString(getString(R.string.onekk_preference_collector_key), (newValue as? String) ?: "1")
+                }.apply()
 
-                    true
+                preference.summary = newValue.toString()
+
+                true
+            }
+
+            this.summary = mPreferences.getString(getString(R.string.onekk_preference_collector_key), "")
+        }
+
+        with(findPreference<Preference>(getString(R.string.onekk_preference_mode_key))!!) {
+            setOnPreferenceChangeListener { preference, newValue ->
+
+                preference.summary = when(newValue.toString()) {
+                    "1" -> getString(R.string.frag_setting_scale_mode_1)
+                    "2" -> getString(R.string.frag_setting_scale_mode_2)
+                    else -> getString(R.string.frag_setting_scale_mode_3)
+
                 }
 
-        findPreference<Preference>(getString(R.string.onekk_preference_mode_key))!!
-                .setOnPreferenceChangeListener { preference, newValue ->
+                mPreferences.edit().apply {
+                    putString(getString(R.string.onekk_preference_mode_key), (newValue as? String) ?: "1")
+                }.apply()
 
-                    preference.summary = when(newValue.toString()) {
-                        "1" -> getString(R.string.frag_setting_scale_mode_1)
-                        "2" -> getString(R.string.frag_setting_scale_mode_2)
-                        else -> getString(R.string.frag_setting_scale_mode_3)
+                true
+            }
 
-                    }
+            this.summary = when(mPreferences.getString(getString(R.string.onekk_preference_mode_key),
+                getString(R.string.frag_setting_scale_mode_1))) {
+                "2" -> getString(R.string.frag_setting_scale_mode_2)
+                "3" -> getString(R.string.frag_setting_scale_mode_3)
+                else -> getString(R.string.frag_setting_scale_mode_1)
+            }
+        }
 
-                    mPreferences.edit().apply {
-                        putString(getString(R.string.onekk_preference_mode_key), (newValue as? String) ?: "1")
-                    }.apply()
+        with(findPreference<Preference>(getString(R.string.onekk_preference_algorithm_mode_key))) {
+            this?.setOnPreferenceChangeListener { preference, newValue ->
+                mPreferences.edit().apply {
+                    putString(getString(R.string.onekk_preference_algorithm_mode_key), (newValue as? String) ?: "0")
+                }.apply()
 
-                    true
+                preference.summary = when (newValue.toString()) {
+                    "1" -> getString(R.string.large_single_sample_algorithm)
+                    else -> getString(R.string.default_algorithm)
                 }
-
-        findPreference<Preference>(getString(R.string.onekk_preference_algorithm_mode_key))!!
-                .setOnPreferenceChangeListener { preference, newValue ->
-                    mPreferences.edit().apply {
-                        putString(getString(R.string.onekk_preference_algorithm_mode_key), (newValue as? String) ?: "0")
-                    }.apply()
-
-                    true
-                }
+                true
+            }
+            this?.summary = when(mPreferences.getString(getString(R.string.onekk_preference_algorithm_mode_key), "0") ?: "0") {
+                "1" -> getString(R.string.large_single_sample_algorithm)
+                else -> getString(R.string.default_algorithm)
+            }
+        }
 
         //crash if this is called before this preference is created
         findPreference<Preference>(getString(R.string.preferences_enable_bluetooth_key)).apply {
@@ -235,5 +257,5 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
 
     }
 
-    private fun List<String>.toEntryValues() = indices.toList().map { it.toString() }.toTypedArray()
+    //private fun List<String>.toEntryValues() = indices.toList().map { it.toString() }.toTypedArray()
 }

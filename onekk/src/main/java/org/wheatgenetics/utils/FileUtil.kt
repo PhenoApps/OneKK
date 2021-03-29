@@ -69,7 +69,7 @@ open class FileUtil(private val ctx: Context) {
 
                             if (it.contour?.count == 1) {
 
-                                write("${analysis.name}, ${it.contour?.count}, ${it.contour?.maxAxis}, ${it.contour?.minAxis}, ${it.contour?.area}, ${(analysis.weight ?: 0.0) / (it.contour?.area ?: 1.0)}".toByteArray())
+                                write("${analysis.name}, ${it.contour?.count}, ${it.contour?.maxAxis}, ${it.contour?.minAxis}, ${it.contour?.area}, ${(analysis.weight ?: 0.0) / (analysis.totalArea ?: 1.0) * (it.contour?.area ?: 1.0)}".toByteArray())
 
                             } else {
 
@@ -113,7 +113,7 @@ open class FileUtil(private val ctx: Context) {
 
                     analysisList.forEach { analysis ->
 
-                        write("${analysis.name}, ${analysis.uri}, ${analysis.collector}, ${analysis.date}, ${analysis.maxAxisAvg}, ${analysis.maxAxisVar}, ${analysis.maxAxisCv}, ${analysis.minAxisAvg}, ${analysis.minAxisVar}, ${analysis.minAxisCv}".toByteArray())
+                        write("${analysis.name}, ${analysis.src}, ${analysis.collector}, ${analysis.date}, ${analysis.maxAxisAvg}, ${analysis.maxAxisVar}, ${analysis.maxAxisCv}, ${analysis.minAxisAvg}, ${analysis.minAxisVar}, ${analysis.minAxisCv}".toByteArray())
 
                         write(newLine)
 

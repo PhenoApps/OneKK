@@ -10,6 +10,8 @@ import org.wheatgenetics.onekk.database.models.CoinEntity
 import org.wheatgenetics.onekk.database.models.ContourEntity
 import org.wheatgenetics.onekk.database.models.ImageEntity
 import java.io.InputStream
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 class ExperimentViewModel(
         private val repo: OnekkRepository): ViewModel() {
@@ -39,7 +41,16 @@ class ExperimentViewModel(
     }
 
     fun insert(contour: ContourEntity) = viewModelScope.launch {
-        repo.insert(contour)
+        repo.insert(contour.apply {
+            this.contour?.let {
+                //truncate decimal places
+                this.contour?.area = BigDecimal(it.area ?: 0.0).setScale(2, RoundingMode.HALF_EVEN).toDouble()
+                this.contour?.maxAxis = BigDecimal(it.maxAxis ?: 0.0).setScale(2, RoundingMode.HALF_EVEN).toDouble()
+                this.contour?.minAxis = BigDecimal(it.minAxis ?: 0.0).setScale(2, RoundingMode.HALF_EVEN).toDouble()
+                this.contour?.x = BigDecimal(it.x).setScale(2, RoundingMode.HALF_EVEN).toDouble()
+                this.contour?.y = BigDecimal(it.y).setScale(2, RoundingMode.HALF_EVEN).toDouble()
+            }
+        })
     }
 
     fun insert(img: ImageEntity) = viewModelScope.launch {
@@ -62,10 +73,21 @@ class ExperimentViewModel(
         repo.updateAnalysisCount(aid, count)
     }
 
-    fun updateAnalysisData(aid: Int,
+    fun updateAnalysisData(aid: Int, totalArea: Double,
                            minAxisAvg: Double, minAxisVar: Double, minAxisCv: Double,
                            maxAxisAvg: Double, maxAxisVar: Double, maxAxisCv: Double) = viewModelScope.launch {
-        repo.updateAnalysisData(aid, minAxisAvg, minAxisVar, minAxisCv, maxAxisAvg, maxAxisVar, maxAxisCv)
+
+        //todo maybe make this precision a preference
+        //round all saved values to 2 decimal places
+        val totalArea = BigDecimal(totalArea).setScale(2, RoundingMode.HALF_EVEN).toDouble()
+        val minAxisA = BigDecimal(minAxisAvg).setScale(2, RoundingMode.HALF_EVEN).toDouble()
+        val minAxisV = BigDecimal(minAxisVar).setScale(2, RoundingMode.HALF_EVEN).toDouble()
+        val minAxisC = BigDecimal(minAxisCv).setScale(2, RoundingMode.HALF_EVEN).toDouble()
+        val maxAxisA = BigDecimal(maxAxisAvg).setScale(2, RoundingMode.HALF_EVEN).toDouble()
+        val maxAxisV = BigDecimal(maxAxisVar).setScale(2, RoundingMode.HALF_EVEN).toDouble()
+        val maxAxisC = BigDecimal(maxAxisCv).setScale(2, RoundingMode.HALF_EVEN).toDouble()
+
+        repo.updateAnalysisData(aid, totalArea, minAxisA, minAxisV, minAxisC, maxAxisA, maxAxisV, maxAxisC)
     }
 
     fun updateAnalysisSelected(aid: Int, selected: Boolean) = viewModelScope.launch {

@@ -373,7 +373,7 @@
     <string name="changelog_title">Changelog</string>
     <string name="libraries_title">Libraries</string>
     <string name="nav_label_about">About</string>
-    <string name="frag_scale_weight_button_text">Weigh</string>
+    <string name="frag_scale_weight_button_text">Save</string>
     <string name="list_item_analysis_weight_action_text">Weigh sample.</string>
     <string name="list_item_analysis_count_action_text">Count sample.</string>
     <string name="frag_setting_coin_title">Coin</string>
@@ -390,6 +390,7 @@
     <string name="frag_analysis_dialog_export_seeds_option">Seeds</string>
     <string name="frag_analysis_dialog_export_cancel_option">Cancel</string>
     <string name="onekk_first_scale_fragment_ask_mac_address">org.wheatgenetics.onekk.FIRST_SCALE_LOAD</string>
+    <string name="onekk_first_coin_load">org.wheatgenetics.onekk.FIRST_COIN_LOAD</string>
     <string name="menu_scale_fragment_ble">Establish a BLE connection.</string>
     <string name="graph_fragment_label">Graph contour stats.</string>
     <string name="menu_contour_list_graph">Graph contour stats.</string>
@@ -443,5 +444,10 @@
     <string name="frag_setting_scale_mode_2">Collect weight and image together.</string>
     <string name="frag_setting_scale_mode_3">Collect weight after image.</string>
     <string name="frag_coin_manager_diff_title_dialog">List of changed coins.</string>
+    <string name="frag_analysis_no_selected_data">Please select data first.</string>
+    <string name="frag_camera_camerax_error">A camera error occurred, please try again.</string>
+    <string name="frag_contour_list_save_button">Save</string>
+    <string name="default_algorithm">Default</string>
+    <string name="large_single_sample_algorithm">LSS</string>
 
 </resources>

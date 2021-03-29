@@ -90,7 +90,7 @@ class AnalysisAdapter(private val listener: OnClickAnalysis) : ListAdapter<Analy
 
                 minAxisVar = shortenString(sqrt(model.minAxisVar ?: 1.0))
 
-                weight = shortenString(model.weight ?: 0.0) + "g"
+                weight = "${model.weight ?: 0.0}g"
 
                 minAxisAvg = shortenString(model.minAxisAvg ?: 0.0)
 

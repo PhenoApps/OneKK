@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.*
 import org.opencv.android.BaseLoaderCallback
 import org.opencv.android.LoaderCallbackInterface
@@ -46,45 +47,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         OnekkViewModelFactory(OnekkRepository.getInstance(db.dao(), db.coinDao()))
     }
 
-    private val mLoaderCallback: BaseLoaderCallback = object : BaseLoaderCallback(this) {
-
-        override fun onManagerConnected(status: Int) {
-
-            when (status) {
-
-                LoaderCallbackInterface.SUCCESS -> {
-
-                    Log.i("OpenCV", "OpenCV loaded successfully")
-
-                }
-
-                else -> {
-
-                    super.onManagerConnected(status)
-
-                }
-            }
-        }
-    }
-
-    override fun onResume() {
-
-        super.onResume()
-
-        if (!OpenCVLoader.initDebug()) {
-
-            Log.d("OpenCV", "Internal OpenCV library not found. Using OpenCV Manager for initialization")
-
-            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_4_0, this, mLoaderCallback)
-
-        } else {
-
-            Log.d("OpenCV", "OpenCV library found inside package. Using it!")
-
-            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS)
-
-        }
-    }
+    var bottomBar: BottomNavigationView? = null
 
     private var doubleBackToExitPressedOnce = false
 
@@ -153,6 +116,23 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
         setupActivity()
 
+        val mPreferences = getSharedPreferences(getString(R.string.onekk_preference_key), MODE_PRIVATE)
+
+        when (mPreferences.getBoolean(getString(R.string.onekk_first_coin_load), true)) {
+
+            true -> {
+
+                initializeCoinPreferences()
+
+                mPreferences.edit().putBoolean(getString(R.string.onekk_first_coin_load), false).apply()
+            }
+        }
+    }
+
+    private fun initializeCoinPreferences() {
+
+        val mPreferences = getSharedPreferences(getString(R.string.onekk_preference_key), MODE_PRIVATE)
+
         viewModel.coins().observeOnce(this, {
 
             it?.let {
@@ -166,8 +146,13 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                     }
                 }
             }
-
         })
+
+        with(mPreferences.edit()) {
+            putString(getString(R.string.onekk_country_pref_key), "USA")
+            putString(getString(R.string.onekk_coin_pref_key), "25 cents")
+            apply()
+        }
     }
 
     private fun setupActivity() {
@@ -181,6 +166,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         setupNavDrawer()
 
         setupNavController()
+
+        bottomBar = mBinding.bottomNavView
 
         supportActionBar.apply {
 
@@ -247,21 +234,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 }
                 R.id.action_to_analysis -> {
 
-                    viewModel.analysis().observeOnce(this, {
-
-                        it?.let { analyses ->
-
-                            if (analyses.isNotEmpty()) {
-
-                                mNavController.navigate(CameraFragmentDirections.globalActionToAnalysis())
-
-                            } else {
-
-                                Toast.makeText(this, R.string.frag_analysis_table_empty_message, Toast.LENGTH_SHORT).show()
-
-                            }
-                        }
-                    })
+                    mNavController.navigate(CameraFragmentDirections.globalActionToAnalysis())
 
                 }
                 R.id.action_nav_about -> {

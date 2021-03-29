@@ -6,6 +6,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.*
 import android.widget.ArrayAdapter
+import android.widget.ImageButton
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.databinding.DataBindingUtil
@@ -15,6 +16,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.*
 import org.wheatgenetics.onekk.R
+import org.wheatgenetics.onekk.activities.MainActivity
 import org.wheatgenetics.onekk.adapters.CoinManagerAdapter
 import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
@@ -76,60 +78,55 @@ class CoinManagerFragment : Fragment(), CoinValueChangedListener, CoroutineScope
             }
         })
 
+        //custom support action toolbar
+        with(mBinding?.toolbar) {
+            this?.findViewById<ImageButton>(R.id.backButton)?.setOnClickListener {
+                findNavController().popBackStack()
+            }
+            this?.findViewById<ImageButton>(R.id.connectButton)?.setOnClickListener {
+                resetCoinDatabase()
+            }
+        }
+
         return mBinding?.root
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
 
-        super.onCreateOptionsMenu(menu, inflater)
+    private fun resetCoinDatabase() {
 
-        inflater.inflate(R.menu.menu_coin_editor_view, menu)
+        activity?.assets?.let { assets ->
 
-    }
+            scope.launch {
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+                val adapter = assets.open("coin_database.csv").use {
+                    ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1,
+                        viewModel.diffCoinDatabase(it)
+                            .await().toTypedArray())
+                }
 
-        when(item.itemId) {
+                activity?.runOnUiThread {
 
-            R.id.action_coin_reset_db -> {
+                    Dialogs.showCoinDiffDialog(adapter,
+                        AlertDialog.Builder(requireContext()),
+                        getString(R.string.frag_coin_manager_diff_title_dialog)) {
 
-                activity?.assets?.let { assets ->
+                        scope.launch {
 
-                    scope.launch {
+                            assets.open("coin_database.csv").use {
 
-                        val adapter = assets.open("coin_database.csv").use {
-                            ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1,
-                                    viewModel.diffCoinDatabase(it)
-                                            .await().toTypedArray())
-                        }
+                                viewModel.loadCoinDatabase(it).await()
 
-                        activity?.runOnUiThread {
+                            }
+                            activity?.runOnUiThread {
 
-                            Dialogs.showCoinDiffDialog(adapter,
-                                    AlertDialog.Builder(requireContext()),
-                                    getString(R.string.frag_coin_manager_diff_title_dialog)) {
+                                findNavController().navigate(SettingsFragmentDirections.globalActionToSettings())
 
-                                scope.launch {
-
-                                    assets.open("coin_database.csv").use {
-
-                                        viewModel.loadCoinDatabase(it).await()
-
-                                    }
-                                    activity?.runOnUiThread {
-
-                                        findNavController().navigate(SettingsFragmentDirections.globalActionToSettings())
-
-                                    }
-                                }
                             }
                         }
                     }
                 }
             }
         }
-
-        return super.onOptionsItemSelected(item)
     }
 
     /**

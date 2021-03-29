@@ -1,10 +1,11 @@
 <resources>
 
-    <style name="AppTheme" parent="Theme.MaterialComponents.Light">
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
-
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
         <item name="buttonStyle">@style/ButtonStyle</item>
     </style>
 
@@ -42,6 +43,11 @@
     <style name="Text">
         <item name="android:textSize">@dimen/text_size</item>
         <item name="android:ellipsize">end</item>
+    </style>
+
+    <style name="Text.CountTitle">
+        <item name="android:textSize">@dimen/text_count_size</item>
+        <item name="android:textAlignment">center</item>
     </style>
 
     <style name="Text.ObservationUnit">

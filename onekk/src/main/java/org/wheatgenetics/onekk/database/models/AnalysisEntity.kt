@@ -30,6 +30,9 @@ data class AnalysisEntity(
         @ColumnInfo(name = "uri")
         var uri: String? = null,
 
+        @ColumnInfo(name = "src")
+        var src: String? = null,
+
         @ColumnInfo(name = "collector")
         var collector: String? = null,
 
@@ -50,6 +53,9 @@ data class AnalysisEntity(
 
         @ColumnInfo(name = "maxAxisCv")
         var maxAxisCv: Double? = null,
+
+        @ColumnInfo(name = "totalArea")
+        var totalArea: Double? = null,
 
         @ColumnInfo(name = "aid")
         @PrimaryKey(autoGenerate = true)

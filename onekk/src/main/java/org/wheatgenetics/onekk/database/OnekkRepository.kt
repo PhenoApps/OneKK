@@ -105,10 +105,10 @@ class OnekkRepository
         dao.updateAnalysisCount(aid, count)
     }
 
-    suspend fun updateAnalysisData(aid: Int,
+    suspend fun updateAnalysisData(aid: Int, totalArea: Double,
                                          minAxisAvg: Double, minAxisVar: Double, minAxisCv: Double,
                                          maxAxisAvg: Double, maxAxisVar: Double, maxAxisCv: Double) = withContext(Dispatchers.IO) {
-        dao.updateAnalysisData(aid, minAxisAvg, minAxisVar, minAxisCv, maxAxisAvg, maxAxisVar, maxAxisCv)
+        dao.updateAnalysisData(aid, totalArea, minAxisAvg, minAxisVar, minAxisCv, maxAxisAvg, maxAxisVar, maxAxisCv)
     }
 
     suspend fun updateAnalysisSelected(aid: Int, selected: Boolean) = withContext(Dispatchers.IO) {

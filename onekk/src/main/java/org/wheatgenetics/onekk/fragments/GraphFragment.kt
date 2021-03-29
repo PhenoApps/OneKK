@@ -4,10 +4,12 @@ import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
 import android.view.*
+import android.widget.ImageButton
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import com.google.android.material.tabs.TabLayout
 import com.jjoe64.graphview.GraphView
 import com.jjoe64.graphview.series.BarGraphSeries
@@ -15,6 +17,7 @@ import com.jjoe64.graphview.series.DataPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import org.wheatgenetics.onekk.R
+import org.wheatgenetics.onekk.activities.MainActivity
 import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
 import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
@@ -75,6 +78,13 @@ class GraphFragment : Fragment(), CoroutineScope by MainScope() {
             }
         })
 
+        //custom support action toolbar
+        with(mBinding?.toolbar) {
+            this?.findViewById<ImageButton>(R.id.backButton)?.setOnClickListener {
+                findNavController().popBackStack()
+            }
+        }
+
         //force area graph to be ch
         loadGraph(getString(R.string.graph_tab_area))
 
@@ -88,7 +98,7 @@ class GraphFragment : Fragment(), CoroutineScope by MainScope() {
 
         val areaOption = getString(R.string.graph_tab_area)
         val widthOption = getString(R.string.graph_tab_width)
-        val lengthOption = getString(R.string.graph_tab_length)
+       // val lengthOption = getString(R.string.graph_tab_length)
 
         sViewModel.contours(aid).observe(viewLifecycleOwner, { data ->
 
@@ -100,7 +110,7 @@ class GraphFragment : Fragment(), CoroutineScope by MainScope() {
                     val nonEmpty = sample.filter { x -> (x.contour?.count ?: 0) == 1 }
 
                     //sort by the given variable (from the parameter)
-                    val data = when (variable) {
+                    val sortedData = when (variable) {
 
                         areaOption -> {
 
@@ -119,15 +129,15 @@ class GraphFragment : Fragment(), CoroutineScope by MainScope() {
                         }
                     }
 
-                    val mean = data.reduceRight { x, y -> x + y } / data.size
+                    //val mean = data.reduceRight { x, y -> x + y } / data.size
 
-                    val variance = variance(data, mean, data.size)
+                    //val variance = variance(data, mean, data.size)
 
-                    val stdDev = sqrt(variance)
+                    //val stdDev = sqrt(variance)
 
 //                    val bell = areas.mapNotNull { x -> DataPoint(x, getY(x, variance, mean, stdDev)) }
 
-                    setViewportGrid(mBinding!!.graphView)
+                   // setViewportGrid(mBinding!!.graphView)
 
 //                    setViewport(bell.minOf { it.x }, bell.maxOf { it.x }, bell.minOf { it.y }, bell.maxOf { it.y }, mBinding!!.graphView)
 
@@ -137,7 +147,8 @@ class GraphFragment : Fragment(), CoroutineScope by MainScope() {
 
                     //renderNormal(mBinding!!.graphView, points)
 
-                    displayHistogram(mBinding!!.graphView, BarGraphSeries(), sturgeRule(data.size.toDouble()).toInt(), data.toDoubleArray())
+                    displayHistogram(mBinding!!.graphView, BarGraphSeries(),
+                        sturgeRule(data.size.toDouble()).toInt(), sortedData.toDoubleArray())
                 }
             }
         })
@@ -196,88 +207,74 @@ class GraphFragment : Fragment(), CoroutineScope by MainScope() {
 
         graph.removeAllSeries()
 
-        series.color = Color.rgb(0, 255, 0)
+        series.color = context?.getColor(R.color.colorAccent) ?: Color.rgb(0, 255, 0)
+
+        series.valuesOnTopColor = context?.getColor(R.color.colorPrimary) ?: Color.rgb(0, 0, 255)
 
         series.isDrawValuesOnTop = true
 
-        series.valuesOnTopColor = Color.RED
-
         graph.addSeries(series)
 
+        graph.viewport.isScalable = true
+        graph.viewport.isScrollable = true
     }
 
     private fun variance(population: List<Double>, mean: Double, n: Int) =
             population.map { (it - mean).pow(2.0) }.sum() / (n - 1)
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
 
-        super.onCreateOptionsMenu(menu, inflater)
+//    private fun setViewportGrid(graph: GraphView) = with(graph){
+//
+////    this.title = title
+////        gridLabelRenderer.gridStyle = GridLabelRenderer.GridStyle.BOTH
+////        gridLabelRenderer.isHorizontalLabelsVisible=false
+////        gridLabelRenderer.isVerticalLabelsVisible=false
+////    gridLabelRenderer.horizontalAxisTitle = xAxis
+////    gridLabelRenderer.verticalAxisTitle = yAxis
+//
+//    }
 
-//        inflater.inflate(R.menu.menu_contour_view, menu)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-
-        when (item.itemId) {
-
-            else -> return super.onOptionsItemSelected(item)
-        }
-
-//        return true
-    }
-
-    private fun setViewportGrid(graph: GraphView) = with(graph){
-
-//    this.title = title
-//        gridLabelRenderer.gridStyle = GridLabelRenderer.GridStyle.BOTH
-//        gridLabelRenderer.isHorizontalLabelsVisible=false
-//        gridLabelRenderer.isVerticalLabelsVisible=false
-//    gridLabelRenderer.horizontalAxisTitle = xAxis
-//    gridLabelRenderer.verticalAxisTitle = yAxis
-
-    }
-
-    fun setViewport(minX: Double, maxX: Double, minY: Double, maxY: Double, graph: GraphView) = with(graph) {
-
-        // set manual X bounds
-        viewport.isXAxisBoundsManual = true
-        viewport.setMinX(minX)
-        viewport.setMaxX(maxX)
-
-        // set manual Y bounds
-        viewport.isYAxisBoundsManual = true
-        viewport.setMinY(minY)
-        viewport.setMaxY(maxY)
-
-        // activate horizontal zooming and scrolling
-        viewport.setScalable(true)
-
-// activate horizontal scrolling
-        viewport.setScrollable(true)
-
-// activate horizontal and vertical zooming and scrolling
-        viewport.setScalableY(true)
-
-// activate vertical scrolling
-        viewport.setScrollableY(true)
-
-    }
-
-    fun renderNormal(graph: GraphView, data: List<DataPoint>) = with(graph) {
-
-        graph.removeAllSeries()
-
-        val plot = BarGraphSeries(data.toTypedArray())
-
-        plot.color = Color.rgb(0, 255, 0)
-
-        plot.isDrawValuesOnTop = true
-
-        plot.spacing = 50
-
-        plot.valuesOnTopColor = Color.RED
-
-        graph.addSeries(plot)
-
-    }
+//    fun setViewport(minX: Double, maxX: Double, minY: Double, maxY: Double, graph: GraphView) = with(graph) {
+//
+//        // set manual X bounds
+//        viewport.isXAxisBoundsManual = true
+//        viewport.setMinX(minX)
+//        viewport.setMaxX(maxX)
+//
+//        // set manual Y bounds
+//        viewport.isYAxisBoundsManual = true
+//        viewport.setMinY(minY)
+//        viewport.setMaxY(maxY)
+//
+//        // activate horizontal zooming and scrolling
+//        viewport.setScalable(true)
+//
+//// activate horizontal scrolling
+//        viewport.setScrollable(true)
+//
+//// activate horizontal and vertical zooming and scrolling
+//        viewport.setScalableY(true)
+//
+//// activate vertical scrolling
+//        viewport.setScrollableY(true)
+//
+//    }
+//
+//    fun renderNormal(graph: GraphView, data: List<DataPoint>) = with(graph) {
+//
+//        graph.removeAllSeries()
+//
+//        val plot = BarGraphSeries(data.toTypedArray())
+//
+//        plot.color = Color.rgb(0, 255, 0)
+//
+//        plot.isDrawValuesOnTop = true
+//
+//        plot.spacing = 50
+//
+//        plot.valuesOnTopColor = Color.RED
+//
+//        graph.addSeries(plot)
+//
+//    }
 }

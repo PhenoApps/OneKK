@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <external-media-path
+        name="captures"
+        path="."/>
+    <external-media-path
+        name="analyzed"
+        path="."/>
+</paths>

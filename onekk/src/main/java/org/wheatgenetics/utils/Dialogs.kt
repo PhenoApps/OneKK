@@ -6,7 +6,6 @@ import android.graphics.Bitmap
 import android.widget.ArrayAdapter
 import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
-import org.wheatgenetics.imageprocess.DetectWithReferences
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.databinding.DialogCoinRecognitionBinding
 

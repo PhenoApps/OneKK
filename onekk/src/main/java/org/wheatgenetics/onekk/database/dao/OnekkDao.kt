@@ -52,8 +52,8 @@ interface OnekkDao {
     @Query("UPDATE analysis SET tkw = :tkw WHERE aid = :aid")
     suspend fun updateAnalysisTkw(aid: Int, tkw: Double)
 
-    @Query("UPDATE analysis SET minAxisAvg = :minAxisAvg, minAxisVar = :minAxisVar, minAxisCv = :minAxisCv, maxAxisAvg = :maxAxisAvg, maxAxisVar = :maxAxisVar, maxAxisCv = :maxAxisCv WHERE aid = :aid")
-    suspend fun updateAnalysisData(aid: Int, minAxisAvg: Double, minAxisVar: Double, minAxisCv: Double,
+    @Query("UPDATE analysis SET totalArea = :totalArea, minAxisAvg = :minAxisAvg, minAxisVar = :minAxisVar, minAxisCv = :minAxisCv, maxAxisAvg = :maxAxisAvg, maxAxisVar = :maxAxisVar, maxAxisCv = :maxAxisCv WHERE aid = :aid")
+    suspend fun updateAnalysisData(aid: Int, totalArea: Double, minAxisAvg: Double, minAxisVar: Double, minAxisCv: Double,
                                    maxAxisAvg: Double, maxAxisVar: Double, maxAxisCv: Double)
 
     @Query("UPDATE analysis SET selected = :selected WHERE aid = :aid")

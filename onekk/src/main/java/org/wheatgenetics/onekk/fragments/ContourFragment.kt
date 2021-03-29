@@ -6,6 +6,8 @@ import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.Handler
 import android.view.*
+import android.widget.ImageButton
+import android.widget.TextView
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -18,6 +20,7 @@ import kotlinx.coroutines.*
 import org.opencv.core.CvException
 import org.wheatgenetics.imageprocess.DrawSelectedContour
 import org.wheatgenetics.onekk.R
+import org.wheatgenetics.onekk.activities.MainActivity
 import org.wheatgenetics.onekk.adapters.ContourAdapter
 import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
@@ -46,6 +49,7 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
     }
 
+    private val mUpdateMap = HashMap<Int, Int>()
     private var mSourceBitmap: String? = null
     private var aid by Delegates.notNull<Int>()
     private var mSortState: Boolean = true
@@ -64,11 +68,19 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
         setHasOptionsMenu(true)
 
-        mBinding?.setupRecyclerView(aid)
+        mBinding?.setupRecyclerView()
 
         mBinding?.setupHeaderSortButtons()
 
         updateUi(aid)
+
+        //custom support action toolbar
+        with(mBinding?.toolbar) {
+            //create back button listener in toolbar
+            this?.findViewById<ImageButton>(R.id.backButton)?.setOnClickListener {
+                findNavController().popBackStack()
+            }
+        }
 
         sViewModel.getSourceImage(aid).observeOnce(viewLifecycleOwner, { uri ->
 
@@ -85,22 +97,11 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
             mBinding?.imageView?.visibility = View.VISIBLE
 
-            mBinding?.imageLoadingTextView?.visibility = View.GONE
         })
 
-        mBinding?.submitButton?.text = getString(R.string.frag_contour_list_button_loading)
+        mBinding?.setupButtons()
 
-        sViewModel.contours(aid).observeOnce(viewLifecycleOwner, { contours ->
-
-            if (contours.isNotEmpty()) {
-
-                val count = contours.filter { it.selected }.mapNotNull { it.contour?.count }.reduceRight { x, y ->  y + x }
-
-                submitButton?.text = "$count"
-
-                mBinding?.setupButtons(count)
-            }
-        })
+        updateTotal()
 
         return mBinding?.root
     }
@@ -154,7 +155,7 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
             try {
 
-                DrawSelectedContour().process(bmp, x, y, cluster, minAxis, maxAxis)
+                DrawSelectedContour(context).process(bmp, x, y, cluster, minAxis, maxAxis)
 
             } catch (e: CvException) {
 
@@ -192,7 +193,6 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
                         cid
                     }
-
                 }
             }
 
@@ -203,20 +203,33 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
         }
     }
 
+    //whenever a user-adjustment occurs, update the title.
+    //this isn't saved in the database until the submit button is pressed.
     private fun updateTotal() = try {
 
         activity?.let {
 
             sViewModel.contours(aid).observeOnce(viewLifecycleOwner, { contours ->
 
-                val count = contours.filter { it.selected }.mapNotNull { it.contour?.count }.reduceRight { x, y ->  y + x }
+                //update the count in the toolbar
+                if (contours.isNotEmpty()) {
 
-                sViewModel.updateAnalysisCount(aid, count)
+                    //use the update map to adjust count when the save button is pressed
+                    val count = contours.filter { it.selected }.mapNotNull {
+                        if (it.cid in mUpdateMap.keys) {
+                            val adjustedCount = mUpdateMap[it.cid] ?: 0
+                            it.cid?.let { id ->
+                                launch {
+                                    sViewModel.updateContourCount(id, adjustedCount)
+                                }
+                            }
+                            adjustedCount
+                        } else it.contour?.count
+                    }.reduceRight { x, y -> y + x }
 
-                it.runOnUiThread {
-
-                    mBinding?.submitButton?.text = count.toString()
-
+                    (activity as? MainActivity)?.supportActionBar?.let {
+                        it.customView.findViewById<TextView>(R.id.countTextView)?.text = "$count"
+                    }
                 }
             })
         }
@@ -227,28 +240,13 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
     }
 
+    //interface listener for the contour adapter
     override fun onCountEdited(cid: Int, count: Int) {
 
-        try {
+        mUpdateMap[cid] = count
 
-            launch {
+        updateTotal()
 
-                sViewModel.updateContourCount(cid, count)
-
-                activity?.runOnUiThread {
-
-                    updateTotal()
-
-                    updateUi(aid)
-                }
-
-            }
-
-        } catch (e: Exception) {
-
-            e.printStackTrace()
-
-        }
     }
 
     override fun onChoiceSwapped(id: Int, selected: Boolean) {
@@ -272,58 +270,62 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
         }
     }
 
-    private fun FragmentContourListBinding.setupButtons(count: Int) {
+    private fun FragmentContourListBinding.setupButtons() {
 
         submitButton.setOnClickListener {
 
-            try {
+            sViewModel.contours(aid).observeOnce(viewLifecycleOwner, { contours ->
 
-                sViewModel.updateAnalysisCount(aid, count)
+                //update the count in the toolbar
+                if (contours.isNotEmpty()) {
 
-                when (mPreferences.getString(getString(R.string.onekk_preference_mode_key), "1")) {
+                    //use the update map to adjust count when the save button is pressed
+                    val count = contours.filter { it.selected }.mapNotNull {
+                        if (it.cid in mUpdateMap.keys) {
+                            val adjustedCount = mUpdateMap[it.cid] ?: 0
+                            it.cid?.let { id ->
+                                launch {
+                                    sViewModel.updateContourCount(id, adjustedCount)
+                                }
+                            }
+                            adjustedCount
+                        }
+                        else it.contour?.count
+                    }.reduceRight { x, y ->  y + x }
 
-                    "1", "2" -> findNavController().popBackStack()
+                    (activity as? MainActivity)?.supportActionBar?.let {
+                        it.customView.findViewById<TextView>(R.id.countTextView)?.text = "$count"
+                    }
 
-                    else -> findNavController().navigate(ContourFragmentDirections.actionToScale(aid))
+                    try {
+
+                        sViewModel.updateAnalysisCount(aid, count)
+
+                        when (mPreferences.getString(getString(R.string.onekk_preference_mode_key), "1")) {
+
+                            "1", "2" -> findNavController().popBackStack()
+
+                            else -> findNavController().navigate(ContourFragmentDirections.actionToScale(aid))
+                        }
+
+                    } catch (e: Exception) {
+
+                        e.printStackTrace()
+
+                    }
                 }
-
-            } catch (e: Exception) {
-
-                e.printStackTrace()
-
-            }
+            })
         }
     }
 
-    private fun FragmentContourListBinding.setupRecyclerView(aid: Int) {
+    private fun FragmentContourListBinding.setupRecyclerView() {
 
-        recyclerView?.layoutManager = LinearLayoutManager(requireContext())
-
-        recyclerView?.adapter = ContourAdapter(this@ContourFragment)
-
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-
-        super.onCreateOptionsMenu(menu, inflater)
-
-        inflater.inflate(R.menu.menu_contour_view, menu)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-
-        when (item.itemId) {
-
-//            R.id.action_graph -> {
-//
-//                findNavController().navigate(ContourFragmentDirections.actionToGraph(aid))
-//
-//            }
-
-            else -> return super.onOptionsItemSelected(item)
+        recyclerView.layoutManager = LinearLayoutManager(context).apply {
+            orientation = LinearLayoutManager.VERTICAL
         }
 
-        return true
+        recyclerView.adapter = ContourAdapter(this@ContourFragment)
+
     }
 
     private fun updateUi(aid: Int) {

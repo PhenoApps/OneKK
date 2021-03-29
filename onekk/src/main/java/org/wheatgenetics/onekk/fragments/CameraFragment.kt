@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.net.Uri
+import android.os.AsyncTask
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.Log
@@ -16,53 +17,39 @@ import androidx.appcompat.app.AlertDialog
 import androidx.camera.core.*
 import androidx.camera.core.Camera
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
-import androidx.core.net.toFile
 import androidx.core.net.toUri
+import androidx.core.view.MarginLayoutParamsCompat
+import androidx.core.view.marginBottom
+import androidx.core.view.setMargins
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.fragment.findNavController
 import androidx.work.*
-import com.bumptech.glide.Glide
 import com.polidea.rxandroidble2.RxBleClient
 import com.polidea.rxandroidble2.helpers.ValueInterpreter
 import kotlinx.coroutines.*
-import org.wheatgenetics.imageprocess.DetectWithReferences
 import org.wheatgenetics.onekk.R
-import org.wheatgenetics.onekk.analyzers.Detector
 import org.wheatgenetics.onekk.database.OnekkDatabase
-import org.wheatgenetics.onekk.database.OnekkRepository
-import org.wheatgenetics.onekk.database.models.AnalysisEntity
-import org.wheatgenetics.onekk.database.models.ContourEntity
-import org.wheatgenetics.onekk.database.models.ImageEntity
-import org.wheatgenetics.onekk.database.models.embedded.Contour
-import org.wheatgenetics.onekk.database.models.embedded.Image
 import org.wheatgenetics.onekk.database.viewmodels.BarcodeSharedViewModel
-import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
-import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentCameraBinding
 import org.wheatgenetics.onekk.interfaces.BleNotificationListener
 import org.wheatgenetics.onekk.interfaces.BleStateListener
-import org.wheatgenetics.onekk.interfaces.DetectorAlgorithm
-import org.wheatgenetics.onekk.interfaces.DetectorListener
 import org.wheatgenetics.onekk.toBitmap
 import org.wheatgenetics.onekk.toFile
 import org.wheatgenetics.utils.BluetoothUtil
 import org.wheatgenetics.utils.DateUtil
 import org.wheatgenetics.utils.Dialogs
 import org.wheatgenetics.workers.ImageSaveWorker
-import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import kotlin.math.sqrt
 
 /**
  * This fragment uses the CameraX analysis API. The use-cases used are preview and image capture.
@@ -77,10 +64,6 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
         OnekkDatabase.getInstance(requireContext())
     }
 
-    private val viewModel by viewModels<ExperimentViewModel> {
-        OnekkViewModelFactory(OnekkRepository.getInstance(db.dao(), db.coinDao()))
-    }
-
     private val barcodeViewModel: BarcodeSharedViewModel by activityViewModels()
 
     private val mPreferences by lazy {
@@ -91,7 +74,6 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
         BluetoothUtil(requireContext())
     }
 
-    private lateinit var outputDirectory: File
     private lateinit var captureDirectory: File
 
     private val scope by lazy { CoroutineScope(Dispatchers.IO) }
@@ -168,7 +150,6 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
 
-        private val scope = CoroutineScope(Dispatchers.IO)
     }
 
     private fun setupFragment() {
@@ -181,6 +162,36 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        /**
+         * Modify the UI based on the scale input mode. If weight is not taken,
+         * make the corresponding views invisible and reconnect the constraints.
+         */
+        when (mPreferences?.getString(getString(R.string.onekk_preference_mode_key), "1")) {
+            "1", "3" -> {
+                mBinding?.weightLockButton?.visibility = View.GONE
+                mBinding?.weightEditText?.visibility = View.GONE
+                val constraintSet = ConstraintSet()
+                constraintSet.clone(mBinding?.parent)
+                constraintSet.connect(R.id.nameEditText, ConstraintSet.END, R.id.camera_capture_button, ConstraintSet.START)
+                constraintSet.connect(R.id.camera_capture_button, ConstraintSet.START, R.id.nameEditText, ConstraintSet.END)
+                constraintSet.connect(R.id.camera_capture_button, ConstraintSet.BOTTOM, R.id.parent, ConstraintSet.BOTTOM)
+                constraintSet.connect(R.id.nameEditText, ConstraintSet.BOTTOM, R.id.parent, ConstraintSet.BOTTOM)
+                constraintSet.connect(R.id.barcode_scan_button, ConstraintSet.BOTTOM, R.id.parent, ConstraintSet.BOTTOM)
+                constraintSet.connect(R.id.progress_bar, ConstraintSet.START, R.id.nameEditText, ConstraintSet.END)
+                constraintSet.connect(R.id.progress_bar, ConstraintSet.END, R.id.parent, ConstraintSet.END)
+
+                constraintSet.applyTo(mBinding?.parent)
+
+                val params = mBinding?.nameEditText?.layoutParams as ConstraintLayout.LayoutParams
+                params.bottomMargin = context?.resources?.getDimension(R.dimen.default_margin)?.toInt() ?: 8
+                mBinding?.nameEditText?.layoutParams = params
+            }
+        }
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
 
@@ -188,16 +199,31 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
         with(mBinding) {
 
-            getOutputDirectory()?.let { output ->
-
-                outputDirectory = output
-
-            }
-
             getCaptureDirectory()?.let { dir ->
 
                 captureDirectory = dir
 
+            }
+
+            with (this?.weightLockButton) {
+
+                this?.tag = "unlocked"
+
+                this?.setOnClickListener {
+
+                    this.tag = when (tag) {
+                        "locked" -> {
+                            this.setImageResource(R.drawable.ic_weight_unlock)
+                            mBinding?.weightEditText?.isEnabled = true
+                            "unlocked"
+                        }
+                        else -> {
+                            this.setImageResource(R.drawable.ic_weight_lock)
+                            mBinding?.weightEditText?.isEnabled = false
+                            "locked"
+                        }
+                    }
+                }
             }
 
             barcodeViewModel.lastScan.observe(viewLifecycleOwner, {
@@ -369,6 +395,10 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
                                 mBinding?.weightEditText?.setText("")
 
+                                mBinding?.weightEditText?.isEnabled = true
+
+                                mBinding?.weightLockButton?.setImageResource(R.drawable.ic_weight_unlock)
+
                                 it.outputData.getString("dst")?.let { outputImage ->
 
                                     val dst = BitmapFactory.decodeFile(outputImage)
@@ -403,31 +433,13 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
         val weightText = weight.toDoubleOrNull() ?: 0.0
 
-        runOnUiThread {
+        if (mBinding?.weightEditText?.tag == "unlocked") {
+            runOnUiThread {
 
-            findViewById<TextView>(R.id.weightEditText)?.text = weightText.toString()
+                findViewById<TextView>(R.id.weightEditText)?.text = weightText.toString()
 
+            }
         }
-    }
-
-    //externalMediaDirs pictures are located in /storage/primary/Android/media/org.wheatgenetics.onekk/OneKK
-    private fun getOutputDirectory(): File? {
-
-        val mediaDir = context?.externalMediaDirs?.firstOrNull()?.let {
-            File(it, resources.getString(R.string.app_name)).apply { mkdirs() } }
-
-        return if (mediaDir != null && mediaDir.exists())
-            mediaDir else context?.filesDir
-    }
-
-    //externalMediaDirs pictures are located in /storage/primary/Android/media/org.wheatgenetics.onekk/OneKK
-    private fun getCaptureDirectory(): File? {
-
-        val mediaDir = context?.externalMediaDirs?.firstOrNull()?.let {
-            File(it, resources.getString(R.string.app_name) + "Captures").apply { mkdirs() } }
-
-        return if (mediaDir != null && mediaDir.exists())
-            mediaDir else context?.filesDir
     }
 
     override fun onDestroy() {
@@ -444,6 +456,15 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
         cameraExecutor.shutdown()
 
+    }
+
+    private fun getCaptureDirectory(): File? {
+
+        val mediaDir = context?.externalMediaDirs?.firstOrNull()?.let {
+            File(it, "captures").apply { mkdirs() } }
+
+        return if (mediaDir != null && mediaDir.exists())
+            mediaDir else context?.filesDir
     }
 
     /**
@@ -488,20 +509,21 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
                     if (name.isNotBlank() && (scaleMode != "2" || weight != null)) {
 
+                        cameraProvider.unbind(preview)
+
                         mBinding?.toggleDetectorProgress(true)
 
-                        highResImageCapture.takePicture(cameraExecutor,
+                        //if something goes wrong with camerax, catch the exception and reset ui
+                        try {
+                            highResImageCapture.takePicture(cameraExecutor,
                                 object : ImageCapture.OnImageCapturedCallback() {
-                                    override fun onCaptureSuccess(proxy: ImageProxy) {
 
-                                        activity?.runOnUiThread {
-                                            cameraProvider.unbind(preview)
-                                        }
+                                    override fun onCaptureSuccess(proxy: ImageProxy) {
 
                                         val fileName = "${name}_${DateUtil().getTime()}.png"
 
                                         val file = proxy.toBitmap().toFile(
-                                            context?.externalCacheDir?.path.toString(),
+                                            captureDirectory.path,
                                             fileName
                                         )
 
@@ -514,9 +536,24 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
                                     override fun onError(exception: ImageCaptureException) {
                                         super.onError(exception)
-                                        println("error")
+
+                                        exception.printStackTrace()
+
+                                        mBinding?.toggleDetectorProgress(true)
+
+                                        Toast.makeText(context, R.string.frag_camera_camerax_error, Toast.LENGTH_SHORT).show()
                                     }
                                 })
+                        } catch (e: Exception) {
+
+                            e.printStackTrace()
+
+                            mBinding?.toggleDetectorProgress(false)
+
+                            Toast.makeText(context, R.string.frag_camera_camerax_error, Toast.LENGTH_SHORT).show()
+
+                        }
+
                     } else {
 
                         //display input error messages

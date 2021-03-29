@@ -12,6 +12,7 @@ import com.google.zxing.ResultPoint
 import com.journeyapps.barcodescanner.BarcodeCallback
 import com.journeyapps.barcodescanner.BarcodeResult
 import org.wheatgenetics.onekk.R
+import org.wheatgenetics.onekk.activities.MainActivity
 import org.wheatgenetics.onekk.database.viewmodels.BarcodeSharedViewModel
 import org.wheatgenetics.onekk.databinding.FragmentBarcodeBinding
 
@@ -41,7 +42,6 @@ class BarcodeScanFragment: Fragment() {
             override fun possibleResultPoints(resultPoints: List<ResultPoint>) {
 
             }
-
         }
 
         mBinding?.zxingBarcodeScanner?.barcodeView.apply {
@@ -56,6 +56,9 @@ class BarcodeScanFragment: Fragment() {
 
             this?.decodeSingle(mCallback)
         }
+
+        //hide default toolbar
+        (activity as? MainActivity)?.supportActionBar?.hide()
 
         return mBinding?.root
 

@@ -2,8 +2,10 @@ package org.wheatgenetics.onekk.fragments
 
 import android.os.Bundle
 import android.view.*
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -12,6 +14,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.*
 import org.wheatgenetics.onekk.R
+import org.wheatgenetics.onekk.activities.MainActivity
 import org.wheatgenetics.onekk.adapters.AnalysisAdapter
 import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
@@ -55,7 +58,9 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
 
         with(mBinding) {
 
-            this?.recyclerView?.layoutManager = LinearLayoutManager(requireContext())
+            this?.recyclerView?.layoutManager = LinearLayoutManager(context).apply {
+                orientation = LinearLayoutManager.VERTICAL
+            }
 
             this?.updateUi()
         }
@@ -67,9 +72,10 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
 
         }
 
-        setHasOptionsMenu(true)
+        mBinding?.setupTopToolbar()
 
         return mBinding?.root
+
     }
 
     override fun onResume() {
@@ -80,20 +86,14 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
 
     private fun FragmentAnalysisManagerBinding.updateUi() {
 
+
         viewModel.getExampleImages().observeForever { uri ->
 
             uri?.let { images ->
 
                 viewModel.analysis().observeOnce(this@AnalysisFragment, {
 
-                    if (it.isEmpty()) {
-
-                        Toast.makeText(requireContext(), R.string.frag_analysis_table_empty_message, Toast.LENGTH_SHORT).show()
-
-                        findNavController().popBackStack()
-                    }
-
-                    this?.recyclerView?.adapter = AnalysisAdapter(this@AnalysisFragment)
+                    this.recyclerView.adapter = AnalysisAdapter(this@AnalysisFragment)
 
                     (this.recyclerView.adapter as? AnalysisAdapter)?.submitList(
                             it.sortedByDescending { analyses -> analyses.date })
@@ -143,7 +143,7 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
 
         val outputFilePrefix = getString(R.string.export_file_prefix)
 
-        val fileName = "$outputFilePrefix${DateUtil().getTime()}"
+        val fileName = "$outputFilePrefix${DateUtil().getTime()}.csv"
 
         Dialogs.booleanOption(AlertDialog.Builder(requireContext()),
                 getString(R.string.frag_analysis_dialog_export_title),
@@ -163,45 +163,52 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+    private inline fun onSelectedNotEmpty(function: (List<AnalysisEntity>?) -> Unit) {
 
-        super.onCreateOptionsMenu(menu, inflater)
+        (mBinding?.recyclerView?.adapter as? AnalysisAdapter)
+            ?.currentList?.filter { it.selected }?.let { data ->
 
-        inflater.inflate(R.menu.menu_analysis_view, menu)
+                if (data.isNotEmpty()) {
+
+                    function(data)
+
+                } else {
+
+                    Toast.makeText(context, R.string.frag_analysis_no_selected_data, Toast.LENGTH_SHORT).show()
+
+                }
+            }
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+    private fun FragmentAnalysisManagerBinding.setupTopToolbar() {
 
-        when (item.itemId) {
-
-            R.id.action_delete -> {
-
-                askDelete()
+        with (mBinding?.toolbar) {
+            this?.findViewById<ImageButton>(R.id.backButton)?.setOnClickListener {
+                findNavController().popBackStack()
             }
-
-            R.id.action_export -> {
-
-               (mBinding?.recyclerView?.adapter as? AnalysisAdapter)
-                    ?.currentList?.filter { it.selected }?.let { data ->
-
-                        exportFile(data)
-
-                    }
+            this?.findViewById<ImageButton>(R.id.importButton)?.setOnClickListener {
+                findNavController().navigate(AnalysisFragmentDirections.globalActionToImport(mode = "import"))
             }
-
-            R.id.action_select_all -> {
-
+            this?.findViewById<ImageButton>(R.id.selectAllButton)?.setOnClickListener {
                 viewModel.updateSelectAllAnalysis(mSelectMode)
 
                 mSelectMode = !mSelectMode
 
                 mBinding?.updateUi()
             }
-
-            else -> return super.onOptionsItemSelected(item)
+            this?.findViewById<ImageButton>(R.id.exportButton)?.setOnClickListener {
+                onSelectedNotEmpty {
+                   it?.let { data ->
+                       exportFile(data)
+                   }
+               }
+            }
+            this?.findViewById<ImageButton>(R.id.deleteButton)?.setOnClickListener {
+                onSelectedNotEmpty {
+                    askDelete()
+                }
+            }
         }
-
-        return true
     }
 
     private fun askDelete() {

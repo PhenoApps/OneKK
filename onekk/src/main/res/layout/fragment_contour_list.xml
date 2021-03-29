@@ -17,17 +17,13 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <TextView
-            android:id="@+id/imageLoadingTextView"
-            android:text="@string/frag_contour_list_image_loading"
-            android:visibility="visible"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+        <include layout="@layout/contour_list_toolbar"
+            android:id="@+id/toolbar"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/recyclerView"/>
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
 
         <ImageView
             android:id="@+id/imageView"
@@ -36,7 +32,7 @@
             android:layout_height="0dp"
             android:layout_marginTop="16dp"
             android:contentDescription="@string/frag_contour_list_image_content_description"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/toolbar"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintBottom_toTopOf="@id/contour_header"
             app:layout_constraintEnd_toEndOf="parent"/>
@@ -69,26 +65,15 @@
             app:layout_constraintTop_toBottomOf="@+id/contour_header"
             tools:listitem="@layout/list_item_contour" />
 
-        <TextView style="@style/Text.ContourListTextTotal"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:id="@+id/totalCountView"
-            tools:text="Total: "
-            android:text="@string/frag_contour_list_total_count_prefix"
-            app:layout_constraintBaseline_toBaselineOf="@id/submitButton"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/recyclerView"
-            app:layout_constraintEnd_toStartOf="@id/submitButton"/>
-
         <Button
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
+            android:layout_margin="16dp"
             android:id="@+id/submitButton"
-            android:text=""
+            android:text="@string/frag_contour_list_save_button"
             android:textSize="24sp"
             app:layout_constraintTop_toBottomOf="@id/recyclerView"
-            app:layout_constraintStart_toEndOf="@id/totalCountView"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"/>
 

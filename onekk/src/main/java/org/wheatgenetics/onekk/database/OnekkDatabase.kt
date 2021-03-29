@@ -47,7 +47,7 @@ abstract class OnekkDatabase : RoomDatabase() {
     }
 
     /**
-     * The database mStringust enable foreign keys using pragma to cascade deletes.
+     * The database must enable foreign keys using pragma to cascade deletes.
      */
     override fun init(configuration: DatabaseConfiguration) {
 
