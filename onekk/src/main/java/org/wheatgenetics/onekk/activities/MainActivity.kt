@@ -4,20 +4,13 @@ import android.os.Bundle
 import android.os.Handler
 import android.util.Log
 import android.view.View
-import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
-import androidx.activity.ComponentActivity
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.*
-import org.opencv.android.BaseLoaderCallback
-import org.opencv.android.LoaderCallbackInterface
-import org.opencv.android.OpenCVLoader
 import org.wheatgenetics.onekk.BuildConfig
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.database.OnekkDatabase
@@ -47,7 +40,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         OnekkViewModelFactory(OnekkRepository.getInstance(db.dao(), db.coinDao()))
     }
 
-    var bottomBar: BottomNavigationView? = null
+    //var bottomBar: BottomNavigationView? = null
 
     private var doubleBackToExitPressedOnce = false
 
@@ -107,7 +100,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
             Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
 
-                Log.e("OneKKCrash", throwable.message)
+                Log.e("OneKKCrash", throwable.message ?: "")
 
                 throwable.printStackTrace()
 
@@ -141,7 +134,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
                     launch(Dispatchers.IO) {
 
-                        viewModel.loadCoinDatabase(assets.open("coin_database.csv")).await()
+                        viewModel.loadCoinDatabaseAsync(assets.open("coin_database.csv")).await()
 
                     }
                 }
@@ -167,7 +160,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
         setupNavController()
 
-        bottomBar = mBinding.bottomNavView
+        //bottomBar = mBinding.bottomNavView
 
         supportActionBar.apply {
 
@@ -222,11 +215,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                     mNavController.navigate(CameraFragmentDirections.globalActionToImport(mode = "import"))
 
                 }
-                R.id.action_coin_manager -> {
-
-                    mNavController.navigate(CameraFragmentDirections.globalActionToCoinManager())
-
-                }
                 R.id.action_nav_settings -> {
 
                     mNavController.navigate(CameraFragmentDirections.globalActionToSettings())
@@ -247,13 +235,13 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             true
         }
     }
-
-    private fun closeKeyboard() {
-
-        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-
-        imm.hideSoftInputFromWindow(currentFocus?.windowToken, 0)
-    }
+//
+//    private fun closeKeyboard() {
+//
+//        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+//
+//        imm.hideSoftInputFromWindow(currentFocus?.windowToken, 0)
+//    }
 
     /**
      * Hack to update the options menu selected item by re inflating the menu
@@ -263,15 +251,11 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
         launch {
 
-            async {
+            mBinding.bottomNavView.visibility = View.GONE
 
-                mBinding.bottomNavView.visibility = View.GONE
+            mBinding.bottomNavView.menu.clear()
 
-                mBinding.bottomNavView.menu.clear()
-
-                mBinding.bottomNavView.inflateMenu(R.menu.menu_bot_nav)
-
-            }.await()
+            mBinding.bottomNavView.inflateMenu(R.menu.menu_bot_nav)
 
             mBinding.bottomNavView.visibility = View.VISIBLE
 

@@ -1,12 +1,11 @@
 package org.wheatgenetics.onekk
 
-import android.graphics.*
-import android.media.Image
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.camera.core.ImageProxy
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.ByteBuffer

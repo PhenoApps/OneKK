@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.widget.ImageButton
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
@@ -30,14 +31,6 @@ class AboutFragment : MaterialAboutFragment() {
 
         context?.setTheme(R.style.AppTheme)
 
-        with((activity as? MainActivity)?.supportActionBar) {
-            this?.setCustomView(R.layout.about_toolbar)
-            this?.setDisplayShowCustomEnabled(true)
-
-            this?.customView?.findViewById<ImageButton>(R.id.backButton)?.setOnClickListener {
-                findNavController().popBackStack()
-            }
-        }
     }
 
     public override fun getMaterialAboutList(c: Context): MaterialAboutList {

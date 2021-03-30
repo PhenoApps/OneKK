@@ -73,10 +73,8 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
         updateCoinList(country)
 
         try {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-                if (!resources.configuration.locales.isEmpty) {
-                    updateCoinList(resources.configuration.locales[0].country)
-                }
+            if (!resources.configuration.locales.isEmpty) {
+                updateCoinList(resources.configuration.locales[0].country)
             }
         } catch (e: Exception) {
             e.printStackTrace()

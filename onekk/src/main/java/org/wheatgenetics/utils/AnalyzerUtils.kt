@@ -1,10 +1,5 @@
 package org.wheatgenetics.utils
 
-import android.graphics.*
-import androidx.camera.core.ImageProxy
-import java.io.ByteArrayOutputStream
-import java.nio.ByteBuffer
-
 //fun ByteBuffer.toByteArray(): ByteArray {
 //    rewind()    // Rewind the buffer to zero
 //    val data = ByteArray(remaining())

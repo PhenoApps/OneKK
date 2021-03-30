@@ -31,21 +31,21 @@ class BluetoothUtil(private val context: Context) {
 
     private var writeDisposable: Disposable? = null
 
-    fun deviceStateListener(listener: BleStateListener) {
-
-        try {
-            stateDisposable?.dispose()
-
-            stateDisposable = client.observeStateChanges()
-                    .doOnNext { }
-                    .doOnError { }
-                    .subscribe({
-                        listener.onStateChanged(it)
-                    }) { error -> error.printStackTrace() }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
+//    fun deviceStateListener(listener: BleStateListener) {
+//
+//        try {
+//            stateDisposable?.dispose()
+//
+//            stateDisposable = client.observeStateChanges()
+//                    .doOnNext { }
+//                    .doOnError { }
+//                    .subscribe({
+//                        listener.onStateChanged(it)
+//                    }) { error -> error.printStackTrace() }
+//        } catch (e: Exception) {
+//            e.printStackTrace()
+//        }
+//    }
 
     /**
      * Uses a device with an established connection to setup GATT notifications for OHAUS devices.
@@ -68,7 +68,7 @@ class BluetoothUtil(private val context: Context) {
             notificationDisposable?.dispose()
 
             notificationDisposable = connection.setupNotification(uuid)
-                    .doOnNext { _ ->
+                    .doOnNext {
                         //println("Notifications setup.")
                     }
                     .doOnError {  }

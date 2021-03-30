@@ -25,22 +25,20 @@ class ImageProcessingUtil {
         private val RECTANGLE_COLOR = Scalar(0.0, 255.0, 0.0, 255.0)
         private val TEXT_COLOR = Scalar(0.0, 0.0, 0.0, 255.0)
 
-
         var seedContours = ArrayList<MatOfPoint?>()
 
-
         fun quartileRange(values: Array<Double>): Pair<Double, Double> {
-            val size = values.size
+            //val size = values.size
             Arrays.sort(values)
-            val Q2 = values[values.size / 2]
+            //val Q2 = values[values.size / 2]
             val lowerArray = values.copyOfRange(0, values.size / 2)
             val upperArray = values.copyOfRange(values.size / 2, values.size)
             val Q1 = lowerArray[lowerArray.size / 2]
-            val Q3 = upperArray[upperArray.size / 2]
-            val IQR = Q3 - Q1
-            val firstValue = Q1 - 1.5 * IQR
-            val secondValue = Q3 + 1.5 * IQR
-            return Pair(Math.max(firstValue, 50.0), secondValue)
+            val q3 = upperArray[upperArray.size / 2]
+            val iqr = q3 - Q1
+            val firstValue = Q1 - 1.5 * iqr
+            val secondValue = q3 + 1.5 * iqr
+            return Pair(firstValue.coerceAtLeast(50.0), secondValue)
         }
 
         /**
@@ -147,7 +145,7 @@ class ImageProcessingUtil {
         fun euclideanDistance(u: Point, v: Point) =
                 sqrt((u.x - v.x).pow(2) + (u.y - v.y).pow(2))
 
-        fun centerDifferentForAllRectangles(contour: Mat, rectangles: List<Detections>): List<Detections>? =
+        fun centerDifferentForAllRectangles(contour: Mat, rectangles: List<Detections>): List<Detections> =
 
                 rectangles.filter {
 

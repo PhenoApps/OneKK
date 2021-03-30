@@ -6,14 +6,13 @@
     android:background="@color/colorPrimary">
 
     <ImageButton
-        android:id="@+id/backButton"
+        android:background="@color/colorPrimary"
+        android:id="@+id/flashButton"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:background="@color/colorPrimary"
-        android:src="?attr/homeAsUpIndicator"
-        android:contentDescription="@string/back_button"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:src="@drawable/ic_code_scanner_flash_off"
+        android:contentDescription="@string/flash_state"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

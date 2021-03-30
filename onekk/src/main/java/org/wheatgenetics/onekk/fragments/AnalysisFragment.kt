@@ -5,7 +5,6 @@ import android.view.*
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -14,12 +13,10 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.*
 import org.wheatgenetics.onekk.R
-import org.wheatgenetics.onekk.activities.MainActivity
 import org.wheatgenetics.onekk.adapters.AnalysisAdapter
 import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
 import org.wheatgenetics.onekk.database.models.AnalysisEntity
-import org.wheatgenetics.onekk.database.models.ContourEntity
 import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
 import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentAnalysisManagerBinding
@@ -41,7 +38,7 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
 
     companion object {
 
-        final val TAG = "Onekk.AnalysisFragment"
+        const val TAG = "Onekk.AnalysisFragment"
 
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
     }
@@ -109,7 +106,7 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
             withContext(Dispatchers.IO) {
 
                 (mBinding?.recyclerView?.adapter as? AnalysisAdapter)
-                    ?.currentList?.filter { it.selected }?.let { data ->
+                    ?.currentList?.filter { analysis -> analysis.selected }?.let { data ->
 
                         FileUtil(requireContext()).export(uri, data)
 
@@ -120,7 +117,7 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
 
     private val exportSeeds = registerForActivityResult(ActivityResultContracts.CreateDocument()) { it?.let { uri ->
 
-        (mBinding?.recyclerView?.adapter as? AnalysisAdapter)?.currentList?.filter { it.selected }?.let { analysis ->
+        (mBinding?.recyclerView?.adapter as? AnalysisAdapter)?.currentList?.filter { analysis -> analysis.selected }?.let { analysis ->
 
             viewModel.selectAllContours().observeOnce(viewLifecycleOwner, { contours ->
 
@@ -139,7 +136,7 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
     /**
      * Uses activity results contracts to create a document and call the export function
      */
-    private fun exportFile(analysis: List<AnalysisEntity>) {
+    private fun exportFile() {
 
         val outputFilePrefix = getString(R.string.export_file_prefix)
 
@@ -182,28 +179,26 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
 
     private fun FragmentAnalysisManagerBinding.setupTopToolbar() {
 
-        with (mBinding?.toolbar) {
-            this?.findViewById<ImageButton>(R.id.backButton)?.setOnClickListener {
+        with (toolbar) {
+            findViewById<ImageButton>(R.id.backButton)?.setOnClickListener {
                 findNavController().popBackStack()
             }
-            this?.findViewById<ImageButton>(R.id.importButton)?.setOnClickListener {
+            findViewById<ImageButton>(R.id.importButton)?.setOnClickListener {
                 findNavController().navigate(AnalysisFragmentDirections.globalActionToImport(mode = "import"))
             }
-            this?.findViewById<ImageButton>(R.id.selectAllButton)?.setOnClickListener {
+            findViewById<ImageButton>(R.id.selectAllButton)?.setOnClickListener {
                 viewModel.updateSelectAllAnalysis(mSelectMode)
 
                 mSelectMode = !mSelectMode
 
                 mBinding?.updateUi()
             }
-            this?.findViewById<ImageButton>(R.id.exportButton)?.setOnClickListener {
+            findViewById<ImageButton>(R.id.exportButton)?.setOnClickListener {
                 onSelectedNotEmpty {
-                   it?.let { data ->
-                       exportFile(data)
-                   }
+                   exportFile()
                }
             }
-            this?.findViewById<ImageButton>(R.id.deleteButton)?.setOnClickListener {
+            findViewById<ImageButton>(R.id.deleteButton)?.setOnClickListener {
                 onSelectedNotEmpty {
                     askDelete()
                 }
@@ -222,11 +217,7 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
 
                 launch {
 
-                    async {
-
-                        viewModel.deleteSelectedAnalysis()
-
-                    }.await()
+                    viewModel.deleteSelectedAnalysis()
 
                     activity?.runOnUiThread {
                         mBinding?.updateUi()

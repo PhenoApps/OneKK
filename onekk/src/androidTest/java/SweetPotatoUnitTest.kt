@@ -144,7 +144,7 @@ class SweetPotatoUnitTest : OpenCvTest() {
                             val bmp = BitmapFactory.decodeStream(assets.open(imagePath))
 
                             //process image expecting a quarter as reference (24.26mm diameter)
-                            val detector = PotatoDetector(24.26)
+                            val detector = PotatoDetector(applicationContext, 24.26)
                             val result = detector.process(bmp)
 
                             //finally print out contour information to the csv

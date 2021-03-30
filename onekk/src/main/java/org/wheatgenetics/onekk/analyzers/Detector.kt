@@ -9,7 +9,7 @@ import org.wheatgenetics.imageprocess.PotatoDetector
 import org.wheatgenetics.onekk.interfaces.DetectorAlgorithm
 import java.io.File
 
-class Detector(context: Context, referenceDiameter: Double, private val imported: File? = null, algorithm: String? = null): CoroutineScope by MainScope() {
+class Detector(context: Context, referenceDiameter: Double, algorithm: String? = null): CoroutineScope by MainScope() {
 
 //    private var frames = 0.0
 //    private var startAnalysisTime = System.currentTimeMillis()

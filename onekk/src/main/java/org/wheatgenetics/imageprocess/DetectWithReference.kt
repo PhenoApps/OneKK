@@ -119,7 +119,7 @@ class DetectWithReference(context: Context, private val coinReferenceDiameter: D
 
         val axisEstimates = estimateAxis(singles, coins, coinReferenceDiameter)
 
-        val outputData = ArrayList<Double>()
+        //val outputData = ArrayList<Double>()
         //transform the seed/cluster contours to counted/estimated results
         val objects = singles.map {
 
@@ -229,13 +229,13 @@ class DetectWithReference(context: Context, private val coinReferenceDiameter: D
         val contours: List<MatOfPoint> = ArrayList()
         val hierarchy = Mat()
 
-        val cropped = original //]Mat(original, rect)
+        //val cropped = original //]Mat(original, rect)
 
 //        org.opencv.imgcodecs.Imgcodecs.imwrite(dir.path + "/cropped.png", cropped)
 
         val gray = Mat()
 
-        Imgproc.cvtColor(cropped, gray, Imgproc.COLOR_BGR2GRAY)
+        Imgproc.cvtColor(original, gray, Imgproc.COLOR_BGR2GRAY)
 
         Imgproc.GaussianBlur(gray, gray, Size(3.0, 3.0), 15.0)
 
@@ -253,20 +253,20 @@ class DetectWithReference(context: Context, private val coinReferenceDiameter: D
 
 //        org.opencv.imgcodecs.Imgcodecs.imwrite(dir.path + "/opening.png", opening)
 
-        val sure_bg = Mat()
-        Imgproc.dilate(opening, sure_bg, kernel, Point(-1.0, -1.0), 3)
+        val sureBg = Mat()
+        Imgproc.dilate(opening, sureBg, kernel, Point(-1.0, -1.0), 3)
 
         val dt = Mat()
         Imgproc.distanceTransform(opening, dt, Imgproc.DIST_L2, Imgproc.CV_DIST_MASK_5)
         Core.normalize(dt, dt, 0.0, 1.0, Core.NORM_MINMAX)
 
-        val sure_fg = Mat()
-        val maxValue = Core.minMaxLoc(dt).maxVal
-        Imgproc.threshold(dt, sure_fg, 0.7, 255.0, Imgproc.THRESH_BINARY)
-        sure_fg.convertTo(sure_fg, CvType.CV_8U)
+        val sureFg = Mat()
+        //val maxValue = Core.minMaxLoc(dt).maxVal
+        Imgproc.threshold(dt, sureFg, 0.7, 255.0, Imgproc.THRESH_BINARY)
+        sureFg.convertTo(sureFg, CvType.CV_8U)
 
         val unknown = Mat()
-        Core.subtract(sure_bg, sure_fg, unknown)
+        Core.subtract(sureBg, sureFg, unknown)
 
 //        org.opencv.imgcodecs.Imgcodecs.imwrite(dir.path + "/dt.png", dt)
 //        org.opencv.imgcodecs.Imgcodecs.imwrite(dir.path + "/unknown.png", unknown)
@@ -275,17 +275,17 @@ class DetectWithReference(context: Context, private val coinReferenceDiameter: D
 
         //Imgproc.GaussianBlur(sure_fg, sure_fg, Size(), 5.0)
 
-        Imgproc.findContours(sure_fg, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE)
+        Imgproc.findContours(sureFg, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE)
 
         unknown.release()
-        sure_bg.release()
-        sure_fg.release()
+        sureBg.release()
+        sureFg.release()
         dt.release()
         opening.release()
         hierarchy.release()
         gray.release()
         thresh.release()
-        cropped.release()
+        //cropped.release()
 //        org.opencv.imgcodecs.Imgcodecs.imwrite(dir.path + "/${contours.size}COUNTED${UUID.randomUUID()}output.png", sure_fg)
 
         //subtract the background label and border label
@@ -343,19 +343,19 @@ class DetectWithReference(context: Context, private val coinReferenceDiameter: D
 
         //initialize the greedy parameters with null values
         val coins = arrayOfNulls<Pair<MatOfPoint, Point>>(4)
-        val TOP_LEFT = 0
-        val TOP_RIGHT = 1
-        val BOTTOM_LEFT = 2
-        val BOTTOM_RIGHT = 3
+        val topLeft = 0
+        val topRight = 1
+        val bottomLeft = 2
+        val bottomRight = 3
 
         //set the starting assumptions to be opposite corners.
         //e.g TOP_LEFT is set to the bottom right corner, any other contour should be closer to the TOP_LEFT corner
         if (contours.size >= 4) {
 
-            coins[TOP_LEFT] = contours[0] to Point(imageWidth, imageHeight)
-            coins[TOP_RIGHT] = contours[1] to Point(0.0, imageHeight)
-            coins[BOTTOM_LEFT] = contours[2] to Point(imageWidth, 0.0)
-            coins[BOTTOM_RIGHT] = contours[3] to Point(0.0, 0.0)
+            coins[topLeft] = contours[0] to Point(imageWidth, imageHeight)
+            coins[topRight] = contours[1] to Point(0.0, imageHeight)
+            coins[bottomLeft] = contours[2] to Point(imageWidth, 0.0)
+            coins[bottomRight] = contours[3] to Point(0.0, 0.0)
 
             //search through and approximate all contours,
             //update the coins based on how close they are to the respective corners
@@ -380,31 +380,31 @@ class DetectWithReference(context: Context, private val coinReferenceDiameter: D
 
                 //start of the four greedy search updates, checks if this contour's center point
                 //is closer to the corner than the previous
-                coins[TOP_RIGHT]?.let {
+                coins[topRight]?.let {
                     if (euclideanDistance(centerPoint, Point(imageWidth, 0.0)) <
                             euclideanDistance(it.second, Point(imageWidth, 0.0))) {
-                        coins[TOP_RIGHT] = contour to centerPoint
+                        coins[topRight] = contour to centerPoint
                     }
                 }
 
-                coins[TOP_LEFT]?.let {
+                coins[topLeft]?.let {
                     if (euclideanDistance(centerPoint, Point(0.0, 0.0)) <
                             euclideanDistance(it.second, Point(0.0, 0.0))) {
-                        coins[TOP_LEFT] = contour to centerPoint
+                        coins[topLeft] = contour to centerPoint
                     }
                 }
 
-                coins[BOTTOM_LEFT]?.let {
+                coins[bottomLeft]?.let {
                     if (euclideanDistance(centerPoint, Point(0.0, imageHeight)) <
                             euclideanDistance(it.second, Point(0.0, imageHeight))) {
-                        coins[BOTTOM_LEFT] = contour to centerPoint
+                        coins[bottomLeft] = contour to centerPoint
                     }
                 }
 
-                coins[BOTTOM_RIGHT]?.let {
+                coins[bottomRight]?.let {
                     if (euclideanDistance(centerPoint, Point(imageWidth, imageHeight)) <
                             euclideanDistance(it.second, Point(imageWidth, imageHeight))) {
-                        coins[BOTTOM_RIGHT] = contour to centerPoint
+                        coins[bottomRight] = contour to centerPoint
                     }
                 }
             }

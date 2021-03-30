@@ -27,8 +27,8 @@ interface OnekkDao {
     @Query("SELECT * FROM analysis")
     fun getAllAnalysis(): LiveData<List<AnalysisEntity>>
 
-    @Query("SELECT * FROM image WHERE aid = :aid")
-    suspend fun selectAllAnalysis(aid: Int): List<ImageEntity>
+//    @Query("SELECT * FROM image WHERE aid = :aid")
+//    suspend fun selectAllAnalysis(aid: Int): List<ImageEntity>
 
     @Query("SELECT * FROM contour WHERE aid = :aid")
     fun selectContoursById(aid: Int): LiveData<List<ContourEntity>>

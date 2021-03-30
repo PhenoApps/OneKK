@@ -147,7 +147,7 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
         }, 500)
     }
 
-    suspend fun updateImageView(x: Double, y: Double, cluster: Boolean, minAxis: Double, maxAxis: Double): Deferred<Bitmap> = withContext(Dispatchers.IO) {
+    suspend fun updateImageViewAsync(x: Double, y: Double, cluster: Boolean, minAxis: Double, maxAxis: Double): Deferred<Bitmap> = withContext(Dispatchers.IO) {
 
         async {
 
@@ -188,7 +188,7 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
                     else -> {
 
                         mBinding?.imageView?.setImageBitmap(
-                                updateImageView(x, y, cluster, minAxis, maxAxis)
+                                updateImageViewAsync(x, y, cluster, minAxis, maxAxis)
                                         .await())
 
                         cid
@@ -227,9 +227,7 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
                         } else it.contour?.count
                     }.reduceRight { x, y -> y + x }
 
-                    (activity as? MainActivity)?.supportActionBar?.let {
-                        it.customView.findViewById<TextView>(R.id.countTextView)?.text = "$count"
-                    }
+                    mBinding?.toolbar?.findViewById<TextView>(R.id.countTextView)?.text = "$count"
                 }
             })
         }
@@ -293,9 +291,7 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
                         else it.contour?.count
                     }.reduceRight { x, y ->  y + x }
 
-                    (activity as? MainActivity)?.supportActionBar?.let {
-                        it.customView.findViewById<TextView>(R.id.countTextView)?.text = "$count"
-                    }
+                    mBinding?.toolbar?.findViewById<TextView>(R.id.countTextView)?.text = "$count"
 
                     try {
 

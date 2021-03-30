@@ -3,7 +3,9 @@ package org.wheatgenetics.onekk.fragments
 import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageButton
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.databinding.DataBindingUtil
@@ -17,7 +19,6 @@ import com.jjoe64.graphview.series.DataPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import org.wheatgenetics.onekk.R
-import org.wheatgenetics.onekk.activities.MainActivity
 import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
 import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
@@ -25,17 +26,12 @@ import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentGraphBinding
 import kotlin.math.log2
 import kotlin.math.pow
-import kotlin.math.sqrt
 import kotlin.properties.Delegates
 
 class GraphFragment : Fragment(), CoroutineScope by MainScope() {
 
     private val db: OnekkDatabase by lazy {
         OnekkDatabase.getInstance(requireContext())
-    }
-
-    private val mPreferences by lazy {
-        requireContext().getSharedPreferences(getString(R.string.onekk_preference_key), Context.MODE_PRIVATE)
     }
 
     private val sViewModel: ExperimentViewModel by viewModels {
@@ -218,10 +214,6 @@ class GraphFragment : Fragment(), CoroutineScope by MainScope() {
         graph.viewport.isScalable = true
         graph.viewport.isScrollable = true
     }
-
-    private fun variance(population: List<Double>, mean: Double, n: Int) =
-            population.map { (it - mean).pow(2.0) }.sum() / (n - 1)
-
 
 //    private fun setViewportGrid(graph: GraphView) = with(graph){
 //

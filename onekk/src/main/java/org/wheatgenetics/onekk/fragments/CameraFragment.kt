@@ -4,12 +4,12 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.net.Uri
-import android.os.AsyncTask
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.Log
 import android.util.Size
 import android.view.*
+import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,9 +21,6 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
-import androidx.core.view.MarginLayoutParamsCompat
-import androidx.core.view.marginBottom
-import androidx.core.view.setMargins
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -60,10 +57,6 @@ import java.util.concurrent.TimeUnit
  */
 class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, CoroutineScope by MainScope() {
 
-    private val db by lazy {
-        OnekkDatabase.getInstance(requireContext())
-    }
-
     private val barcodeViewModel: BarcodeSharedViewModel by activityViewModels()
 
     private val mPreferences by lazy {
@@ -76,8 +69,6 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
     private lateinit var captureDirectory: File
 
-    private val scope by lazy { CoroutineScope(Dispatchers.IO) }
-
     //starts camera thread executor, which must be destroyed/stopped in onDestroy
     private var cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
 
@@ -87,17 +78,17 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
     private var isShowingDialog: Boolean = false
 
-    //query the relative screen size, used for creating a preview that matches the screen size
-    private val metrics by lazy {
-
-        val metrics = DisplayMetrics().also { mBinding?.viewFinder?.display?.getRealMetrics(it) }
-
-        val screenSize = Size(metrics.widthPixels, metrics.heightPixels)
-
-        //val screenAspectRatio = Rational(metrics.widthPixels, metrics.heightPixels)
-
-        screenSize
-    }
+//    //query the relative screen size, used for creating a preview that matches the screen size
+//    private val metrics by lazy {
+//
+//        val metrics = DisplayMetrics().also { mBinding?.viewFinder?.display?.getRealMetrics(it) }
+//
+//        val screenSize = Size(metrics.widthPixels, metrics.heightPixels)
+//
+//        //val screenAspectRatio = Rational(metrics.widthPixels, metrics.heightPixels)
+//
+//        screenSize
+//    }
 
     private val checkPermissions by lazy {
 
@@ -137,16 +128,15 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
     private fun Uri.parseName(): String {
         //imported file uris are parsed for their names to use as the sample name
         val path = this.lastPathSegment.toString()
-        val name = if ("/" in path) {
+
+        return if ("/" in path) {
             path.split("/").last()
         } else path
-
-        return name
     }
 
     companion object {
 
-        val TAG = "Onekk.CameraFragment"
+        const val TAG = "Onekk.CameraFragment"
 
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
 
@@ -235,6 +225,17 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
             this?.barcodeScanButton?.setOnClickListener {
                 findNavController().navigate(CameraFragmentDirections.actionToBarcodeScanner())
             }
+
+            val flashButton = this?.toolbar?.findViewById<ImageButton>(R.id.flashButton)
+            flashButton?.setOnClickListener {
+                mCamera?.let { cam ->
+                    cam.cameraControl.enableTorch(cam.cameraInfo.torchState.value == 0)
+                    flashButton.setImageResource(when (cam.cameraInfo.torchState.value) {
+                        0 -> R.drawable.ic_code_scanner_flash_off
+                        else -> R.drawable.ic_code_scanner_flash_on
+                    })
+                }
+            }
         }
 
         when (mPreferences?.getBoolean(getString(R.string.onekk_first_load_ask_mac_address), true)) {
@@ -279,14 +280,15 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
             mBluetoothManager.establishConnectionToAddress(this, macAddress)
 
-        } else {
-
-            //TODO: Instead of moving to Settings, the service can be automatically found (if it's available)
-            //Toast.makeText(requireContext(), getString(R.string.frag_scale_no_mac_address_found_message), Toast.LENGTH_LONG).show()
-
-            //findNavController().navigate(ScaleFragmentDirections.actionToSettings())
-
         }
+//        else {
+//
+//            //TODO: Instead of moving to Settings, the service can be automatically found (if it's available)
+//            //Toast.makeText(requireContext(), getString(R.string.frag_scale_no_mac_address_found_message), Toast.LENGTH_LONG).show()
+//
+//            //findNavController().navigate(ScaleFragmentDirections.actionToSettings())
+//
+//        }
     }
 
     /**
@@ -382,11 +384,6 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
                                 Toast.makeText(requireContext(), R.string.frag_camera_sample_cancelled, Toast.LENGTH_SHORT).show()
 
                             }
-                            WorkInfo.State.FAILED -> {
-
-                                Toast.makeText(requireContext(), R.string.frag_camera_sample_failed, Toast.LENGTH_SHORT).show()
-
-                            }
                             WorkInfo.State.SUCCEEDED -> {
 
                                 barcodeViewModel.lastScan.value = ""
@@ -408,6 +405,11 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
                                     Toast.makeText(requireContext(), R.string.frag_camera_sample_saved, Toast.LENGTH_SHORT).show()
 
                                 }
+                            }
+                            else -> { //WorkInfo.State.FAILED -> {
+
+                                Toast.makeText(requireContext(), R.string.frag_camera_sample_failed, Toast.LENGTH_SHORT).show()
+
                             }
                         }
 
@@ -668,43 +670,16 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-
-        super.onCreateOptionsMenu(menu, inflater)
-
-        inflater.inflate(R.menu.menu_camera_view, menu)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-
-        when (item.itemId) {
-
-            //toggle the torch when the option is clicked
-            R.id.action_flash_enable -> {
-
-                mCamera?.let { cam ->
-
-                    cam.cameraControl.enableTorch(cam.cameraInfo.torchState.value == 0)
-                }
-
-            }
-
-            else -> return super.onOptionsItemSelected(item)
-        }
-
-        return true
-    }
-
-    private inline fun View.afterMeasured(crossinline block: () -> Unit) {
-        viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
-            override fun onGlobalLayout() {
-                if (measuredWidth > 0 && measuredHeight > 0) {
-                    viewTreeObserver.removeOnGlobalLayoutListener(this)
-                    block()
-                }
-            }
-        })
-    }
+//    private inline fun View.afterMeasured(crossinline block: () -> Unit) {
+//        viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+//            override fun onGlobalLayout() {
+//                if (measuredWidth > 0 && measuredHeight > 0) {
+//                    viewTreeObserver.removeOnGlobalLayoutListener(this)
+//                    block()
+//                }
+//            }
+//        })
+//    }
 
     /**
      * BLE listener implementation for reading the bluetooth adapter state.

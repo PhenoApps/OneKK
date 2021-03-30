@@ -26,6 +26,7 @@ import org.wheatgenetics.onekk.toFile
 import org.wheatgenetics.utils.DateUtil
 import java.io.File
 import java.util.*
+import kotlin.math.pow
 import kotlin.math.sqrt
 
 
@@ -54,6 +55,7 @@ class ImageSaveWorker(val appContext: Context, workerParams: WorkerParameters):
             mediaDir else appContext.filesDir
     }
 
+    @Suppress("BlockingMethodInNonBlockingContext")
     override suspend fun doWork(): Result {
 
         /***
@@ -209,6 +211,6 @@ class ImageSaveWorker(val appContext: Context, workerParams: WorkerParameters):
     }
 
     private fun variance(population: List<Double>, mean: Double, n: Int) =
-            population.map { Math.pow(it - mean, 2.0) }.sum() / (n - 1)
+            population.map { (it - mean).pow(2.0) }.sum() / (n - 1)
 
 }

@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
 import org.wheatgenetics.onekk.database.OnekkRepository
 import org.wheatgenetics.onekk.database.models.AnalysisEntity
-import org.wheatgenetics.onekk.database.models.CoinEntity
 import org.wheatgenetics.onekk.database.models.ContourEntity
 import org.wheatgenetics.onekk.database.models.ImageEntity
 import java.io.InputStream
@@ -28,15 +27,15 @@ class ExperimentViewModel(
         }
     }
 
-    fun deleteAnalysis(aid: Int) = viewModelScope.launch {
-        repo.deleteAnalysis(aid)
-    }
+//    fun deleteAnalysis(aid: Int) = viewModelScope.launch {
+//        repo.deleteAnalysis(aid)
+//    }
 
     fun updateSelectAllAnalysis(selected: Boolean) = viewModelScope.launch {
         repo.updateSelectAllAnalysis(selected)
     }
 
-    fun deleteAllAnalysis() = viewModelScope.launch {
+    private fun deleteAllAnalysis() = viewModelScope.launch {
         repo.deleteAllAnalysis()
     }
 
@@ -44,11 +43,11 @@ class ExperimentViewModel(
         repo.insert(contour.apply {
             this.contour?.let {
                 //truncate decimal places
-                this.contour?.area = BigDecimal(it.area ?: 0.0).setScale(2, RoundingMode.HALF_EVEN).toDouble()
-                this.contour?.maxAxis = BigDecimal(it.maxAxis ?: 0.0).setScale(2, RoundingMode.HALF_EVEN).toDouble()
-                this.contour?.minAxis = BigDecimal(it.minAxis ?: 0.0).setScale(2, RoundingMode.HALF_EVEN).toDouble()
-                this.contour?.x = BigDecimal(it.x).setScale(2, RoundingMode.HALF_EVEN).toDouble()
-                this.contour?.y = BigDecimal(it.y).setScale(2, RoundingMode.HALF_EVEN).toDouble()
+                this.contour?.area = (it.area ?: 0.0).truncate(2)
+                this.contour?.maxAxis = (it.maxAxis ?: 0.0).truncate(2)
+                this.contour?.minAxis = (it.minAxis ?: 0.0).truncate(2)
+                this.contour?.x = it.x.truncate(2)
+                this.contour?.y = it.y.truncate(2)
             }
         })
     }
@@ -65,12 +64,18 @@ class ExperimentViewModel(
         repo.updateAnalysisWeight(aid, weight)
     }
 
-    fun updateAnalysisTkw(aid: Int, tkw: Double) = viewModelScope.launch {
-        repo.updateAnalysisTkw(aid, tkw)
-    }
+//    fun updateAnalysisTkw(aid: Int, tkw: Double) = viewModelScope.launch {
+//        repo.updateAnalysisTkw(aid, tkw)
+//    }
 
     fun updateAnalysisCount(aid: Int, count: Int) = viewModelScope.launch {
         repo.updateAnalysisCount(aid, count)
+    }
+
+    private fun Double.truncate(scale: Int) = try {
+        BigDecimal(this).setScale(scale, RoundingMode.HALF_EVEN).toDouble()
+    } catch (e: Exception) {
+        this
     }
 
     fun updateAnalysisData(aid: Int, totalArea: Double,
@@ -79,28 +84,26 @@ class ExperimentViewModel(
 
         //todo maybe make this precision a preference
         //round all saved values to 2 decimal places
-        val totalArea = BigDecimal(totalArea).setScale(2, RoundingMode.HALF_EVEN).toDouble()
-        val minAxisA = BigDecimal(minAxisAvg).setScale(2, RoundingMode.HALF_EVEN).toDouble()
-        val minAxisV = BigDecimal(minAxisVar).setScale(2, RoundingMode.HALF_EVEN).toDouble()
-        val minAxisC = BigDecimal(minAxisCv).setScale(2, RoundingMode.HALF_EVEN).toDouble()
-        val maxAxisA = BigDecimal(maxAxisAvg).setScale(2, RoundingMode.HALF_EVEN).toDouble()
-        val maxAxisV = BigDecimal(maxAxisVar).setScale(2, RoundingMode.HALF_EVEN).toDouble()
-        val maxAxisC = BigDecimal(maxAxisCv).setScale(2, RoundingMode.HALF_EVEN).toDouble()
-
-        repo.updateAnalysisData(aid, totalArea, minAxisA, minAxisV, minAxisC, maxAxisA, maxAxisV, maxAxisC)
+        repo.updateAnalysisData(aid, totalArea.truncate(2),
+            minAxisAvg.truncate(2),
+            minAxisVar.truncate(2),
+            minAxisCv.truncate(2),
+            maxAxisAvg.truncate(2),
+            maxAxisVar.truncate(2),
+            maxAxisCv.truncate(2))
     }
 
     fun updateAnalysisSelected(aid: Int, selected: Boolean) = viewModelScope.launch {
         repo.updateAnalysisSelected(aid, selected)
     }
 
-    fun clearAll() = viewModelScope.launch {
+//    fun clearAll() = viewModelScope.launch {
+//
+//    }
 
-    }
-
-    fun deleteContour(aid: Int, cid: Int) = viewModelScope.launch {
-        repo.deleteContour(aid, cid)
-    }
+//    fun deleteContour(aid: Int, cid: Int) = viewModelScope.launch {
+//        repo.deleteContour(aid, cid)
+//    }
 
     fun countries() = liveData {
 
@@ -154,7 +157,7 @@ class ExperimentViewModel(
         lines of the csv file are expected to have 7 values like:
         UK,Pound,0.01,Penny,1,20.3,1 Penny
      */
-    fun loadCoinDatabase(csv: InputStream) = viewModelScope.async {
+    fun loadCoinDatabaseAsync(csv: InputStream) = viewModelScope.async {
 
         repo.deleteAllCoins()
 
@@ -176,7 +179,7 @@ class ExperimentViewModel(
         }
     }
 
-    fun diffCoinDatabase(csv: InputStream) = viewModelScope.async {
+    fun diffCoinDatabaseAsync(csv: InputStream) = viewModelScope.async {
 
         val changedCoins = ArrayList<String>()
 

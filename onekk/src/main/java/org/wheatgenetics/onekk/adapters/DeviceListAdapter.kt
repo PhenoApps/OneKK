@@ -17,24 +17,24 @@ class DeviceListAdapter(private val listener: RecyclerViewClickListener) : ListA
 
     private val deviceList = ArrayList<BluetoothDevice>()
 
-    /**
-     * Add device populates an item to the recycler list and updates the recycler data.
-     * device is the bluetooth device that is discovered
-     * rssi is the connection strength, items are sorted by rssi
-     */
-    fun addDevice(device: BluetoothDevice, rssi: Int) {
-
-        device.name?.let { deviceName ->
-
-            deviceList.add(device)
-
-            submitList(deviceList.distinct())
-
-            notifyDataSetChanged()
-
-        }
-
-    }
+//    /**
+//     * Add device populates an item to the recycler list and updates the recycler data.
+//     * device is the bluetooth device that is discovered
+//     * rssi is the connection strength, items are sorted by rssi
+//     */
+//    fun addDevice(device: BluetoothDevice, rssi: Int) {
+//
+//        device.name?.let { deviceName ->
+//
+//            deviceList.add(device)
+//
+//            submitList(deviceList.distinct())
+//
+//            notifyDataSetChanged()
+//
+//        }
+//
+//    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
 
@@ -51,8 +51,7 @@ class DeviceListAdapter(private val listener: RecyclerViewClickListener) : ListA
 
                 bind(device)
 
-                itemView.findViewById<TextView>(R.id.deviceName)
-                        .setText(device.name)
+                itemView.findViewById<TextView>(R.id.deviceName).text = device.name
 
             }
         }

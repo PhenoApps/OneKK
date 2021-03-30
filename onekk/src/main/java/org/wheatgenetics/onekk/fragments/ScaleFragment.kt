@@ -3,12 +3,13 @@ package org.wheatgenetics.onekk.fragments
 import android.content.Context.MODE_PRIVATE
 import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.core.graphics.rotationMatrix
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -20,7 +21,6 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import org.wheatgenetics.onekk.R
-import org.wheatgenetics.onekk.activities.MainActivity
 import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
 import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
@@ -60,15 +60,15 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
 
     companion object {
 
-        val OHAUS_BLUETOOTH_GATT_SERVICE_UUID = "2456e1b9-26e2-8f83-e744-f34f01e9d701"
+        const val OHAUS_BLUETOOTH_GATT_SERVICE_UUID = "2456e1b9-26e2-8f83-e744-f34f01e9d701"
 
-        val OHAUS_BLUETOOTH_GATT_DESCRIPTOR_UUID = "00002902-0000-1000-8000-00805f9b34fb"
+        //val OHAUS_BLUETOOTH_GATT_DESCRIPTOR_UUID = "00002902-0000-1000-8000-00805f9b34fb"
 
-        val OHAUS_BLUETOOTH_GATT_CHARACTERISTIC_UUID = "2456e1b9-26e2-8f83-e744-f34f01e9d703"
+        //val OHAUS_BLUETOOTH_GATT_CHARACTERISTIC_UUID = "2456e1b9-26e2-8f83-e744-f34f01e9d703"
 
-        val OHAUS_BLUETOOTH_GATT_CHARACTERISTIC_UUID_B = "2456e1b9-26e2-8f83-e744-f34f01e9d704"
+        //val OHAUS_BLUETOOTH_GATT_CHARACTERISTIC_UUID_B = "2456e1b9-26e2-8f83-e744-f34f01e9d704"
         
-        final val TAG = "Onekk.AnalysisFragment"
+        const val TAG = "Onekk.AnalysisFragment"
 
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss.SSS"
     }
@@ -168,11 +168,7 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
 
                 launch {
 
-                    async {
-
-                        viewModel.updateAnalysisWeight(aid, weight)
-
-                    }.await()
+                    viewModel.updateAnalysisWeight(aid, weight)
 
                     //When the save button is pressed, go to the analysis fragment or the camera fragment
                     activity?.runOnUiThread {

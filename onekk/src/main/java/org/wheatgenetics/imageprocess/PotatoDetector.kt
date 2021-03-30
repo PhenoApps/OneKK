@@ -51,7 +51,7 @@ class PotatoDetector(context: Context, private val coinReferenceDiameter: Double
 
         //finds the four contours closest to the corners
         val coins = findCoins(contours, imageWidth, imageHeight)
-        val coin = coins.sortedByDescending { Imgproc.contourArea(it) }.first()
+        val coin = coins.asSequence().sortedByDescending { Imgproc.contourArea(it) }.first()
 
         //draw the coins as filled contours green
         Imgproc.drawContours(src, listOf(coin), 0, Scalar(0.0, 255.0, 0.0, 255.0), -1)
@@ -116,20 +116,20 @@ class PotatoDetector(context: Context, private val coinReferenceDiameter: Double
      */
     private fun calculateRoi(coins: List<MatOfPoint>): Rect? {
 
-        val TOP_LEFT = 0
-        val TOP_RIGHT = 1
-        val BOTTOM_LEFT = 2
-        val BOTTOM_RIGHT = 3
+        val topLeft = 0
+        //val topRight = 1
+        //val bottomLeft = 2
+        val bottomRight = 3
 
         return if (coins.size == 4) {
 
-            val tl = coins[TOP_LEFT].center()
-            val br = coins[BOTTOM_RIGHT].center()
+            val tl = coins[topLeft].center()
+            val br = coins[bottomRight].center()
 
             //return a bounding rectangle between the top left and bottom right points
             //make a small adjustment for the diameter of the coins
-            val rA = sqrt(Imgproc.contourArea(coins[TOP_LEFT]))
-            val rB = sqrt(Imgproc.contourArea(coins[BOTTOM_RIGHT]))
+            val rA = sqrt(Imgproc.contourArea(coins[topLeft]))
+            val rB = sqrt(Imgproc.contourArea(coins[bottomRight]))
 
             val pointA = Point(tl.x + rA, tl.y + rA)
 
@@ -187,19 +187,19 @@ class PotatoDetector(context: Context, private val coinReferenceDiameter: Double
         }
     }
 
-    private fun MatOfPoint.approximate(e: Double) = MatOfPoint().apply {
-        //contour approximation: https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_contours/py_contour_features/py_contour_features.html
-        //Douglas-Peucker algorithm that approximates a contour with a polygon with less vertices
-        //epsilon is the maximum distance from the contour and the approximation
-        val preciseContour = MatOfPoint2f(*this@approximate.toArray())
-        val epsilon = e * Imgproc.arcLength(preciseContour, true)
-
-        val approx = MatOfPoint2f()
-
-        Imgproc.approxPolyDP(preciseContour, approx, epsilon, true)
-
-        approx.convertTo(this, CvType.CV_32S)
-    }
+//    private fun MatOfPoint.approximate(e: Double) = MatOfPoint().apply {
+//        //contour approximation: https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_contours/py_contour_features/py_contour_features.html
+//        //Douglas-Peucker algorithm that approximates a contour with a polygon with less vertices
+//        //epsilon is the maximum distance from the contour and the approximation
+//        val preciseContour = MatOfPoint2f(*this@approximate.toArray())
+//        val epsilon = e * Imgproc.arcLength(preciseContour, true)
+//
+//        val approx = MatOfPoint2f()
+//
+//        Imgproc.approxPolyDP(preciseContour, approx, epsilon, true)
+//
+//        approx.convertTo(this, CvType.CV_32S)
+//    }
 
     /**
      * Greedy algorithm that takes the contours of an image and partitions them into coins and seed classes.

@@ -16,7 +16,6 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.*
 import org.wheatgenetics.onekk.R
-import org.wheatgenetics.onekk.activities.MainActivity
 import org.wheatgenetics.onekk.adapters.CoinManagerAdapter
 import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
@@ -91,7 +90,7 @@ class CoinManagerFragment : Fragment(), CoinValueChangedListener, CoroutineScope
         return mBinding?.root
     }
 
-
+    @Suppress("BlockingMethodInNonBlockingContext")
     private fun resetCoinDatabase() {
 
         activity?.assets?.let { assets ->
@@ -100,7 +99,7 @@ class CoinManagerFragment : Fragment(), CoinValueChangedListener, CoroutineScope
 
                 val adapter = assets.open("coin_database.csv").use {
                     ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1,
-                        viewModel.diffCoinDatabase(it)
+                        viewModel.diffCoinDatabaseAsync(it)
                             .await().toTypedArray())
                 }
 
@@ -114,7 +113,7 @@ class CoinManagerFragment : Fragment(), CoinValueChangedListener, CoroutineScope
 
                             assets.open("coin_database.csv").use {
 
-                                viewModel.loadCoinDatabase(it).await()
+                                viewModel.loadCoinDatabaseAsync(it).await()
 
                             }
                             activity?.runOnUiThread {

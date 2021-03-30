@@ -4,8 +4,8 @@ import android.graphics.Bitmap
 
 interface DetectorAlgorithm {
     companion object {
-        val DEFAULT = 0
-        val LSS = 1 //large single sample
+        const val DEFAULT = 0
+        const val LSS = 1 //large single sample
     }
     data class Contour(val x: Double, val y: Double, val minAxis: Double?, val maxAxis: Double?, val area: Double, val count: Int) {
         override fun toString(): String = "$minAxis, $maxAxis, $area"
