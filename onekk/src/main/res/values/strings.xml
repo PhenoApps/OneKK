@@ -295,6 +295,7 @@
     <string name="coin_country_choice">Coin Country</string>
     <string name="onekk_country_pref_key">org.wheatgenetics.onekk.COUNTRY_NAME</string>
     <string name="onekk_coin_pref_key">org.wheatgenetics.onekk.COIN_NAME</string>
+    <string name="onekk_coin_pref_diameter_key">org.wheatgenetics.onekk.COIN_DIAMETER</string>
     <string name="frag_coin_manager_list_title">Coin Values</string>
     <string name="frag_coin_manager_search_hint">Type in a country name</string>
     <string name="menu_action_to_coin_manager">Coin Manager</string>

@@ -21,6 +21,7 @@ import org.wheatgenetics.onekk.database.OnekkRepository
 import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
 import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.interfaces.DeviceDiscoveredListener
+import org.wheatgenetics.onekk.observeOnce
 import org.wheatgenetics.utils.BluetoothUtil
 import org.wheatgenetics.utils.Dialogs
 
@@ -67,42 +68,39 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
         val country = mPreferences.getString(getString(R.string.onekk_country_pref_key), "USA") ?: "USA"
         countryPreference?.summary = country
 
-        val coin = mPreferences.getString(getString(R.string.onekk_coin_pref_key), "25 cents") ?: "25 cents"
+        val coin = mPreferences.getString(getString(R.string.onekk_coin_pref_key), "1 Cent") ?: "1 Cent"
         namePreference?.summary = coin
 
         updateCoinList(country)
 
-        try {
-            if (!resources.configuration.locales.isEmpty) {
-                updateCoinList(resources.configuration.locales[0].country)
+//        TODO: need a mapping between our locally defined country names and Android's configuration locales
+//        try {
+//            if (!resources.configuration.locales.isEmpty) {
+//                updateCoinList(resources.configuration.locales[0].country)
+//            }
+//        } catch (e: Exception) {
+//            e.printStackTrace()
+//        }
+
+        viewModel.countries().observeOnce(viewLifecycleOwner, {
+
+            countryPreference?.entries = it.toTypedArray()
+            countryPreference?.entryValues = it.toTypedArray()
+
+            countryPreference?.setOnPreferenceChangeListener { preference, newValue ->
+
+                val countryName = (newValue as? String) ?: "USA"
+
+                countryPreference.summary = countryName
+
+                updateCoinList(countryName)
+
+                mPreferences.edit().putString(getString(R.string.onekk_country_pref_key), countryName).apply()
+
+                true
+
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
-
-        launch {
-
-            viewModel.countries().observeForever {
-
-                countryPreference?.entries = it.toTypedArray()
-                countryPreference?.entryValues = it.toTypedArray()
-
-                countryPreference?.setOnPreferenceChangeListener { preference, newValue ->
-
-                    val countryName = (newValue as? String) ?: "USA"
-
-                    countryPreference.summary = countryName
-
-                    updateCoinList(countryName)
-
-                    mPreferences.edit().putString(getString(R.string.onekk_country_pref_key), countryName).apply()
-
-                    true
-
-                }
-            }
-        }
+        })
 
         findPreference<Preference>("org.wheatgenetics.onekk.ASK_CONNECT")!!
                 .setOnPreferenceChangeListener { preference, newValue ->
@@ -225,7 +223,7 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
 
         val namePreference = findPreference<ListPreference>("org.wheatgenetics.onekk.REFERENCE_NAME")
 
-        viewModel.coinModels(name).observeForever { coins ->
+        viewModel.coinModels(name).observe(viewLifecycleOwner, { coins ->
 
             val names = coins.map { it.name }
             namePreference?.entries = names.toTypedArray()
@@ -233,18 +231,19 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
 
             namePreference?.setOnPreferenceChangeListener { preference, newValue ->
 
-                val coinName = (newValue as? String) ?: "25 cents"
+                val coinName = (newValue as? String) ?: "1 Cent"
 
-                namePreference.summary = coinName
+                val coinDiameter = coins.find { it.name == coinName }?.diameter ?: "19.05"
 
-                val coinDiameter = coins.find { it.name == coinName }?.diameter ?: "24.26"
+                namePreference.summary = "$coinName $coinDiameter"
 
-                mPreferences.edit().putString(getString(R.string.onekk_coin_pref_key), coinDiameter).apply()
+                mPreferences.edit().putString(getString(R.string.onekk_coin_pref_key), coinName).apply()
+                mPreferences.edit().putString(getString(R.string.onekk_coin_pref_diameter_key), coinDiameter).apply()
 
                 true
 
             }
-        }
+        })
     }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {

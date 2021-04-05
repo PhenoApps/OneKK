@@ -143,7 +143,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
         with(mPreferences.edit()) {
             putString(getString(R.string.onekk_country_pref_key), "USA")
-            putString(getString(R.string.onekk_coin_pref_key), "25 cents")
+            putString(getString(R.string.onekk_coin_pref_key), "1 Cent")
             apply()
         }
     }

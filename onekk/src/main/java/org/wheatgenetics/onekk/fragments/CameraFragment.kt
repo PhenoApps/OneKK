@@ -326,7 +326,7 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
     private fun initiateDetector(path: String, name: String? = null) {
 
         //default is the size for a quarter
-        val diameter = mPreferences?.getString(getString(R.string.onekk_coin_pref_key), "24.26")?.toDoubleOrNull() ?: 24.26
+        val diameter = mPreferences?.getString(getString(R.string.onekk_coin_pref_diameter_key), "19.05")?.toDoubleOrNull() ?: 19.05
 
         val weight = when (mPreferences?.getString("org.wheatgenetics.onekk.SCALE_STEPS", "1")) {
             "1", "2" -> mBinding?.weightEditText?.text?.toString()?.toDoubleOrNull()
