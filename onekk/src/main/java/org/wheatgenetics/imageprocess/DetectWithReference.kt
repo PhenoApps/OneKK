@@ -119,6 +119,8 @@ class DetectWithReference(context: Context, private val coinReferenceDiameter: D
 
         val axisEstimates = estimateAxis(singles, coins, coinReferenceDiameter)
 
+        val clusterAxis = estimateAxis(clusters, coins, coinReferenceDiameter)
+
         //val outputData = ArrayList<Double>()
         //transform the seed/cluster contours to counted/estimated results
         val objects = singles.map {
@@ -138,7 +140,14 @@ class DetectWithReference(context: Context, private val coinReferenceDiameter: D
             Imgproc.drawContours(mask, listOf(it), -1, Scalar.all(255.0), -1)
             val count = watershed(Mat(mask, box))
             mask.release()
-            DetectorAlgorithm.Contour(center.x, center.y, null, null, clusterEstimates[it] ?: error(""), count)
+
+            if (count == 1) {
+
+                val (minAxis, maxAxis) = clusterAxis[it] ?: 0.0 to 0.0
+
+                DetectorAlgorithm.Contour(center.x, center.y, minAxis, maxAxis, clusterEstimates[it] ?: error(""), 1)
+
+            } else DetectorAlgorithm.Contour(center.x, center.y, null, null, clusterEstimates[it] ?: error(""), count)
 
         }
 
