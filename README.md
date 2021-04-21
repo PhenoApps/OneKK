@@ -8,25 +8,7 @@
 
 OneKK is an app designed to analyze seed lots. It's name comes from the one thousand kernel weight that is commonly used as a selection criteria in plant breeding programs. OneKK extracts seed morphology from images captured by phone and tablet cameras.
 
-### Acknowledgements
-## Developers
-Trevor Rife
-Jesse Poland
-
-## License
-    Licensed under the GNU General Public License version 2 (GPLv2)
-    You may obtain a copy of the License at
-
-       http://www.gnu.org/licenses/gpl-2.0.html
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
-## Contributors ✨
-
-Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+## Contributors
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
@@ -42,4 +24,14 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
-This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
+## License
+    Licensed under the GNU General Public License version 2 (GPLv2)
+    You may obtain a copy of the License at
+
+       http://www.gnu.org/licenses/gpl-2.0.html
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
