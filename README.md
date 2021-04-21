@@ -1,6 +1,6 @@
 # OneKK
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-4-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 <a href="https://play.google.com/store/apps/details?id=org.wheatgenetics.onekk">
     <img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png" height="60">
@@ -18,6 +18,7 @@ OneKK is an app designed to analyze seed lots. It's name comes from the one thou
     <td align="center"><a href="https://github.com/trife"><img src="https://avatars.githubusercontent.com/u/1869534?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Trevor Rife</b></sub></a><br /><a href="#projectManagement-trife" title="Project Management">📆</a> <a href="#design-trife" title="Design">🎨</a> <a href="https://github.com/PhenoApps/OneKK/commits?author=trife" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/chaneylc"><img src="https://avatars.githubusercontent.com/u/5421632?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Chaney Courtney</b></sub></a><br /><a href="https://github.com/PhenoApps/OneKK/commits?author=chaneylc" title="Code">💻</a> <a href="#ideas-chaneylc" title="Ideas, Planning, & Feedback">🤔</a></td>
     <td align="center"><a href="https://github.com/Jessssica33"><img src="https://avatars.githubusercontent.com/u/36747798?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jessssica33</b></sub></a><br /><a href="https://github.com/PhenoApps/OneKK/commits?author=Jessssica33" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/disssid"><img src="https://avatars.githubusercontent.com/u/22083404?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Siddharth Amaravadi</b></sub></a><br /><a href="https://github.com/PhenoApps/OneKK/commits?author=disssid" title="Code">💻</a> <a href="#ideas-disssid" title="Ideas, Planning, & Feedback">🤔</a></td>
   </tr>
 </table>
 
