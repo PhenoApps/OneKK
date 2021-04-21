@@ -1,0 +1,26 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "trife",
+      "name": "Trevor Rife",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1869534?v=4",
+      "profile": "https://github.com/trife",
+      "contributions": [
+        "projectManagement",
+        "design",
+        "code"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "OneKK",
+  "projectOwner": "PhenoApps",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true
+}
