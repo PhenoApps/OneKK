@@ -34,6 +34,16 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "disssid",
+      "name": "Siddharth Amaravadi",
+      "avatar_url": "https://avatars.githubusercontent.com/u/22083404?v=4",
+      "profile": "https://github.com/disssid",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7,
