@@ -1,10 +1,8 @@
-# OneKK
+# OneKK  <a href="https://play.google.com/store/apps/details?id=org.wheatgenetics.onekk"><img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="50"></a>
+
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-4-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
-<a href="https://play.google.com/store/apps/details?id=org.wheatgenetics.onekk">
-    <img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png" height="60">
-</a>
 
 OneKK is an app designed to analyze seed lots. It's name comes from the one thousand kernel weight that is commonly used as a selection criteria in plant breeding programs. OneKK extracts seed morphology from images captured by phone and tablet cameras.
 
