@@ -1,0 +1,48 @@
+<changelog>
+    <release
+        date="2021-06-01"
+        versionCode="200"
+        versionName="v2.0">
+        <new>New interface</new>
+        <new>Workflow updated to use coins for reference</new>
+        <new>Workflow updated to use lightbox for background</new>
+        <new>Added compatibility for Ohaus scales</new>
+    </release>
+
+    <release
+        date="2016-02-29"
+        versionCode="103"
+        versionName="v1.0.3">
+        <info>USB host is no longer required</info>
+    </release>
+
+    <release
+        date="2016-01-22"
+        versionCode="102"
+        versionName="v1.0.2">
+        <bugfix>Fixed a bug causing crashes</bugfix>
+    </release>
+
+    <release
+        date="2015-12-21"
+        versionCode="101"
+        versionName="v1.0.1">
+        <bugfix>Fixed a bug causing the app to crash on startup</bugfix>
+    </release>
+
+    <release
+        date="2015-12-12"
+        versionCode="100"
+        versionName="v1.0">
+        <new>Updated with new algorithm</new>
+        <new>New material layout</new>
+        <new>New app icon</new>
+    </release>
+
+    <release
+        date="2015-11-01"
+        versionCode="90"
+        versionName="v0.9">
+        <new>Initial release</new>
+    </release>
+</changelog>
