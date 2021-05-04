@@ -52,3 +52,10 @@ proguard/
 /openCV/.cxx/ndk_locator_record_3j706vk4_key.json
 /openCV/.cxx/ndk_locator_record_34c2b602.json
 /openCV/.cxx/ndk_locator_record_34c2b602_key.json
+
+
+# Keystore files
+# Uncomment the following lines if you do not want to check your keystore files in.
+*.jks
+*.keystore
+keystore.config
