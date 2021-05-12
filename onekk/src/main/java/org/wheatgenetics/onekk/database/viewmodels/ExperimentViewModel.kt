@@ -35,6 +35,10 @@ class ExperimentViewModel(
         repo.updateSelectAllAnalysis(selected)
     }
 
+    fun deleteAnalysis(rowid: Int) = viewModelScope.launch {
+        repo.deleteAnalysis(rowid)
+    }
+
     private fun deleteAllAnalysis() = viewModelScope.launch {
         repo.deleteAllAnalysis()
     }

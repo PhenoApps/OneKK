@@ -271,7 +271,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
      */
     override fun onBackPressed() {
 
-        invalidateMenu()
+        if (mNavController.currentDestination?.id !in setOf(R.id.scale_fragment, R.id.coin_manager)) invalidateMenu()
 
         mNavController.currentDestination?.let { it ->
 

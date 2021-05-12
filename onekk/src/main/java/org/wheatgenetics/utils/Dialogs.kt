@@ -125,8 +125,13 @@ class Dialogs {
             }
         }
 
-        fun askAcceptableImage(activity: Activity, builder: AlertDialog.Builder, title: String,
-                               dst: Bitmap, function: (() -> Unit)? = null, onDecline: (() -> Unit)? = null) {
+        fun askAcceptableImage(activity: Activity,
+                               builder: AlertDialog.Builder,
+                               title: String,
+                               dst: Bitmap,
+                               function: (() -> Unit)? = null,
+                               onDecline: (() -> Unit)? = null,
+                                onRetake: (() -> Unit)? = null) {
 
             val binding = DataBindingUtil.inflate<DialogCoinRecognitionBinding>(activity.layoutInflater, R.layout.dialog_coin_recognition, null, false)
 
@@ -146,6 +151,15 @@ class Dialogs {
 
                 dialog.dismiss()
 
+            }
+
+            builder.setNeutralButton(R.string.retake) { dialog, which ->
+
+                if (onRetake != null) {
+                    onRetake()
+                }
+
+                dialog.dismiss()
             }
 
             builder.setNegativeButton(R.string.frag_camera_dialog_post_analysis_details) { dialog, which ->

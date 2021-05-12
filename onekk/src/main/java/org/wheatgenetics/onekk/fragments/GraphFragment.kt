@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
@@ -24,6 +25,7 @@ import org.wheatgenetics.onekk.database.OnekkRepository
 import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
 import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentGraphBinding
+import kotlin.math.abs
 import kotlin.math.log2
 import kotlin.math.pow
 import kotlin.properties.Delegates
@@ -43,6 +45,13 @@ class GraphFragment : Fragment(), CoroutineScope by MainScope() {
 
     private var aid by Delegates.notNull<Int>()
     private var mBinding: FragmentGraphBinding? = null
+
+    /**
+     * coordinates used to detect left/right swipes
+     */
+    private var x1: Float = 0f
+    private var x2: Float = 0f
+    private val SWIPE_THRESHOLD = 2 shl 7
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
@@ -81,10 +90,47 @@ class GraphFragment : Fragment(), CoroutineScope by MainScope() {
             }
         }
 
-        //force area graph to be ch
+        //force area graph to be loaded
         loadGraph(getString(R.string.graph_tab_area))
 
+        mBinding?.graphView?.setOnTouchListener { v, event ->
+            when(event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    x1 = event.x
+                }
+                MotionEvent.ACTION_UP -> {
+                    x2 = event.x
+                    //check if the swipe is large enough
+                    if (abs(x2 - x1) > SWIPE_THRESHOLD) {
+                        //determine swipe direction and call swipe function to update ui
+                        when  {
+                            x2 > x1 -> swipeGraph(1)
+                            else -> swipeGraph(0)
+                        }
+                    }
+                }
+            }
+
+            v.performClick()
+        }
+
         return mBinding?.root
+    }
+
+    /**
+     * called whenever a swipe is detected
+     * queries the ui for the current tab, uses the direction param to load the next graph
+     * 0: left
+     * 1: right
+     */
+    private fun swipeGraph(direction: Int) {
+        val currentTab = mBinding?.graphTabLayout?.selectedTabPosition ?: 0
+        val variable = mBinding?.graphTabLayout?.getTabAt(currentTab)?.text
+        mBinding?.graphTabLayout?.getTabAt(when (variable) {
+            getString(R.string.graph_tab_area) -> if (direction == 0) 1 else 2
+            getString(R.string.graph_tab_length) -> if (direction == 0) 2 else 0
+            else -> if (direction == 0) 0 else 1
+        })?.select()
     }
 
     /**
@@ -213,6 +259,14 @@ class GraphFragment : Fragment(), CoroutineScope by MainScope() {
 
         graph.viewport.isScalable = true
         graph.viewport.isScrollable = true
+
+        graph.viewport.isXAxisBoundsManual = false
+        graph.viewport.isYAxisBoundsManual = false
+
+        graph.viewport.setMinX(series.lowestValueX)
+        graph.viewport.setMaxX(series.highestValueX)
+        graph.viewport.setMinY(series.lowestValueY)
+        graph.viewport.setMaxY(series.highestValueY)
     }
 
 //    private fun setViewportGrid(graph: GraphView) = with(graph){

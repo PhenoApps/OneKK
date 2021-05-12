@@ -453,5 +453,6 @@
     <string name="flash_state">Flash state of camera.</string>
     <string name="back_button">Back button.</string>
     <string name="import_button">Import button.</string>
+    <string name="retake">Retake</string>
 
 </resources>

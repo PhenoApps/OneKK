@@ -44,6 +44,7 @@ import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentCameraBinding
 import org.wheatgenetics.onekk.interfaces.BleNotificationListener
 import org.wheatgenetics.onekk.interfaces.BleStateListener
+import org.wheatgenetics.onekk.observeOnce
 import org.wheatgenetics.onekk.toBitmap
 import org.wheatgenetics.onekk.toFile
 import org.wheatgenetics.utils.BluetoothUtil
@@ -238,17 +239,6 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
             this?.barcodeScanButton?.setOnClickListener {
                 findNavController().navigate(CameraFragmentDirections.actionToBarcodeScanner())
-            }
-
-            val flashButton = this?.toolbar?.findViewById<ImageButton>(R.id.flashButton)
-            flashButton?.setOnClickListener {
-                mCamera?.let { cam ->
-                    cam.cameraControl.enableTorch(cam.cameraInfo.torchState.value == 0)
-                    flashButton.setImageResource(when (cam.cameraInfo.torchState.value) {
-                        0 -> R.drawable.ic_code_scanner_flash_off
-                        else -> R.drawable.ic_code_scanner_flash_on
-                    })
-                }
             }
         }
 
@@ -700,12 +690,29 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
                         if (scaleMode == "3") findNavController().navigate(CameraFragmentDirections.actionToScale(rowid))
 
-                    }) {
+                    }, {
 
                         isShowingDialog = false
 
                         findNavController().navigate(CameraFragmentDirections.actionToContours(rowid))
 
+                    }) {
+
+                        isShowingDialog = false
+
+                        //get the saved analysis to delete the photo from analysis&captured directory
+                        viewModel.getAnalysis(rowid).observeOnce(viewLifecycleOwner) { analysis ->
+                            analysis.uri?.let { uri ->
+                                File(uri).delete()
+                            }
+                            analysis.src?.let { src ->
+                                File(src).delete()
+                            }
+                            //cascade delete everything related to this analysis
+                            viewModel.deleteAnalysis(rowid)
+
+                            mBinding?.nameEditText?.setText(analysis.name)
+                        }
                     }
                 }
 
