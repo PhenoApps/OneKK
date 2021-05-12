@@ -2,9 +2,13 @@
 <resources>
     <color name="colorPrimary">#03A9F4</color>
     <color name="colorPrimaryDark">#0288D1</color>
-    <color name="colorAccent">#FF5722</color>
+    <color name="colorAccent">#ffa000</color>
 
-    <color name="buttonEmphasized">#84FF5722</color>
+    <color name="main_primary">#ffc107</color>
+    <color name="main_primaryDark">#ffa000</color>
+    <color name="main_colorAccent">#448AFF</color>
+
+    <color name="buttonEmphasized">#ffa000</color>
 
     <color name="transparent">@android:color/transparent</color>
     <color name="transparent_pressed">#22000000</color>

@@ -46,8 +46,9 @@
     </style>
 
     <style name="Text.CountTitle">
-        <item name="android:textSize">@dimen/text_count_size</item>
-        <item name="android:textAlignment">center</item>
+        <item name="android:textSize">@dimen/text_size</item>
+        <item name="android:textAlignment">viewEnd</item>
+        <item name="android:textStyle">bold</item>
     </style>
 
     <style name="Text.ObservationUnit">

@@ -3,8 +3,21 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 apply plugin: "androidx.navigation.safeargs.kotlin"
+apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.firebase.crashlytics'
 
 android {
+    signingConfigs {
+        playStoreConfig {
+            Properties keystoreProps = new Properties()
+            keystoreProps.load(new FileInputStream(file('keystore.config')))
+
+            keyAlias keystoreProps['keyAlias']
+            keyPassword keystoreProps['keyPassword']
+            storePassword keystoreProps['storePassword']
+            storeFile file('1kk.keystore.jks')
+        }
+    }
 
     compileSdkVersion 29
 
@@ -12,6 +25,8 @@ android {
         applicationId "org.wheatgenetics.onekk"
         minSdkVersion 26
         targetSdkVersion 29
+        versionCode = 200
+        versionName = '2.0'
         multiDexEnabled true
         renderscriptTargetApi 24
         renderscriptSupportModeEnabled false
@@ -23,18 +38,15 @@ android {
     }
 
     buildTypes {
-
         release {
             clean
-            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), "proguard-rules.pro"
             debuggable false
             jniDebuggable false
             renderscriptDebuggable false
-            //signingConfig playStoreConfig //Add your own signing config
+            signingConfig signingConfigs.playStoreConfig
             pseudoLocalesEnabled false
             zipAlignEnabled true
-            shrinkResources true
 
             //disable this if you want to run tests on provided datasets
             //otherwise these assets will be erased (unless you want a 1Gb app)
@@ -70,6 +82,9 @@ android {
 }
 
 dependencies {
+    implementation platform('com.google.firebase:firebase-bom:27.1.0')
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-crashlytics'
 
     //TODO clean dependencies
 
@@ -150,7 +165,7 @@ dependencies {
     implementation "com.polidea.rxandroidble2:rxandroidble:1.11.1"
 
     //glide
-    implementation ("com.github.bumptech.glide:glide:4.11.0") {
+    implementation("com.github.bumptech.glide:glide:4.11.0") {
         exclude group: "com.android.support"
     }
 
