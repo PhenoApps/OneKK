@@ -53,7 +53,8 @@
 
         <!-- app intro activity -->
         <activity android:name=".activities.IntroActivity"
-            android:label="My Custom AppIntro" />
+            android:label="My Custom AppIntro"
+            android:theme="@style/AppIntroTheme"/>
 
     </application>
 
