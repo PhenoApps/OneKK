@@ -1,5 +1,6 @@
 package org.wheatgenetics.onekk.activities
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
@@ -118,6 +119,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 initializeCoinPreferences()
 
                 mPreferences.edit().putBoolean(getString(R.string.onekk_first_coin_load), false).apply()
+
+                startActivity(Intent(this, IntroActivity::class.java))
+
             }
         }
     }

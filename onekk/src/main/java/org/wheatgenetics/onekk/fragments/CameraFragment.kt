@@ -13,6 +13,7 @@ import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.camera.core.*
 import androidx.camera.core.Camera
@@ -24,6 +25,7 @@ import androidx.core.net.toUri
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.fragment.findNavController
 import androidx.work.*
@@ -32,7 +34,13 @@ import com.polidea.rxandroidble2.helpers.ValueInterpreter
 import kotlinx.coroutines.*
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.database.OnekkDatabase
+import org.wheatgenetics.onekk.database.OnekkRepository
+import org.wheatgenetics.onekk.database.models.AnalysisEntity
+import org.wheatgenetics.onekk.database.models.ImageEntity
+import org.wheatgenetics.onekk.database.models.embedded.Image
 import org.wheatgenetics.onekk.database.viewmodels.BarcodeSharedViewModel
+import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
+import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentCameraBinding
 import org.wheatgenetics.onekk.interfaces.BleNotificationListener
 import org.wheatgenetics.onekk.interfaces.BleStateListener
@@ -58,6 +66,12 @@ import java.util.concurrent.TimeUnit
 class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, CoroutineScope by MainScope() {
 
     private val barcodeViewModel: BarcodeSharedViewModel by activityViewModels()
+
+    private val viewModel by viewModels<ExperimentViewModel> {
+        with(OnekkDatabase.getInstance(requireContext())) {
+            OnekkViewModelFactory(OnekkRepository.getInstance(this.dao(), this.coinDao()))
+        }
+    }
 
     private val mPreferences by lazy {
         context?.getSharedPreferences(getString(R.string.onekk_preference_key), Context.MODE_PRIVATE)
@@ -386,15 +400,7 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
                             }
                             WorkInfo.State.SUCCEEDED -> {
 
-                                barcodeViewModel.lastScan.value = ""
-
-                                mBinding?.nameEditText?.setText("")
-
-                                mBinding?.weightEditText?.setText("")
-
-                                mBinding?.weightEditText?.isEnabled = true
-
-                                mBinding?.weightLockButton?.setImageResource(R.drawable.ic_weight_unlock)
+                                resetUi()
 
                                 it.outputData.getString("dst")?.let { outputImage ->
 
@@ -421,6 +427,24 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
                     }
                 }
             })
+        }
+    }
+
+    private fun resetUi() {
+
+        this.activity?.runOnUiThread {
+
+            barcodeViewModel.lastScan.value = ""
+
+            mBinding?.nameEditText?.setText("")
+
+            mBinding?.weightEditText?.setText("")
+
+            mBinding?.weightEditText?.isEnabled = true
+
+            mBinding?.weightLockButton?.setImageResource(R.drawable.ic_weight_unlock)
+
+            mBinding?.toggleDetectorProgress(false)
         }
     }
 
@@ -508,6 +532,8 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
                     val weight = mBinding?.weightEditText?.text?.toString()?.toDoubleOrNull()
 
                     val scaleMode = mPreferences?.getString(getString(R.string.onekk_preference_mode_key), "1") ?: "1"
+                    val algorithm = mPreferences?.getString(getString(R.string.onekk_preference_algorithm_mode_key), "0") ?: "0"
+                    val collector = mPreferences?.getString(getString(R.string.onekk_preference_collector_key), "") ?: ""
 
                     if (name.isNotBlank() && (scaleMode != "2" || weight != null)) {
 
@@ -522,7 +548,8 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
                                     override fun onCaptureSuccess(proxy: ImageProxy) {
 
-                                        val fileName = "${name}_${DateUtil().getTime()}.png"
+                                        val date = DateUtil().getTime()
+                                        val fileName = "${name}_$date.png"
 
                                         val file = proxy.toBitmap().toFile(
                                             captureDirectory.path,
@@ -531,7 +558,28 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
                                         proxy.close()
 
-                                        initiateDetector(file.path, name)
+                                        if (algorithm != "2") {
+                                            initiateDetector(file.path, name)
+                                        } else {
+
+                                            //if no algorithm is run, just insert a blank analysis/image entity
+                                            launch {
+                                                val rowid = viewModel.insert(
+                                                    AnalysisEntity(
+                                                        name = name,
+                                                        collector = collector,
+                                                        uri = file.path,
+                                                        src = file.path,
+                                                        date = date,
+                                                        weight = weight)
+                                                ).toInt()
+
+                                                viewModel.insert(ImageEntity(Image(file.path, null, date), rowid))
+
+                                            }
+
+                                            resetUi()
+                                        }
 
                                         super.onCaptureSuccess(proxy)
                                     }

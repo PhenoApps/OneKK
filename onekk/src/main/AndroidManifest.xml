@@ -51,6 +51,10 @@
             </intent-filter>
         </activity>
 
+        <!-- app intro activity -->
+        <activity android:name=".activities.IntroActivity"
+            android:label="My Custom AppIntro" />
+
     </application>
 
 </manifest>
