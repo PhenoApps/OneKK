@@ -92,7 +92,7 @@ class BluetoothUtil(private val context: Context) {
 
             writeDisposable = connection.writeCharacteristic(uuid, "CP\r\n".toByteArray())
                     .doOnError { }
-                    .subscribe({ success ->
+                    .subscribe({ _ ->
 
                         //    println("$success")
                     }) { error -> error.printStackTrace() }

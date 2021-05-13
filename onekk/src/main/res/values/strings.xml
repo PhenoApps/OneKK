@@ -454,5 +454,18 @@
     <string name="back_button">Back button.</string>
     <string name="import_button">Import button.</string>
     <string name="retake">Retake</string>
+    <string name="onekk_first_sample_load">org.wheatgenetics.onekk.FIRST_SAMPLE_LOAD</string>
+    <string name="camera_fragment_load_sample_dialog_title">Would you like to load a sample file?</string>
+    <string name="intro_slide_1">Welcome to OneKK</string>
+    <string name="intro_slide_2">Compatible Devices</string>
+    <string name="intro_slide_3">Expected picture conditions</string>
+    <string name="intro_slide_4">Workflow</string>
+    <string name="tutorial_about_fragment_text">Tutorial</string>
+    <string name="tutorial_about_fragment_title">Tutorial</string>
+    <string name="intro_slide_1_description">Get ready to capture pictures, count and measure seeds automatically.</string>
+    <string name="intro_slide_2_description">OneKK works with a lightbox, four coins, and a Bluetooth Ohaus scale.</string>
+    <string name="intro_slide_3_description">Here\'s how you should arrange things to take a picture.</string>
+    <string name="intro_slide_4_description">The app is split into three primary sections: camera, samples, and settings.\nUse the camera to snap pictures.\nVisit the analysis page to view brief statistics.\nFinally, the settings page has many different parameters to tune your experience.</string>
+
 
 </resources>

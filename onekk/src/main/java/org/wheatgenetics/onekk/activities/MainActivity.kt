@@ -99,7 +99,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
             //TODO add firebase analytics event on error
 
-            Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            Thread.setDefaultUncaughtExceptionHandler { _, throwable ->
 
                 Log.e("OneKKCrash", throwable.message ?: "")
 

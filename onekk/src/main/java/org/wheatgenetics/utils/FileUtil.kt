@@ -69,11 +69,11 @@ open class FileUtil(private val ctx: Context) {
 
                             if (it.contour?.count == 1) {
 
-                                write("${analysis.name}, ${it.contour?.count}, ${it.contour?.maxAxis}, ${it.contour?.minAxis}, ${it.contour?.area}, ${(analysis.weight ?: 0.0) / (analysis.totalArea ?: 1.0) * (it.contour?.area ?: 1.0)}".toByteArray())
+                                write("${analysis.name}, ${it.contour?.count}, ${it.contour?.maxAxis}, ${it.contour?.minAxis}, ${it.contour?.area}, ${(analysis.weight ?: 0.0) / (analysis.totalArea ?: 1.0) * (it.contour?.area ?: 1.0)}, ${it.contour?.x}, ${it.contour?.y}".toByteArray())
 
                             } else {
 
-                                write("${analysis.name}, ${it.contour?.count}, N/A, N/A, ${it.contour?.area}, ${(analysis.weight ?: 0.0) / (it.contour?.area ?: 1.0)}".toByteArray())
+                                write("${analysis.name}, ${it.contour?.count}, N/A, N/A, ${it.contour?.area}, ${(analysis.weight ?: 0.0) / (it.contour?.area ?: 1.0)}, ${it.contour?.x}, ${it.contour?.y}".toByteArray())
 
                             }
 

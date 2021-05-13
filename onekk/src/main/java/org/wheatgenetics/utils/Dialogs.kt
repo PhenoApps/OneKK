@@ -20,13 +20,13 @@ class Dialogs {
 
             builder.setTitle(title)
 
-            builder.setPositiveButton(android.R.string.ok) { dialog, _ ->
+            builder.setPositiveButton(android.R.string.ok) { _, _ ->
 
                 onSuccess()
 
             }
 
-            builder.setNegativeButton(android.R.string.cancel) { dialog, _ ->
+            builder.setNegativeButton(android.R.string.cancel) { _, _ ->
 
 
             }
@@ -143,7 +143,7 @@ class Dialogs {
 
             builder.setTitle(title)
 
-            builder.setPositiveButton(R.string.frag_camera_dialog_post_analysis_ok) { dialog, which ->
+            builder.setPositiveButton(R.string.frag_camera_dialog_post_analysis_ok) { dialog, _ ->
 
                 if (function != null) {
                     function()
@@ -153,7 +153,7 @@ class Dialogs {
 
             }
 
-            builder.setNeutralButton(R.string.retake) { dialog, which ->
+            builder.setNeutralButton(R.string.retake) { dialog, _ ->
 
                 if (onRetake != null) {
                     onRetake()
@@ -162,7 +162,7 @@ class Dialogs {
                 dialog.dismiss()
             }
 
-            builder.setNegativeButton(R.string.frag_camera_dialog_post_analysis_details) { dialog, which ->
+            builder.setNegativeButton(R.string.frag_camera_dialog_post_analysis_details) { dialog, _ ->
 
                 if (onDecline != null) {
                     onDecline()

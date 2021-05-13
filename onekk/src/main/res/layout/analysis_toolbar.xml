@@ -7,22 +7,11 @@
 
     <ImageButton
         android:background="@color/colorPrimary"
-        android:id="@+id/backButton"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:src="?attr/homeAsUpIndicator"
-        app:layout_constraintEnd_toStartOf="@id/importButton"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:contentDescription="@string/back_button" />
-
-    <ImageButton
-        android:background="@color/colorPrimary"
         android:id="@+id/importButton"
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:src="@drawable/ic_nv_import"
-        app:layout_constraintStart_toEndOf="@id/backButton"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:contentDescription="@string/import_button" />
 

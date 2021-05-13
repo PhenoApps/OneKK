@@ -86,7 +86,7 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
 
         viewModel.getExampleImages().observeForever { uri ->
 
-            uri?.let { images ->
+            uri?.let { _ ->
 
                 viewModel.analysis().observeOnce(this@AnalysisFragment, {
 
@@ -180,9 +180,6 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
     private fun FragmentAnalysisManagerBinding.setupTopToolbar() {
 
         with (toolbar) {
-            findViewById<ImageButton>(R.id.backButton)?.setOnClickListener {
-                findNavController().popBackStack()
-            }
             findViewById<ImageButton>(R.id.importButton)?.setOnClickListener {
                 findNavController().navigate(AnalysisFragmentDirections.globalActionToImport(mode = "import"))
             }

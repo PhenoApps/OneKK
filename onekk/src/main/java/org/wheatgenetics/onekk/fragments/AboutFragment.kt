@@ -1,6 +1,7 @@
 package org.wheatgenetics.onekk.fragments
 
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
@@ -21,6 +22,7 @@ import com.michaelflisar.changelog.ChangelogBuilder
 import com.michaelflisar.changelog.classes.ImportanceChangelogSorter
 import com.mikepenz.aboutlibraries.LibsBuilder
 import org.wheatgenetics.onekk.R
+import org.wheatgenetics.onekk.activities.IntroActivity
 import org.wheatgenetics.onekk.activities.MainActivity
 
 
@@ -104,6 +106,14 @@ class AboutFragment : MaterialAboutFragment() {
                 .subText("$firstContrib ${getString(R.string.app_name)} $afterContrib")
                 .icon(R.drawable.ic_about_funding)
                 .build())
+        val introCard = MaterialAboutCard.Builder()
+        introCard.title(R.string.tutorial_about_fragment_title)
+        introCard.addItem(MaterialAboutActionItem.Builder()
+            .text(R.string.tutorial_about_fragment_text)
+            .icon(R.drawable.ic_about_info)
+            .setOnClickAction {
+                startActivity(Intent(context, IntroActivity::class.java))
+            }.build()).build()
         val technicalCardBuilder = MaterialAboutCard.Builder()
         technicalCardBuilder.title(getString(R.string.about_technical_title))
         technicalCardBuilder.addItem(MaterialAboutActionItem.Builder()
@@ -147,7 +157,7 @@ class AboutFragment : MaterialAboutFragment() {
                 .setOnClickAction(openAppOrStore("org.phenoapps.verify", c))
                 .build())
 
-        return MaterialAboutList(appCardBuilder.build(), authorCardBuilder.build(), contributorsCardBuilder.build(), otherAppsCardBuilder.build(), technicalCardBuilder.build())
+        return MaterialAboutList(appCardBuilder.build(), authorCardBuilder.build(), contributorsCardBuilder.build(), introCard.build(), otherAppsCardBuilder.build(), technicalCardBuilder.build())
     }
 
     private fun showChangelog(managedShow: Boolean, rateButton: Boolean) {

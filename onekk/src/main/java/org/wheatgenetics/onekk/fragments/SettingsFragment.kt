@@ -87,7 +87,7 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
             countryPreference?.entries = it.toTypedArray()
             countryPreference?.entryValues = it.toTypedArray()
 
-            countryPreference?.setOnPreferenceChangeListener { preference, newValue ->
+            countryPreference?.setOnPreferenceChangeListener { _, newValue ->
 
                 val countryName = (newValue as? String) ?: "USA"
 
@@ -103,7 +103,7 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
         })
 
         findPreference<Preference>("org.wheatgenetics.onekk.ASK_CONNECT")!!
-                .setOnPreferenceChangeListener { preference, newValue ->
+                .setOnPreferenceChangeListener { _, newValue ->
                     mPreferences.edit().apply {
                         putBoolean("org.wheatgenetics.onekk.ASK_CONNECT", (newValue as? Boolean) ?: true)
                     }.apply()
@@ -112,7 +112,7 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
                 }
 
         findPreference<Preference>("org.wheatgenetics.onekk.DISPLAY_ANALYSIS")!!
-                .setOnPreferenceChangeListener { preference, newValue ->
+                .setOnPreferenceChangeListener { _, newValue ->
                     mPreferences.edit().apply {
                         putBoolean("org.wheatgenetics.onekk.DISPLAY_ANALYSIS", (newValue as? Boolean) ?: true)
                     }.apply()
@@ -229,7 +229,7 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
             namePreference?.entries = names.toTypedArray()
             namePreference?.entryValues = names.toTypedArray()
 
-            namePreference?.setOnPreferenceChangeListener { preference, newValue ->
+            namePreference?.setOnPreferenceChangeListener { _, newValue ->
 
                 val coinName = (newValue as? String) ?: "1 Cent"
 

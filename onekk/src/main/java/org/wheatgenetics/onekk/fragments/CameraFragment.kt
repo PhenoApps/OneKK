@@ -5,16 +5,13 @@ import android.content.Context
 import android.graphics.*
 import android.net.Uri
 import android.os.Bundle
-import android.util.DisplayMetrics
 import android.util.Log
-import android.util.Size
 import android.view.*
-import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.core.Camera
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -36,7 +33,9 @@ import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
 import org.wheatgenetics.onekk.database.models.AnalysisEntity
+import org.wheatgenetics.onekk.database.models.ContourEntity
 import org.wheatgenetics.onekk.database.models.ImageEntity
+import org.wheatgenetics.onekk.database.models.embedded.Contour
 import org.wheatgenetics.onekk.database.models.embedded.Image
 import org.wheatgenetics.onekk.database.viewmodels.BarcodeSharedViewModel
 import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
@@ -83,6 +82,7 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
     }
 
     private lateinit var captureDirectory: File
+    private lateinit var analyzedDirectory: File
 
     //starts camera thread executor, which must be destroyed/stopped in onDestroy
     private var cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
@@ -163,8 +163,20 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
         startMacAddressSearch()
 
-//        setHasOptionsMenu(true)
+        val mPreferences = context?.getSharedPreferences(getString(R.string.onekk_preference_key),
+            AppCompatActivity.MODE_PRIVATE
+        )
 
+        when (mPreferences?.getBoolean(getString(R.string.onekk_first_sample_load), true)) {
+
+            true -> {
+
+                askLoadSample()
+
+                mPreferences.edit().putBoolean(getString(R.string.onekk_first_sample_load), false).apply()
+
+            }
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -207,6 +219,12 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
             getCaptureDirectory()?.let { dir ->
 
                 captureDirectory = dir
+
+            }
+
+            getAnalyzedDirectory()?.let { dir ->
+
+                analyzedDirectory = dir
 
             }
 
@@ -319,6 +337,56 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
         mBluetoothManager.dispose()
 
         stopCameraAnalysis()
+    }
+
+    /**
+     * Loads/inserts data from assets/samples into the database on cold load.
+     */
+    private fun askLoadSample() {
+        context?.let { ctx ->
+
+            launch(Dispatchers.IO) {
+
+                //parse sample export file to get stats
+                val sampleTokens = ctx.assets.open("samples/sample_sample.csv")
+                    .bufferedReader().readLines().drop(1).first().split(",").map { x -> x.trim() }
+
+                //decode and save capture and analyzed photos to the respective directories
+                BitmapFactory.decodeStream(context?.assets?.open("samples/sample_original.jpg"))
+                    .toFile(captureDirectory.path, "sample.jpg")
+
+                val analyzedSample = BitmapFactory.decodeStream(context?.assets?.open("samples/sample_analyzed.png"))
+                    .toFile(analyzedDirectory.path, "sample.png")
+
+                //insert the analysis into the database, count is not in the export file format, so it is defined statically here
+                val aid = viewModel.insert(AnalysisEntity(
+                    name = "sample",
+                    count = 74,
+                    maxAxisAvg = sampleTokens[4].toDoubleOrNull(),
+                    maxAxisVar = sampleTokens[5].toDoubleOrNull(),
+                    maxAxisCv = sampleTokens[6].toDoubleOrNull(),
+                    minAxisAvg = sampleTokens[7].toDoubleOrNull(),
+                    minAxisVar = sampleTokens[8].toDoubleOrNull(),
+                    minAxisCv = sampleTokens[9].toDoubleOrNull())).toInt()
+
+                //insert the image paths into the database, allowing it to be viewed in the contour viewer
+                viewModel.insert(ImageEntity(Image(analyzedSample.path, example = null), aid))
+
+                //parse and insert each contour from the seed_sample file
+                ctx.assets.open("samples/seed_sample.csv")
+                    .bufferedReader().readLines().drop(1).forEach {
+                        val tokens = it.split(",").map { x -> x.trim() }
+                        viewModel.insert(ContourEntity(Contour(
+                            area = tokens[4].toDouble(),
+                            count = tokens[1].toInt(),
+                            maxAxis = tokens[2].toDoubleOrNull(),
+                            minAxis = tokens[3].toDoubleOrNull(),
+                            x = tokens[6].toDouble(),
+                            y = tokens[7].toDouble(),
+                        ), aid = aid))
+                    }
+            }
+        }
     }
 
     /**
@@ -472,6 +540,15 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
         cameraExecutor.shutdown()
 
+    }
+
+    private fun getAnalyzedDirectory(): File? {
+
+        val mediaDir = context?.externalMediaDirs?.firstOrNull()?.let {
+            File(it, "analyzed").apply { mkdirs() } }
+
+        return if (mediaDir != null && mediaDir.exists())
+            mediaDir else context?.filesDir
     }
 
     private fun getCaptureDirectory(): File? {
