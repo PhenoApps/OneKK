@@ -93,6 +93,9 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
     private var isShowingDialog: Boolean = false
 
+    //global variable to track when weight capture button is locked
+    private var isLocked: Boolean = false
+
 //    //query the relative screen size, used for creating a preview that matches the screen size
 //    private val metrics by lazy {
 //
@@ -161,11 +164,48 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
         startCameraAnalysis()
 
-        startMacAddressSearch()
-
         val mPreferences = context?.getSharedPreferences(getString(R.string.onekk_preference_key),
             AppCompatActivity.MODE_PRIVATE
         )
+
+        val weighAndCapture = mPreferences?.getString(getString(R.string.onekk_preference_mode_key),
+            getString(R.string.frag_setting_scale_mode_1))
+
+        when (weighAndCapture) {
+            "2" -> {
+
+                //if a device is already chosen, then start the service search/connection
+                if (mPreferences.getString(getString(R.string.preferences_enable_bluetooth_key), String())?.isEmpty() == true) {
+
+                    //if a device is not already chosen and its the first time loading this fragment, ask if the user wants to connect to a device
+                    when (mPreferences.getBoolean(getString(R.string.onekk_first_scale_fragment_ask_mac_address), true)) {
+
+                        true -> {
+
+                            callAskConnectDialog()
+
+                            //set first time dialog to false so it is only ever asked once
+                            mPreferences.edit().putBoolean(getString(R.string.onekk_first_scale_fragment_ask_mac_address), false).apply()
+
+                        }
+                        else ->  {
+
+                            //finally, if it's not the first time, check the ask connect preference to ask anyways
+                            if (mPreferences.getBoolean("org.wheatgenetics.onekk.ASK_CONNECT", true)) {
+
+                                callAskConnectDialog()
+
+                            }
+                        }
+                    }
+                } else {
+
+                    //if a device is already preferred, try connecting to it
+                    startMacAddressSearch()
+
+                }
+            }
+        }
 
         when (mPreferences?.getBoolean(getString(R.string.onekk_first_sample_load), true)) {
 
@@ -174,6 +214,21 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
                 askLoadSample()
 
                 mPreferences.edit().putBoolean(getString(R.string.onekk_first_sample_load), false).apply()
+
+            }
+        }
+    }
+
+    private fun callAskConnectDialog() {
+
+        Dialogs.onOk(AlertDialog.Builder(requireContext()),
+            getString(R.string.camera_fragment_dialog_first_load_ask_address),
+            getString(R.string.cancel),
+            getString(R.string.camera_fragment_dialog_first_load_ok)) { theyWantToSetAddress ->
+
+            if (theyWantToSetAddress) {
+
+                startMacAddressSearch()
 
             }
         }
@@ -230,20 +285,18 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
             with (this?.weightLockButton) {
 
-                this?.tag = "unlocked"
-
                 this?.setOnClickListener {
 
-                    this.tag = when (tag) {
-                        "locked" -> {
+                    isLocked = when (isLocked) {
+                        true -> {
                             this.setImageResource(R.drawable.ic_weight_unlock)
                             mBinding?.weightEditText?.isEnabled = true
-                            "unlocked"
+                            false
                         }
                         else -> {
                             this.setImageResource(R.drawable.ic_weight_lock)
                             mBinding?.weightEditText?.isEnabled = false
-                            "locked"
+                            true
                         }
                     }
                 }
@@ -517,7 +570,7 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
         val weightText = weight.toDoubleOrNull() ?: 0.0
 
-        if (mBinding?.weightEditText?.tag == "unlocked") {
+        if (!isLocked) {
             runOnUiThread {
 
                 findViewById<TextView>(R.id.weightEditText)?.text = weightText.toString()

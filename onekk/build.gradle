@@ -10,8 +10,9 @@ android {
     signingConfigs {
         playStoreConfig {
             Properties keystoreProps = new Properties()
-            keystoreProps.load(new FileInputStream(file('keystore.config')))
-
+            if (file('keystore.config').exists()) {
+                keystoreProps.load(new FileInputStream(file('keystore.config')))
+            }
             keyAlias keystoreProps['keyAlias']
             keyPassword keystoreProps['keyPassword']
             storePassword keystoreProps['storePassword']
