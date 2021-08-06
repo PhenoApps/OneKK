@@ -1,6 +1,7 @@
 package org.wheatgenetics.onekk.activities
 
 import android.annotation.SuppressLint
+import android.graphics.Color
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import com.github.appintro.AppIntro
@@ -17,21 +18,27 @@ class IntroActivity : AppIntro() {
         // Call addSlide passing your Fragments.
         // You can use AppIntroFragment to use a pre-built fragment
         addSlide(AppIntroFragment.newInstance(
-            title = getString(R.string.intro_slide_1), //Welcome to OneKK
-            description = getString(R.string.intro_slide_1_description)
+                title = getString(R.string.intro_slide_1), //Welcome to OneKK
+                backgroundColor = getResources().getColor(R.color.colorPrimaryDark),
+                description = getString(R.string.intro_slide_1_description),
+                imageDrawable = R.drawable.ic_launcher
         ))
         addSlide(AppIntroFragment.newInstance(
-            title = getString(R.string.intro_slide_2), //OneKK works with a lightbox, four coins, and a Bluetooth Ohaus scale.
-            description = getString(R.string.intro_slide_2_description)
+                title = getString(R.string.intro_slide_2), //OneKK works with a lightbox, four coins, and a Bluetooth Ohaus scale.
+                backgroundColor = getResources().getColor(R.color.colorPrimaryDark),
+                description = getString(R.string.intro_slide_2_description),
+                imageDrawable = R.drawable.scale
         ))
         addSlide(AppIntroFragment.newInstance(
-            title = getString(R.string.intro_slide_3),
-            description = getString(R.string.intro_slide_3_description),
-            imageDrawable = R.drawable.sample_original
+                title = getString(R.string.intro_slide_3),
+                backgroundColor = getResources().getColor(R.color.colorPrimaryDark),
+                description = getString(R.string.intro_slide_3_description),
+                imageDrawable = R.drawable.sample_original
         ))
         addSlide(AppIntroFragment.newInstance(
-            title = getString(R.string.intro_slide_4),
-            description = getString(R.string.intro_slide_4_description)
+                title = getString(R.string.intro_slide_4),
+                backgroundColor = getResources().getColor(R.color.colorPrimaryDark),
+                description = getString(R.string.intro_slide_4_description)
         ))
     }
 

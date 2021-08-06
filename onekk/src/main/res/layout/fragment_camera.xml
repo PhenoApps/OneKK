@@ -57,7 +57,6 @@
             android:layout_height="56dp"
             android:layout_margin="8dp"
             android:scaleType="fitCenter"
-            android:background="@drawable/camera_button_background_emphasized"
             app:layout_constraintStart_toEndOf="@id/weightEditText"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="@id/viewFinder"

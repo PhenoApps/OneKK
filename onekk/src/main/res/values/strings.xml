@@ -456,16 +456,16 @@
     <string name="retake">Retake</string>
     <string name="onekk_first_sample_load">org.wheatgenetics.onekk.FIRST_SAMPLE_LOAD</string>
     <string name="camera_fragment_load_sample_dialog_title">Would you like to load a sample file?</string>
-    <string name="intro_slide_1">Welcome to OneKK</string>
-    <string name="intro_slide_2">Compatible Devices</string>
-    <string name="intro_slide_3">Expected picture conditions</string>
-    <string name="intro_slide_4">Workflow</string>
-    <string name="tutorial_about_fragment_text">Tutorial</string>
+    <string name="intro_slide_1">Welcome!</string>
+    <string name="intro_slide_2">Hardware</string>
+    <string name="intro_slide_3">Workflow</string>
+    <string name="intro_slide_4">Layout</string>
+    <string name="about_intro">Introduction</string>
     <string name="tutorial_about_fragment_title">Tutorial</string>
-    <string name="intro_slide_1_description">Get ready to capture pictures, count and measure seeds automatically.</string>
-    <string name="intro_slide_2_description">OneKK works with a lightbox, four coins, and a Bluetooth Ohaus scale.</string>
-    <string name="intro_slide_3_description">Here\'s how you should arrange things to take a picture.</string>
-    <string name="intro_slide_4_description">The app is split into three primary sections: camera, samples, and settings.\nUse the camera to snap pictures.\nVisit the analysis page to view brief statistics.\nFinally, the settings page has many different parameters to tune your experience.</string>
+    <string name="intro_slide_1_description">OneKK measures and counts seeds dispersed on a lightbox using coins as a size reference.</string>
+    <string name="intro_slide_2_description">OneKK can optionally connect to Ohaus Bluetooth scales to collect sample weight and calculate an estimated thousand kernel weight.</string>
+    <string name="intro_slide_3_description">To use OneKK, arrange four coins in a rectangle and spread seeds between them. Seeds that are outside of the coins will not be measured. OneKK will estimate the total number of seeds and collect measurements from non-clustered seeds.</string>
+    <string name="intro_slide_4_description">The OneKK app is divided into three primary sections: Camera to capture photos of seeds, Samples to view and export collected data, and Settings to adjust different app options.</string>
 
 
 </resources>

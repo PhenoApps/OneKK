@@ -58,6 +58,12 @@ class AboutFragment : MaterialAboutFragment() {
                 getString(R.string.about_rate),
                 null
         ))
+        appCardBuilder.addItem(MaterialAboutActionItem.Builder()
+                .text(R.string.about_intro)
+                .icon(R.drawable.ic_about_info)
+                .setOnClickAction {
+                    startActivity(Intent(context, IntroActivity::class.java))
+                }.build()).build()
         //TODO: Add new translation project
 //        appCardBuilder.addItem(MaterialAboutActionItem.Builder()
 //                .text(R.string.about_help_translate_title)
@@ -90,7 +96,6 @@ class AboutFragment : MaterialAboutFragment() {
         val firstContrib = getString(R.string.about_contributors_funding_text_first)
         val afterContrib = getString(R.string.about_contributors_funding_text_after)
 
-        //TODO: Add contributors link.
         contributorsCardBuilder.addItem(ConvenienceBuilder.createWebsiteActionItem(c,
                 ResourcesCompat.getDrawable(resources, R.drawable.ic_about_contributors, activity?.theme),
                 getString(R.string.about_contributors_developers_title),
@@ -106,14 +111,6 @@ class AboutFragment : MaterialAboutFragment() {
                 .subText("$firstContrib ${getString(R.string.app_name)} $afterContrib")
                 .icon(R.drawable.ic_about_funding)
                 .build())
-        val introCard = MaterialAboutCard.Builder()
-        introCard.title(R.string.tutorial_about_fragment_title)
-        introCard.addItem(MaterialAboutActionItem.Builder()
-            .text(R.string.tutorial_about_fragment_text)
-            .icon(R.drawable.ic_about_info)
-            .setOnClickAction {
-                startActivity(Intent(context, IntroActivity::class.java))
-            }.build()).build()
         val technicalCardBuilder = MaterialAboutCard.Builder()
         technicalCardBuilder.title(getString(R.string.about_technical_title))
         technicalCardBuilder.addItem(MaterialAboutActionItem.Builder()
@@ -157,7 +154,7 @@ class AboutFragment : MaterialAboutFragment() {
                 .setOnClickAction(openAppOrStore("org.phenoapps.verify", c))
                 .build())
 
-        return MaterialAboutList(appCardBuilder.build(), authorCardBuilder.build(), contributorsCardBuilder.build(), introCard.build(), otherAppsCardBuilder.build(), technicalCardBuilder.build())
+        return MaterialAboutList(appCardBuilder.build(), authorCardBuilder.build(), contributorsCardBuilder.build(), otherAppsCardBuilder.build(), technicalCardBuilder.build())
     }
 
     private fun showChangelog(managedShow: Boolean, rateButton: Boolean) {
