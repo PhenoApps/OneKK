@@ -1,5 +1,13 @@
 <changelog>
     <release
+        date="2021-09-01"
+        versionCode="201"
+        versionName="v2.0.1">
+        <new>Added intro text</new>
+        <bugfix>Fixed scale not correctly connecting</bugfix>
+    </release>
+
+    <release
         date="2021-06-01"
         versionCode="200"
         versionName="v2.0">
