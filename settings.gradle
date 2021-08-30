@@ -1,2 +1,4 @@
-include ':openCVLibrary320'
-include ':onekk'
+include ':commons-math3-3.0'
+include ':PhenoIcons'
+include ':onekk', ':openCV'
+include ':openCVLibrary343'

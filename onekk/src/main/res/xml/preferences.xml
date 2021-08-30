@@ -1,105 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <PreferenceCategory android:title="General">
+    <PreferenceCategory app:iconSpaceReserved="false"
+        android:title="General">
 
-        <org.wheatgenetics.ui.PersonDialogPreference
+        <EditTextPreference
+            android:key="@string/onekk_preference_collector_key"
             android:icon="@drawable/ic_person"
-            android:persistent="false"
-            android:title="@string/user_name" />
+            android:title="@string/collector" />
     </PreferenceCategory>
 
-    <PreferenceCategory
+    <PreferenceCategory app:iconSpaceReserved="false"
         android:key="org.wheatgenetics.onekk.PROCESSING"
-        android:persistent="false"
         android:title="Workflow">
+
+        <ListPreference
+            android:defaultValue="0"
+            android:entries="@array/analysis_algorithm"
+            android:entryValues="@array/analysis_algorithm_values"
+            android:icon="@drawable/ic_android_studio"
+            android:key="org.wheatgenetics.onekk.ANALYSIS_ALGORITHM"
+            android:title="@string/frag_settings_algorithm_title" />
 
         <CheckBoxPreference
             android:defaultValue="true"
             android:icon="@drawable/ic_choose_photo"
             android:key="org.wheatgenetics.onekk.DISPLAY_ANALYSIS"
-            android:summary="Display analysis preview"
+            android:summary="@string/frag_settings_display_analysis_summary"
             android:title="@string/display_analysis" />
 
         <ListPreference
             android:defaultValue="1"
             android:entries="@array/scale_steps"
             android:entryValues="@array/scale_steps_values"
-            android:icon="@drawable/ic_usb"
-            android:key="scale_steps"
-            android:title="Choose scale steps" />
+            android:icon="@drawable/ic_scale"
+            android:key="org.wheatgenetics.onekk.SCALE_STEPS"
+            android:title="@string/frag_settings_weight_workflow_title" />
 
-        <SeekBarPreference
-            android:defaultValue="50"
-            android:key="org.wheatgenetics.onekk.MIN_SEED_VALUE"
-            android:max="100"
-            android:summary="Minimum seed size (Optional)"
-            android:title="@string/min_size" />
-
-        <SeekBarPreference
-            android:defaultValue="50"
-            android:key="org.wheatgenetics.onekk.MAX_SEED_VALUE"
-            android:max="100"
-            android:summary="Maximum seed size (Optional)"
-            android:title="@string/max_size" />
     </PreferenceCategory>
 
+    <PreferenceCategory app:iconSpaceReserved="false"
+        android:title="@string/frag_setting_scale_settings">
 
-    <PreferenceCategory
-        android:icon="@drawable/ic_settings"
-        android:key="org.wheatgenetics.onekk.COIN_SIZE"
-        android:title="@string/coin_size">
-
-        <ListPreference
-            android:defaultValue="-1"
-            android:icon="@drawable/ic_world"
-            android:key="org.wheatgenetics.onekk.COIN_COUNTRY"
-            android:summary="%s"
-            android:title="@string/country" />
-
-        <ListPreference
-            android:defaultValue="-1"
-            android:icon="@drawable/ic_money"
-            android:key="org.wheatgenetics.onekk.COIN_NAME"
-            android:summary="%s"
-            android:title="@string/coin_name" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:icon="@drawable/ic_bluetooth_off"
+            android:key="org.wheatgenetics.onekk.ASK_CONNECT"
+            android:summary="@string/frag_settings_ask_connect_device"
+            android:title="@string/ask_connect_device" />
 
         <Preference
-            android:defaultValue="-1"
+            android:key="@string/preferences_enable_bluetooth_key"
+            android:icon="@drawable/ic_bluetooth_transfer"
+            android:title="@string/enable_bluetooth"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:iconSpaceReserved="false"
+        android:title="@string/frag_setting_coin_title">
+
+        <ListPreference
+            android:title="@string/coin_country_choice"
+            android:summary=""
+            android:icon="@drawable/ic_world"
+            android:key="org.wheatgenetics.onekk.REFERENCE_COUNTRY"/>
+
+        <ListPreference
+            android:summary=""
             android:icon="@drawable/ic_coin_database"
-            android:key="org.wheatgenetics.onekk.COIN_DB"
-            android:summary="add/edit pre defined coin values"
-            android:title="Manage coin database">
+            android:key="org.wheatgenetics.onekk.REFERENCE_NAME"
+            android:title="@string/coin_size"/>
 
-            <intent
-                android:action="android.intent.action.EDIT"
-                android:targetClass="org.wheatgenetics.onekk.CoinDataActivity"
-                android:targetPackage="org.wheatgenetics.onekk" />
+        <Preference
+            android:summary=""
+            android:icon="@drawable/ic_coin_database"
+            android:key="@string/onekk_coin_manager_key"
+            android:title="@string/frag_settings_coin_manager_title"/>
 
-        </Preference>
     </PreferenceCategory>
 
-    <PreferenceCategory
-        android:key="org.wheatgenetics.onekk.ADVANCED_SETTINGS"
-        android:persistent="false"
-        android:summary="Set different advanced settings"
-        android:title="@string/advanced_settings">
-
-        <CheckBoxPreference
-            android:defaultValue="false"
-            android:disableDependentsState="false"
-            android:icon="@drawable/ic_advanced_processing"
-            android:key="org.wheatgenetics.onekk.ASK_BACKGROUND_PROCESSING"
-            android:summary="run processes in the background"
-            android:title="@string/ask_background_processing" />
-        <CheckBoxPreference
-            android:defaultValue="false"
-            android:dependency="org.wheatgenetics.onekk.ASK_BACKGROUND_PROCESSING"
-            android:icon="@drawable/ic_advanced_processing"
-            android:key="org.wheatgenetics.onekk.ASK_MULTI_PROCESSING"
-            android:summary="run multiple processes in the background"
-            android:title="@string/ask_multi_processing" />
-    </PreferenceCategory>
 </PreferenceScreen>

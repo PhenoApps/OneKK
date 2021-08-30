@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main_graph"
+    app:startDestination="@+id/camera_preview_fragment">
+
+    <fragment
+        android:id="@+id/scale_fragment"
+        android:name="org.wheatgenetics.onekk.fragments.ScaleFragment"
+        android:label="@string/scale_fragment_label">
+        <argument android:name="analysis"
+            android:defaultValue="-1"
+            app:argType="integer"/>
+        <action android:id="@+id/action_to_camera"
+            app:popUpTo="@id/camera_preview_fragment"
+            app:destination="@id/camera_preview_fragment"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/graph_fragment"
+        android:name="org.wheatgenetics.onekk.fragments.GraphFragment"
+        android:label="@string/graph_fragment_label">
+        <argument android:name="analysis"
+            android:defaultValue="-1"
+            app:argType="integer"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/analysis_fragment"
+        android:name="org.wheatgenetics.onekk.fragments.AnalysisFragment"
+        android:label="@string/analysis_fragment_label">
+
+        <action android:id="@+id/action_to_contours"
+            app:popUpTo="@id/analysis_fragment"
+            app:destination="@id/contour_fragment"/>
+        <action android:id="@+id/action_to_graph"
+            app:popUpTo="@id/contour_fragment"
+            app:destination="@id/graph_fragment"/>
+        <action android:id="@+id/action_to_scale"
+            app:popUpTo="@id/analysis_fragment"
+            app:destination="@id/scale_fragment"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/contour_fragment"
+        android:name="org.wheatgenetics.onekk.fragments.ContourFragment"
+        android:label="@string/contour_fragment_label">
+
+        <argument android:name="analysis"
+            android:defaultValue="-1"
+            app:argType="integer"/>
+
+        <action android:id="@+id/action_to_camera"
+            app:destination="@id/camera_preview_fragment"/>
+        <action android:id="@+id/action_to_scale"
+            app:popUpTo="@id/camera_preview_fragment"
+            app:destination="@id/scale_fragment"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/barcode_fragment"
+        android:name="org.wheatgenetics.onekk.fragments.BarcodeScanFragment"
+        android:label="@string/nav_label_barcode_scan"/>
+
+    <fragment
+        android:id="@+id/settings_fragment"
+        android:name="org.wheatgenetics.onekk.fragments.SettingsFragment"
+        android:label="@string/nav_label_settings">
+
+        <action android:id="@+id/action_to_coin_manager"
+            app:popUpTo="@id/settings_fragment"
+            app:destination="@+id/coin_manager"/>
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/coin_manager"
+        android:name="org.wheatgenetics.onekk.fragments.CoinManagerFragment"
+        android:label="@string/nav_label_coin_manager"/>
+
+    <fragment
+        android:id="@+id/about_fragment"
+        android:name="org.wheatgenetics.onekk.fragments.AboutFragment"
+        android:label="@string/nav_label_about"/>
+
+    <fragment
+        android:id="@+id/camera_preview_fragment"
+        android:name="org.wheatgenetics.onekk.fragments.CameraFragment"
+        android:label="@string/nav_label_camera_preview">
+
+        <argument android:name="mode"
+            android:defaultValue="default"
+            app:argType="string"/>
+
+        <action android:id="@+id/action_to_import"
+            app:popUpToInclusive="true"
+            app:popUpTo="@id/camera_preview_fragment"
+            app:destination="@+id/camera_preview_fragment"/>
+
+        <action android:id="@+id/action_to_barcode_scanner"
+            app:popUpTo="@id/camera_preview_fragment"
+            app:destination="@+id/barcode_fragment"/>
+
+        <action android:id="@+id/action_to_process_file"
+            app:popUpTo="@id/camera_preview_fragment"
+            app:destination="@+id/camera_preview_fragment"/>
+
+        <action android:id="@+id/action_to_contours"
+            app:popUpTo="@id/camera_preview_fragment"
+            app:destination="@id/contour_fragment"/>
+
+        <action android:id="@+id/action_to_scale"
+            app:popUpTo="@id/camera_preview_fragment"
+            app:destination="@id/scale_fragment"/>
+    </fragment>
+
+    <action android:id="@+id/global_action_to_import"
+        app:popUpToInclusive="true"
+        app:popUpTo="@id/camera_preview_fragment"
+        app:destination="@+id/camera_preview_fragment"/>
+
+    <action
+        android:id="@+id/global_action_to_settings"
+        app:destination="@id/settings_fragment"
+        app:popUpTo="@id/camera_preview_fragment">
+    </action>
+
+    <action android:id="@+id/global_action_to_about"
+        app:popUpTo="@id/camera_preview_fragment"
+        app:destination="@+id/about_fragment"/>
+
+    <action android:id="@+id/global_action_to_analysis"
+        app:popUpTo="@id/camera_preview_fragment"
+        app:destination="@+id/analysis_fragment"/>
+
+    <action android:id="@+id/global_action_to_coin_manager"
+        app:popUpTo="@id/camera_preview_fragment"
+        app:destination="@+id/coin_manager"/>
+</navigation>
