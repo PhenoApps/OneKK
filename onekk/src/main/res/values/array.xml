@@ -1,80 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string-array name="processing_techniques">
+    <string-array name="analysis_algorithm">
         <item>Default</item>
-        <item>Watershed</item>
-    </string-array>
-    <string-array name="processing_technique_values">
-        <item>0</item>
-        <item>1</item>
+        <item>Large Single Sample</item>
+        <item>None</item>
     </string-array>
 
-    <string-array name="country">
-        <item>Australia</item>
-        <item>Bangladesh</item>
-        <item>Benin</item>
-        <item>Burkina Faso</item>
-        <item>Cameroon</item>
-        <item>Canada</item>
-        <item>Central African Republic</item>
-        <item>Chad</item>
-        <item>China</item>
-        <item>Colombia</item>
-    </string-array>
-
-    <string-array name="country_values">
+    <string-array name="analysis_algorithm_values">
         <item>0</item>
         <item>1</item>
         <item>2</item>
-        <item>3</item>
-        <item>4</item>
-        <item>5</item>
-        <item>6</item>
-        <item>7</item>
-        <item>8</item>
-        <item>9</item>
-
-    </string-array>
-
-    <string-array name="name">
-        <item>1 Cent</item>
-        <item>2 Cents</item>
-        <item>5 Cents</item>
-        <item>10 Cents</item>
-        <item>1 West African CFA franc</item>
-        <item>1 Central African CFA franc</item>
-        <item>50 Central African CFA franc</item>
-        <item>100 Central African CFA franc</item>
-        <item>500 Central African CFA franc</item>
-        <item>1 Jiao</item>
-        <item>5 Jiao</item>
-        <item>1 Yuan</item>
-
-    </string-array>
-    <string-array name="name_values">
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
-        <item>4</item>
-        <item>5</item>
-        <item>6</item>
-        <item>7</item>
-        <item>8</item>
-        <item>9</item>
-        <item>10</item>
-        <item>11</item>
     </string-array>
 
     <string-array name="scale_steps">
-        <item>One step</item>
-        <item>Two steps</item>
+        <item>@string/frag_setting_scale_mode_1</item>
+        <item>@string/frag_setting_scale_mode_2</item>
+        <item>@string/frag_setting_scale_mode_3</item>
     </string-array>
 
     <string-array name="scale_steps_values">
         <item>1</item>
         <item>2</item>
+        <item>3</item>
     </string-array>
 
 </resources>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp">
+
+        <ImageButton
+            android:visibility="invisible"
+            android:id="@+id/viewButton"
+            android:background="@drawable/cell"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/areaTextView"
+            android:contentDescription="@string/header_contours_placeholder_description"
+            android:src="@drawable/ic_info"/>
+
+        <TextView style="@style/Text.ContourListTableText"
+            tools:text="Area"
+            android:id="@+id/areaTextView"
+            android:background="@drawable/cell"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/header_contour_area"
+            app:layout_constraintEnd_toStartOf="@id/lengthTextView"
+            app:layout_constraintStart_toEndOf="@id/viewButton"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView style="@style/Text.ContourListTableText"
+            tools:text="Length"
+            android:id="@+id/lengthTextView"
+            android:background="@drawable/cell"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/header_contour_length"
+            app:layout_constraintEnd_toStartOf="@id/widthTextView"
+            app:layout_constraintStart_toEndOf="@id/areaTextView"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView style="@style/Text.ContourListTableText"
+            tools:text="Width"
+            android:id="@+id/widthTextView"
+            android:background="@drawable/cell"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/header_contour_width"
+            app:layout_constraintEnd_toStartOf="@id/countTextView"
+            app:layout_constraintStart_toEndOf="@id/lengthTextView"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView style="@style/Text.ContourListTableText"
+            android:id="@+id/countTextView"
+            android:background="@drawable/cell"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/header_contour_count"
+            tools:text="Count"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/widthTextView"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</layout>

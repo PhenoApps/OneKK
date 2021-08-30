@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <import type="android.view.View"/>
+
+        <variable
+            name="viewCluster"
+            type="android.view.View.OnClickListener"/>
+        <variable
+            name="highlight"
+            type="android.view.View.OnClickListener"/>
+        <variable
+            name="area"
+            type="String"/>
+        <variable
+            name="width"
+            type="String"/>
+        <variable
+            name="length"
+            type="String" />
+        <variable
+            name="count"
+            type="int"/>
+        <variable
+            name="selected"
+            type="boolean"/>
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background='@{width == "NA" || length =="NA" ? @drawable/not_measured_highlight : @drawable/cell}'>
+
+        <CheckBox
+            android:id="@+id/viewButton"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_marginStart="8dp"
+            android:checked="@{selected}"
+            android:onClick="@{highlight}"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/areaTextView" />
+
+        <TextView style="@style/Text.ContourListTableText"
+            tools:text="6.0"
+            android:id="@+id/areaTextView"
+            android:background="@drawable/cell"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@{area}"
+            android:onClick="@{viewCluster}"
+            app:layout_constraintEnd_toStartOf="@id/lengthTextView"
+            app:layout_constraintStart_toEndOf="@id/viewButton"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView style="@style/Text.ContourListTableText"
+            tools:text="4.0"
+            android:id="@+id/lengthTextView"
+            android:background="@drawable/cell"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@{length}"
+            android:onClick="@{viewCluster}"
+            app:layout_constraintEnd_toStartOf="@id/widthTextView"
+            app:layout_constraintStart_toEndOf="@id/areaTextView"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView style="@style/Text.ContourListTableText"
+            tools:text="2.0"
+            android:id="@+id/widthTextView"
+            android:background="@drawable/cell"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@{width}"
+            android:onClick="@{viewCluster}"
+            app:layout_constraintEnd_toStartOf="@id/countTextView"
+            app:layout_constraintStart_toEndOf="@id/lengthTextView"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <EditText
+            android:id="@+id/countTextView"
+            android:background="@drawable/cell"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@{String.valueOf(count)}"
+            android:inputType="number"
+            android:gravity="end"
+            android:selectAllOnFocus="true"
+            tools:text="42"
+            android:onClick="@{viewCluster}"
+            android:hint="@string/list_item_contour_count_hint"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/widthTextView"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</layout>

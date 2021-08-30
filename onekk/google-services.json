@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "455986670533",
+    "project_id": "onekk-e6024",
+    "storage_bucket": "onekk-e6024.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:455986670533:android:4b1fe6d277240cef2c39ac",
+        "android_client_info": {
+          "package_name": "org.wheatgenetics.onekk"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "455986670533-baqef6stkfejarfutlvcigmt9nt2sj8q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD_oH0RLQsY_q9pCCfOlHpVNZMu3lsa03s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "455986670533-baqef6stkfejarfutlvcigmt9nt2sj8q.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
