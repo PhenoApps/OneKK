@@ -75,6 +75,15 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"/>
 
+        <org.wheatgenetics.onekk.views.LevelView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/frag_camera_level_view"
+            app:layout_constraintStart_toStartOf="@id/viewFinder"
+            app:layout_constraintEnd_toEndOf="@id/viewFinder"
+            app:layout_constraintTop_toTopOf="@id/viewFinder"
+            app:layout_constraintBottom_toBottomOf="@id/viewFinder"/>
+
         <EditText
             android:id="@+id/nameEditText"
             android:visibility="visible"
@@ -91,7 +100,6 @@
             app:layout_constraintEnd_toEndOf="@id/camera_capture_button"
             android:importantForAutofill="no"
             android:autofillHints="" />
-
 
         <EditText
             android:id="@+id/weightEditText"
