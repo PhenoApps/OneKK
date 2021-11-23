@@ -1,14 +1,19 @@
 package org.wheatgenetics.onekk.fragments
 
+import android.app.ActionBar
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.Handler
 import android.view.*
+import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.view.ContextThemeWrapper
+import androidx.core.view.marginStart
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -82,6 +87,8 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
             }
         }
 
+        mBinding?.fragContourListTableView?.selectionHandler?.isShadowEnabled = false
+
         sViewModel.getSourceImage(aid).observeOnce(viewLifecycleOwner, { uri ->
 
             mSourceBitmap = uri
@@ -99,9 +106,20 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
         })
 
-        mBinding?.setupButtons()
+        sViewModel.contours(aid).observeOnce(viewLifecycleOwner, { data ->
 
-        updateTotal()
+            mContours = data
+
+            activity?.runOnUiThread {
+
+                updateUi()
+
+            }
+        })
+
+        mAdapter = ContourListAdapter(0, 0, this)
+
+        mBinding?.setupButtons()
 
         return mBinding?.root
     }
@@ -147,7 +165,7 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
         }, 500)
     }
 
-    suspend fun updateImageViewAsync(x: Double, y: Double, cluster: Boolean, minAxis: Double, maxAxis: Double): Deferred<Bitmap> = withContext(Dispatchers.IO) {
+    private suspend fun updateImageViewAsync(x: Double, y: Double, cluster: Boolean, minAxis: Double, maxAxis: Double): Deferred<Bitmap> = withContext(Dispatchers.IO) {
 
         async {
 
@@ -207,29 +225,18 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
     //this isn't saved in the database until the submit button is pressed.
     private fun updateTotal() = try {
 
-        activity?.let {
+        mContours?.let { contours ->
 
-            sViewModel.contours(aid).observeOnce(viewLifecycleOwner, { contours ->
+            //update the count in the toolbar
+            if (contours.isNotEmpty()) {
 
-                //update the count in the toolbar
-                if (contours.isNotEmpty()) {
+                //use the update map to adjust count when the save button is pressed
+                val count = contours.filter { it.selected }.mapNotNull {
+                    it.contour?.count
+                }.reduceRight { x, y -> y + x }
 
-                    //use the update map to adjust count when the save button is pressed
-                    val count = contours.filter { it.selected }.mapNotNull {
-                        if (it.cid in mUpdateMap.keys) {
-                            val adjustedCount = mUpdateMap[it.cid] ?: 0
-                            it.cid?.let { id ->
-                                launch {
-                                    sViewModel.updateContourCount(id, adjustedCount)
-                                }
-                            }
-                            adjustedCount
-                        } else it.contour?.count
-                    }.reduceRight { x, y -> y + x }
-
-                    mBinding?.toolbar?.findViewById<TextView>(R.id.countTextView)?.text = "$count"
-                }
-            })
+                mBinding?.toolbar?.findViewById<TextView>(R.id.countTextView)?.text = "$count"
+            }
         }
 
     } catch (e: Exception) {
@@ -241,76 +248,83 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
     //interface listener for the contour adapter
     override fun onCountEdited(cid: Int, count: Int) {
 
-        mUpdateMap[cid] = count
+        activity?.let { act ->
 
-        updateTotal()
+            val et = EditText(act).apply {
+                setText(count.toString())
+                gravity = Gravity.CENTER_HORIZONTAL
+            }
 
+            AlertDialog.Builder(act)
+                .setTitle(R.string.frag_contour_dialog_update_count_title)
+                .setView(et)
+                .setPositiveButton(android.R.string.ok) { dialog, _ ->
+
+                    val n = et.text.toString().toIntOrNull()
+                    if (et.text.isNotBlank() && n != null) {
+
+                        mContours?.find { it.cid == cid }?.contour?.count = n
+
+                        updateUi()
+                    }
+
+                    dialog.dismiss()
+
+                }
+                .setNegativeButton(android.R.string.cancel) { dialog, _ ->
+
+                    dialog.dismiss()
+
+                }.show()
+        }
     }
 
     override fun onChoiceSwapped(id: Int, selected: Boolean) {
 
-        try {
+        mContours?.find { it.cid == id }?.selected = selected
 
-            launch {
+        updateUi()
 
-                sViewModel.switchSelectedContour(aid, id, selected)
-
-                updateTotal()
-
-                updateUi(aid)
-
-            }
-
-        } catch (e: Exception) {
-
-            e.printStackTrace()
-
-        }
     }
 
     private fun FragmentContourListBinding.setupButtons() {
 
         submitButton.setOnClickListener {
 
-            sViewModel.contours(aid).observeOnce(viewLifecycleOwner, { contours ->
+            mContours?.let { contours ->
 
-                //update the count in the toolbar
-                if (contours.isNotEmpty()) {
-
-                    //use the update map to adjust count when the save button is pressed
-                    val count = contours.filter { it.selected }.mapNotNull {
-                        if (it.cid in mUpdateMap.keys) {
-                            val adjustedCount = mUpdateMap[it.cid] ?: 0
-                            it.cid?.let { id ->
-                                launch {
-                                    sViewModel.updateContourCount(id, adjustedCount)
-                                }
-                            }
-                            adjustedCount
-                        }
-                        else it.contour?.count
-                    }.reduceRight { x, y ->  y + x }
-
-                    mBinding?.toolbar?.findViewById<TextView>(R.id.countTextView)?.text = "$count"
-
-                    try {
-
-                        sViewModel.updateAnalysisCount(aid, count)
-
-                        when (mPreferences.getString(getString(R.string.onekk_preference_mode_key), "1")) {
-
-                            "1", "2" -> findNavController().popBackStack()
-
-                            else -> findNavController().navigate(ContourFragmentDirections.actionToScale(aid))
-                        }
-
-                    } catch (e: Exception) {
-
-                        e.printStackTrace()
-
+                //update selection status and count in db
+                launch {
+                    contours.forEach {
+                        sViewModel.switchSelectedContour(it.aid, it.cid ?: -1, it.selected)
+                        sViewModel.updateContourCount(it.cid ?: -1, it.contour?.count ?: 0)
                     }
                 }
-            })
+
+                //aggregate the count
+                val count = contours.filter { it.selected }.map {
+                    it.contour?.count ?: 0
+                }.reduceRight { x, y ->  y + x }
+
+                mBinding?.toolbar?.findViewById<TextView>(R.id.countTextView)?.text = "$count"
+
+                try {
+
+                    sViewModel.updateAnalysisCount(aid, count)
+
+                    when (mPreferences.getString(getString(R.string.onekk_preference_mode_key), "1")) {
+
+                        "1", "2" -> findNavController().popBackStack()
+
+                        else -> findNavController().navigate(ContourFragmentDirections.actionToScale(aid))
+                    }
+
+                } catch (e: Exception) {
+
+                    e.printStackTrace()
+
+                }
+            }
         }
     }
 
@@ -327,7 +341,8 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
     private fun updateUi(aid: Int) {
 
         try {
-            sViewModel.contours(aid).observeOnce(viewLifecycleOwner, { data ->
+
+            mContours?.let { data ->
 
                 val singles = data.filter { it.contour?.count ?: 0 <= 1 }
 
@@ -338,11 +353,38 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
                 //uses the two different modes to sort (ascending/descending) vs (area/l/w/count)
                 val sorted = sortByState(contours)
 
-                activity?.runOnUiThread {
-                    (mBinding?.recyclerView?.adapter as? ContourAdapter)
-                            ?.submitList(sorted)
+                val dataMap = arrayListOf<List<CellData>>()
+
+                sorted.forEach {
+                    val dataList = arrayListOf<CellData>()
+                    val id = it.cid?.toString() ?: "-1"
+                    val selected = if (it.selected) "true" else "false"
+                    dataList.add(CellData(selected, id))
+                    dataList.add(CellData(it.contour?.area?.toString(), id))
+                    dataList.add(CellData(it.contour?.minAxis?.toString(), id))
+                    dataList.add(CellData(it.contour?.maxAxis?.toString(), id))
+                    dataList.add(CellData(it.contour?.count?.toString(), id))
+                    dataMap.add(dataList)
                 }
-            })
+
+                activity?.runOnUiThread {
+
+                    updateTotal()
+
+                    mBinding?.fragContourListTableView?.apply {
+                        setHasFixedWidth(true)
+                        tableViewListener = this@ContourFragment
+                        isShowHorizontalSeparators = false
+                        isShowVerticalSeparators = false
+                        setAdapter(mAdapter)
+                    }
+
+                    mAdapter?.setAllItems(
+                        headers.map { HeaderData(it, it) },
+                        null,
+                        dataMap.toList())
+                }
+            }
 
         } catch (e: Exception) {
 
