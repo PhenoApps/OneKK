@@ -1,5 +1,12 @@
 <changelog>
     <release
+        date="2022-01-01"
+        versionCode="201"
+        versionName="v2.1.0">
+        <new>Added gyroscope leveling guide to camera preview</new>
+    </release>
+
+    <release
         date="2021-09-01"
         versionCode="201"
         versionName="v2.0.1">
