@@ -4,6 +4,7 @@ import android.app.ActionBar
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.view.*
@@ -19,7 +20,9 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.evrencoskun.tableview.listener.ITableViewListener
 import kotlinx.android.synthetic.main.fragment_contour_list.*
 import kotlinx.coroutines.*
 import org.opencv.core.CvException
@@ -27,6 +30,7 @@ import org.wheatgenetics.imageprocess.DrawSelectedContour
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.activities.MainActivity
 import org.wheatgenetics.onekk.adapters.ContourAdapter
+import org.wheatgenetics.onekk.adapters.ContourListAdapter
 import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
 import org.wheatgenetics.onekk.database.models.ContourEntity
@@ -37,7 +41,8 @@ import org.wheatgenetics.onekk.interfaces.ContourOnTouchListener
 import org.wheatgenetics.onekk.observeOnce
 import kotlin.properties.Delegates
 
-class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouchListener {
+class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouchListener,
+    ITableViewListener {
 
     private val db: OnekkDatabase by lazy {
         OnekkDatabase.getInstance(requireContext())
@@ -54,12 +59,38 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
     }
 
-    private val mUpdateMap = HashMap<Int, Int>()
+    private var mContours: List<ContourEntity>? = null
     private var mSourceBitmap: String? = null
     private var aid by Delegates.notNull<Int>()
     private var mSortState: Boolean = true
     private var mSortMode: Int = 0
     private var mBinding: FragmentContourListBinding? = null
+
+    private var mAdapter: ContourListAdapter? = null
+
+    /***
+     * Polymorphism class structure to serve different cell types to the grid.
+     */
+    open class BlockData(open val code: String) {
+        override fun hashCode(): Int {
+            return code.hashCode()
+        }
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as BlockData
+
+            if (code != other.code) return false
+
+            return true
+        }
+    }
+
+    data class HeaderData(val name: String, override val code: String) : BlockData(code)
+    data class CellData(val value: String?, override val code: String, val color: Int = Color.GREEN, val onClick: View.OnClickListener? = null): BlockData(code)
+    class EmptyCell(override val code: String): BlockData(code)
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
@@ -72,12 +103,6 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
         mBinding = DataBindingUtil.inflate(localInflater, R.layout.fragment_contour_list, null, false)
 
         setHasOptionsMenu(true)
-
-        mBinding?.setupRecyclerView()
-
-        mBinding?.setupHeaderSortButtons()
-
-        updateUi(aid)
 
         //custom support action toolbar
         with(mBinding?.toolbar) {
@@ -122,47 +147,6 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
         mBinding?.setupButtons()
 
         return mBinding?.root
-    }
-
-    /**
-     * Clicking on the headers sorts by the header name.
-     * Elements are also sorted by the tool bar ascending/descending mode.
-     */
-    private fun FragmentContourListBinding.setupHeaderSortButtons() {
-
-        contourHeader.areaTextView.setOnClickListener {
-            if (mSortMode == 0) mSortState = !mSortState
-            mSortMode = 0
-            updateUi(aid)
-            scrollToTop()
-        }
-
-        contourHeader.lengthTextView.setOnClickListener {
-            if (mSortMode == 1) mSortState = !mSortState
-            mSortMode = 1
-            updateUi(aid)
-            scrollToTop()
-        }
-
-        contourHeader.widthTextView.setOnClickListener {
-            if (mSortMode == 2) mSortState = !mSortState
-            mSortMode = 2
-            updateUi(aid)
-            scrollToTop()
-        }
-
-        contourHeader.countTextView.setOnClickListener {
-            if (mSortMode == 3) mSortState = !mSortState
-            mSortMode = 3
-            updateUi(aid)
-            scrollToTop()
-        }
-    }
-
-    private fun scrollToTop() {
-        Handler().postDelayed({
-            mBinding?.recyclerView?.scrollToPosition(0)
-        }, 500)
     }
 
     private suspend fun updateImageViewAsync(x: Double, y: Double, cluster: Boolean, minAxis: Double, maxAxis: Double): Deferred<Bitmap> = withContext(Dispatchers.IO) {
@@ -328,17 +312,9 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
         }
     }
 
-    private fun FragmentContourListBinding.setupRecyclerView() {
+    private fun updateUi() {
 
-        recyclerView.layoutManager = LinearLayoutManager(context).apply {
-            orientation = LinearLayoutManager.VERTICAL
-        }
-
-        recyclerView.adapter = ContourAdapter(this@ContourFragment)
-
-    }
-
-    private fun updateUi(aid: Int) {
+        val headers = arrayOf("Counted", "Area", "Length", "Width", "Count")
 
         try {
 
@@ -436,4 +412,60 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
             }
         }
     }
+
+    override fun onCellClicked(cellView: RecyclerView.ViewHolder, column: Int, row: Int) {
+        mAdapter?.getCellItem(column, row)?.let { cell ->
+
+           mContours?.find { it.cid?.toString() == cell.code }?.let { x ->
+
+               if (column == 0) {
+
+                   onChoiceSwapped(cell.code.toInt(), !x.selected)
+
+               } else {
+                   with (x.contour) {
+                       onTouch(cell.code.toInt(),
+                           this?.x ?: 0.0,
+                           this?.y ?: 0.0,
+                           this?.count ?: 0 > 1,
+                           this?.minAxis ?: 0.0,
+                           this?.maxAxis ?: 0.0)
+                   }
+               }
+           }
+        }
+    }
+
+    override fun onColumnHeaderClicked(columnHeaderView: RecyclerView.ViewHolder, column: Int) {
+        when (column) {
+            1 -> {
+                if (mSortMode == 0) mSortState = !mSortState
+                mSortMode = 0
+                updateUi()
+            }
+            2 -> {
+                if (mSortMode == 1) mSortState = !mSortState
+                mSortMode = 1
+                updateUi()
+            }
+            3 -> {
+                if (mSortMode == 2) mSortState = !mSortState
+                mSortMode = 2
+                updateUi()
+            }
+            4 -> {
+                if (mSortMode == 3) mSortState = !mSortState
+                mSortMode = 3
+                updateUi()
+            }
+        }
+    }
+
+    override fun onCellDoubleClicked(cellView: RecyclerView.ViewHolder, column: Int, row: Int) {}
+    override fun onCellLongPressed(cellView: RecyclerView.ViewHolder, column: Int, row: Int) {}
+    override fun onColumnHeaderDoubleClicked(columnHeaderView: RecyclerView.ViewHolder, column: Int) {}
+    override fun onColumnHeaderLongPressed(columnHeaderView: RecyclerView.ViewHolder, column: Int) {}
+    override fun onRowHeaderClicked(rowHeaderView: RecyclerView.ViewHolder, row: Int) {}
+    override fun onRowHeaderDoubleClicked(rowHeaderView: RecyclerView.ViewHolder, row: Int) {}
+    override fun onRowHeaderLongPressed(rowHeaderView: RecyclerView.ViewHolder, row: Int) {}
 }
