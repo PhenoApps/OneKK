@@ -39,6 +39,7 @@ import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentContourListBinding
 import org.wheatgenetics.onekk.interfaces.ContourOnTouchListener
 import org.wheatgenetics.onekk.observeOnce
+import java.lang.NullPointerException
 import kotlin.properties.Delegates
 
 class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouchListener,
@@ -66,6 +67,7 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
     private var mSortMode: Int = 0
     private var mBinding: FragmentContourListBinding? = null
 
+    private var mSelected = true
     private var mAdapter: ContourListAdapter? = null
 
     /***
@@ -214,12 +216,19 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
             //update the count in the toolbar
             if (contours.isNotEmpty()) {
 
-                //use the update map to adjust count when the save button is pressed
-                val count = contours.filter { it.selected }.mapNotNull {
-                    it.contour?.count
-                }.reduceRight { x, y -> y + x }
+                val countable = contours.filter { it.selected }
+
+                val count = if (countable.isNotEmpty()) {
+                    countable.map {
+                        it.contour?.count ?: 0
+                    }.reduceRight { x, y ->  y + x }
+                } else 0
 
                 mBinding?.toolbar?.findViewById<TextView>(R.id.countTextView)?.text = "$count"
+
+            } else {
+
+                mBinding?.toolbar?.findViewById<TextView>(R.id.countTextView)?.text = "0"
             }
         }
 
@@ -275,6 +284,12 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
         submitButton.setOnClickListener {
 
+            if (mContours?.isEmpty() == true) {
+
+                mBinding?.toolbar?.findViewById<TextView>(R.id.countTextView)?.text = "0"
+
+            }
+
             mContours?.let { contours ->
 
                 //update selection status and count in db
@@ -286,9 +301,13 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
                 }
 
                 //aggregate the count
-                val count = contours.filter { it.selected }.map {
-                    it.contour?.count ?: 0
-                }.reduceRight { x, y ->  y + x }
+                val countable = contours.filter { it.selected }
+
+                val count = if (countable.isNotEmpty()) {
+                    countable.map {
+                        it.contour?.count ?: 0
+                    }.reduceRight { x, y ->  y + x }
+                } else 0
 
                 mBinding?.toolbar?.findViewById<TextView>(R.id.countTextView)?.text = "$count"
 
@@ -335,10 +354,13 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
                     val dataList = arrayListOf<CellData>()
                     val id = it.cid?.toString() ?: "-1"
                     val selected = if (it.selected) "true" else "false"
+                    val minAxis = if ((it.contour?.minAxis ?: 0.0) == 0.0) "N/A" else (it.contour?.minAxis ?: 0.0).toString()
+                    val maxAxis = if ((it.contour?.maxAxis ?: 0.0) == 0.0) "N/A" else (it.contour?.maxAxis ?: 0.0).toString()
+
                     dataList.add(CellData(selected, id))
                     dataList.add(CellData(it.contour?.area?.toString(), id))
-                    dataList.add(CellData(it.contour?.minAxis?.toString(), id))
-                    dataList.add(CellData(it.contour?.maxAxis?.toString(), id))
+                    dataList.add(CellData(minAxis, id))
+                    dataList.add(CellData(maxAxis, id))
                     dataList.add(CellData(it.contour?.count?.toString(), id))
                     dataMap.add(dataList)
                 }
@@ -352,6 +374,7 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
                         tableViewListener = this@ContourFragment
                         isShowHorizontalSeparators = false
                         isShowVerticalSeparators = false
+                        isIgnoreSelectionColors = true
                         setAdapter(mAdapter)
                     }
 
@@ -359,6 +382,7 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
                         headers.map { HeaderData(it, it) },
                         null,
                         dataMap.toList())
+
                 }
             }
 
@@ -414,6 +438,7 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
     }
 
     override fun onCellClicked(cellView: RecyclerView.ViewHolder, column: Int, row: Int) {
+
         mAdapter?.getCellItem(column, row)?.let { cell ->
 
            mContours?.find { it.cid?.toString() == cell.code }?.let { x ->
@@ -437,7 +462,22 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
     }
 
     override fun onColumnHeaderClicked(columnHeaderView: RecyclerView.ViewHolder, column: Int) {
+
         when (column) {
+            0 -> {
+
+                if ((mContours?.filter { !it.selected }?.size ?: 0) == 0) {
+                    mSelected = false
+                }
+
+                mContours?.forEach {
+                    onChoiceSwapped(it.cid ?: -1, mSelected)
+                }
+
+                updateUi()
+
+                mSelected = !mSelected
+            }
             1 -> {
                 if (mSortMode == 0) mSortState = !mSortState
                 mSortMode = 0
