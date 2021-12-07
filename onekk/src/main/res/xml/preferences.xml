@@ -59,17 +59,49 @@
 
     </PreferenceCategory>
 
-    <PreferenceCategory app:iconSpaceReserved="false"
+    <PreferenceCategory android:key="org.wheatgenetics.onekk.MEASURE_CAT"
+        app:iconSpaceReserved="false"
+        android:title="@string/frag_setting_measure_title">
+
+        <ListPreference android:title="@string/measure_type_title"
+            android:summary="%s"
+            android:entries="@array/measure_type_entries"
+            android:entryValues="@array/measure_type_values"
+            android:icon="@drawable/ic_tape_measure"
+            android:key="org.wheatgenetics.onekk.MEASURE_TYPE"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:key="org.wheatgenetics.onekk.REFERENCE_CAT"
+        app:iconSpaceReserved="false"
+        android:title="@string/frag_setting_reference_title">
+
+        <ListPreference android:title="@string/reference_type_title"
+            android:summary="%s"
+            android:entries="@array/reference_type_entries"
+            android:entryValues="@array/reference_type_values"
+            android:icon="@drawable/ic_format_list_bulleted_type"
+            android:key="org.wheatgenetics.onekk.REFERENCE_TYPE"/>
+
+        <EditTextPreference android:title="@string/pref_manual_ref_title"
+            android:icon="@drawable/ic_ruler_square"
+            android:summary="@string/pref_manual_ref_summary"
+            android:key="org.wheatgenetics.onekk.REFERENCE_MANUAL"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:key="org.wheatgenetics.onekk.COIN_TYPE_REFERENCE_CAT"
+        app:iconSpaceReserved="false"
         android:title="@string/frag_setting_coin_title">
 
         <ListPreference
             android:title="@string/coin_country_choice"
-            android:summary=""
+            android:summary="%s"
             android:icon="@drawable/ic_world"
             android:key="org.wheatgenetics.onekk.REFERENCE_COUNTRY"/>
 
         <ListPreference
-            android:summary=""
+            android:summary="%s"
             android:icon="@drawable/ic_coin_database"
             android:key="org.wheatgenetics.onekk.REFERENCE_NAME"
             android:title="@string/coin_size"/>

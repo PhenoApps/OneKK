@@ -9,9 +9,7 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
-import androidx.preference.ListPreference
-import androidx.preference.Preference
-import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -216,7 +214,55 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
             }
         }
 
+        updateReferenceTypeVis()
+
+        val refTypePref = findPreference<ListPreference>("org.wheatgenetics.onekk.REFERENCE_TYPE")
+
+        refTypePref?.setOnPreferenceChangeListener { preference, newValue ->
+
+            mPreferences.edit().putInt("org.wheatgenetics.onekk.REFERENCE_TYPE",
+                ((newValue as? String) ?: "1").toInt()).apply()
+
+            updateReferenceTypeVis()
+
+            true
+        }
+
+        val refManualPref = findPreference<EditTextPreference>("org.wheatgenetics.onekk.REFERENCE_MANUAL")
+        refManualPref?.setOnPreferenceChangeListener { preference, newValue ->
+
+            val diameter = newValue as String
+            mPreferences.edit().putString("org.wheatgenetics.onekk.REFERENCE_MANUAL_DIAMETER", diameter).apply()
+
+            true
+
+        }
+
+        val measurePref = findPreference<ListPreference>("org.wheatgenetics.onekk.MEASURE_TYPE")
+        measurePref?.setOnPreferenceChangeListener { preference, newValue ->
+
+            mPreferences.edit().putString("org.wheatgenetics.onekk.MEASURE_TYPE", newValue as String).apply()
+
+            true
+
+        }
+
         return super.onCreateView(inflater, container, savedInstanceState)
+    }
+
+    private fun updateReferenceTypeVis() {
+        val refType = mPreferences.getInt("org.wheatgenetics.onekk.REFERENCE_TYPE", 1)
+        val manualPref = findPreference<EditTextPreference>("org.wheatgenetics.onekk.REFERENCE_MANUAL")
+        val coinCatPref = findPreference<PreferenceCategory>("org.wheatgenetics.onekk.COIN_TYPE_REFERENCE_CAT")
+        if (refType == 1) {
+
+            coinCatPref?.isVisible = true
+            manualPref?.isVisible = false
+
+        } else {
+            coinCatPref?.isVisible = false
+            manualPref?.isVisible = true
+        }
     }
 
     private fun updateCoinList(name: String) {
@@ -252,6 +298,12 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
 
         mDeviceFinder.observeBleDevices(this)
 
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        updateReferenceTypeVis()
     }
 
     //private fun List<String>.toEntryValues() = indices.toList().map { it.toString() }.toTypedArray()
