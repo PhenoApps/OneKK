@@ -73,7 +73,7 @@ class DetectWithReference(private val context: Context, private val coinReferenc
         //from the original contours, filter out the found seeds
         //filter out any duplicates. Sometimes shadows or object features can have distinct continous gradients which causes multiple contours per object.
         //this filter simply checks if the center points are too close and eliminates one.
-        val seeds = ImageProcessingUtil.filterDuplicatesByCenter(contours - coins)
+        val seeds = filterInsideRoi(coins, ImageProcessingUtil.filterDuplicatesByCenter(contours - coins))
 
         val dst = original.clone()
 
@@ -166,8 +166,6 @@ class DetectWithReference(private val context: Context, private val coinReferenc
 
             val center = it.center()
 
-            Imgproc.circle(dst, center, 2, Scalar(255.0, 255.0, 255.0))
-
             val box = Imgproc.boundingRect(it)
             val mask = Mat.zeros(original.size(), original.type())
             Imgproc.drawContours(mask, listOf(it), -1, Scalar.all(255.0), -1)
@@ -218,6 +216,45 @@ class DetectWithReference(private val context: Context, private val coinReferenc
 
         return DetectorAlgorithm.Result(originalOutput, dstOutput, null, objects)
 
+    }
+
+    private fun filterInsideRoi(coins: List<MatOfPoint>, contours: List<MatOfPoint>): List<MatOfPoint> {
+
+        val rect = calculateRoi(coins);
+
+        rect?.let {
+
+            return contours.filter { rect.contains(it.center()) }
+
+        }
+
+        return listOf()
+    }
+
+    /**
+     * Function that takes as input a list of 4 coins (indices defined in function)
+     * A bounding box is created from the edges of the coins s.a no coins are visible.
+     */
+    private fun calculateRoi(coins: List<MatOfPoint>): Rect? {
+
+        val topLeft = 0
+        //val topRight = 1
+        //val bottomLeft = 2
+        val bottomRight = 3
+
+        return if (coins.size == 4) {
+
+            val tl = coins[topLeft].center()
+            val br = coins[bottomRight].center()
+
+            //return a bounding rectangle between the top left and bottom right point
+            val pointA = Point(tl.x, tl.y)
+
+            val pointB = Point(br.x, br.y)
+
+            Rect(pointA, pointB)
+
+        } else null
     }
 
     //function that returns the min/max axis stats

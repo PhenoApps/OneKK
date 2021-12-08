@@ -474,6 +474,9 @@
     <string name="pref_manual_ref_summary">Type the reference diameter here in millimeters.</string>
     <string name="frag_setting_measure_title">Measurement</string>
     <string name="measure_type_title">Measurement Method</string>
+    <string name="frag_contour_dialog_update_count_title">Update Count</string>
+    <string name="export_x_header">x</string>
+    <string name="export_y_header">y</string>
 
     <string name="frag_setting_measure_fast">Fast</string>
     <string name="frag_setting_measure_medium">Medium</string>
