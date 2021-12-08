@@ -89,8 +89,6 @@ dependencies {
 
     //TODO clean dependencies
 
-    implementation project(path: ':PhenoIcons')
-
     implementation 'org.apache.commons:commons-math3:3.6.1'
     implementation 'androidx.work:work-runtime:2.4.0'
     implementation project(path: ':openCVLibrary343')
