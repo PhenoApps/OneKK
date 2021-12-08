@@ -467,6 +467,8 @@
     <string name="intro_slide_3_description">To use OneKK, arrange four coins in a rectangle and spread seeds between them. Seeds that are outside of the coins will not be measured. OneKK will estimate the total number of seeds and collect measurements from non-clustered seeds.</string>
     <string name="intro_slide_4_description">The OneKK app is divided into three primary sections: Camera to capture photos of seeds, Samples to view and export collected data, and Settings to adjust different app options.</string>
     <string name="frag_contour_dialog_update_count_title">Update Count</string>
+    <string name="export_x_header">x</string>
+    <string name="export_y_header">y</string>
 
 
 </resources>
