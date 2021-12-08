@@ -466,6 +466,13 @@
     <string name="intro_slide_2_description">OneKK can optionally connect to Ohaus Bluetooth scales to collect sample weight and calculate an estimated thousand kernel weight.</string>
     <string name="intro_slide_3_description">To use OneKK, arrange four coins in a rectangle and spread seeds between them. Seeds that are outside of the coins will not be measured. OneKK will estimate the total number of seeds and collect measurements from non-clustered seeds.</string>
     <string name="intro_slide_4_description">The OneKK app is divided into three primary sections: Camera to capture photos of seeds, Samples to view and export collected data, and Settings to adjust different app options.</string>
+    <string name="dialog_export_samples">Samples</string>
+    <string name="dialog_export_seeds">Seeds</string>
+    <string name="dialog_export_bundle_captures">Captures</string>
+    <string name="dialog_export_bundle_analyzed">Analyzed</string>
+    <string name="dialog_export_title">Export</string>
+    <string name="dialog_export_data_tv">Data to export:</string>
+    <string name="dialog_export_bundle_tv">Images to bundle with data:</string>
 
 
 </resources>

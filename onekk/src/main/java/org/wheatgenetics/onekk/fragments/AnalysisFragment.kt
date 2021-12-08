@@ -6,6 +6,8 @@ import android.widget.ImageButton
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.core.net.toFile
+import androidx.core.net.toUri
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -20,12 +22,18 @@ import org.wheatgenetics.onekk.database.models.AnalysisEntity
 import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
 import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentAnalysisManagerBinding
+import org.wheatgenetics.onekk.dialogs.ExportDialog
 import org.wheatgenetics.onekk.interfaces.AnalysisUpdateListener
 import org.wheatgenetics.onekk.interfaces.OnClickAnalysis
 import org.wheatgenetics.onekk.observeOnce
 import org.wheatgenetics.utils.DateUtil
 import org.wheatgenetics.utils.Dialogs
 import org.wheatgenetics.utils.FileUtil
+import org.wheatgenetics.utils.ZipUtil
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.OutputStream
 import java.util.*
 
 class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, CoroutineScope by MainScope() {
@@ -99,37 +107,47 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
         }
     }
 
-    private val exportSamples = registerForActivityResult(ActivityResultContracts.CreateDocument()) { it?.let { uri ->
+//    private val exportSamples = registerForActivityResult(ActivityResultContracts.CreateDocument()) { it?.let { uri ->
+//
+//        launch {
+//
+//            withContext(Dispatchers.IO) {
+//
+//                (mBinding?.recyclerView?.adapter as? AnalysisAdapter)
+//                    ?.currentList?.filter { analysis -> analysis.selected }?.let { data ->
+//
+//                        FileUtil(requireContext()).export(uri, data)
+//
+//                }
+//            }
+//        }
+//    }}
 
-        launch {
+//    private val exportSeeds = registerForActivityResult(ActivityResultContracts.CreateDocument()) { it?.let { uri ->
+//
+//        (mBinding?.recyclerView?.adapter as? AnalysisAdapter)?.currentList?.filter { analysis -> analysis.selected }?.let { analysis ->
+//
+//            viewModel.selectAllContours().observeOnce(viewLifecycleOwner, { contours ->
+//
+//                launch {
+//
+//                    withContext(Dispatchers.IO) {
+//
+//                        FileUtil(requireContext()).exportSeeds(uri, analysis, contours)
+//
+//                    }
+//                }
+//            })
+//        }
+//    }}
 
-            withContext(Dispatchers.IO) {
+    private val mZipPaths = arrayListOf<String>()
+    private val zipFilesLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument()) { it?.let { uri ->
 
-                (mBinding?.recyclerView?.adapter as? AnalysisAdapter)
-                    ?.currentList?.filter { analysis -> analysis.selected }?.let { data ->
+        context?.contentResolver?.openOutputStream(uri)?.let { stream ->
 
-                        FileUtil(requireContext()).export(uri, data)
+            zipFiles(mZipPaths, stream)
 
-                }
-            }
-        }
-    }}
-
-    private val exportSeeds = registerForActivityResult(ActivityResultContracts.CreateDocument()) { it?.let { uri ->
-
-        (mBinding?.recyclerView?.adapter as? AnalysisAdapter)?.currentList?.filter { analysis -> analysis.selected }?.let { analysis ->
-
-            viewModel.selectAllContours().observeOnce(viewLifecycleOwner, { contours ->
-
-                launch {
-
-                    withContext(Dispatchers.IO) {
-
-                        FileUtil(requireContext()).exportSeeds(uri, analysis, contours)
-
-                    }
-                }
-            })
         }
     }}
 
@@ -140,23 +158,79 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
 
         val outputFilePrefix = getString(R.string.export_file_prefix)
 
-        val fileName = "$outputFilePrefix${DateUtil().getTime()}.csv"
+        val fileName = "$outputFilePrefix${DateUtil().getTime()}.zip"
 
-        Dialogs.booleanOption(AlertDialog.Builder(requireContext()),
-                getString(R.string.frag_analysis_dialog_export_title),
-                getString(R.string.frag_analysis_dialog_export_samples_option),
-                getString(R.string.frag_analysis_dialog_export_seeds_option),
-                getString(R.string.frag_analysis_dialog_export_cancel_option)) { option ->
+        (mBinding?.recyclerView?.adapter as? AnalysisAdapter)?.currentList?.filter { analysis -> analysis.selected }?.let { analysis ->
 
-            if (option) {
+            viewModel.selectAllContours().observeOnce(viewLifecycleOwner, { contours ->
 
-                exportSamples.launch(fileName)
+                val seedUri = File(context?.externalCacheDir, "temp_seeds.csv").toUri()
+                val sampleUri = File(context?.externalCacheDir, "temp_samples.csv").toUri()
 
-            } else {
+                FileUtil(requireContext()).export(sampleUri, analysis)
+                FileUtil(requireContext()).exportSeeds(seedUri, analysis, contours)
 
-                exportSeeds.launch(fileName)
+                ExportDialog(requireActivity()) {
 
-            }
+                    val paths = arrayListOf<String>()
+
+                    if (it.seeds) {
+                        paths.add(seedUri.toFile().toPath().toString())
+                    }
+
+                    if (it.samples) {
+                        paths.add(sampleUri.toFile().toPath().toString())
+                    }
+
+                    if (it.analyzed) {
+                        analysis.forEach {
+                            paths.add(it.uri ?: "")
+                        }
+                    }
+
+                    if (it.captures) {
+                        analysis.forEach {
+                            paths.add(it.src ?: "")
+                        }
+                    }
+
+                    mZipPaths.clear()
+                    mZipPaths.addAll(paths)
+
+                    if (mZipPaths.isNotEmpty()) {
+                        zipFilesLauncher.launch(fileName)
+                    }
+
+                }.show()
+
+            })
+        }
+
+
+//        Dialogs.booleanOption(AlertDialog.Builder(requireContext()),
+//                getString(R.string.frag_analysis_dialog_export_title),
+//                getString(R.string.frag_analysis_dialog_export_samples_option),
+//                getString(R.string.frag_analysis_dialog_export_seeds_option),
+//                getString(R.string.frag_analysis_dialog_export_cancel_option)) { option ->
+//
+//            if (option) {
+//
+//                exportSamples.launch(fileName)
+//
+//            } else {
+//
+//                exportSeeds.launch(fileName)
+//
+//            }
+//        }
+    }
+
+    private fun zipFiles(paths: ArrayList<String>, stream: OutputStream?) {
+        try {
+            ZipUtil.zip(paths.toArray(arrayOf<String>()), stream)
+            stream?.close()
+        } catch (io: IOException) {
+            io.printStackTrace()
         }
     }
 
