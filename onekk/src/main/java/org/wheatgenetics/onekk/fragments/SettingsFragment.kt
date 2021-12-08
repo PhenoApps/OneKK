@@ -171,6 +171,11 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
                     putString(getString(R.string.onekk_preference_algorithm_mode_key), (newValue as? String) ?: "0")
                 }.apply()
 
+                if (newValue.toString() == "1") {
+                    val measurePref = findPreference<ListPreference>("org.wheatgenetics.onekk.MEASURE_TYPE")
+                    measurePref?.setValueIndex(2)
+                }
+
                 preference.summary = when (newValue.toString()) {
                     "1" -> getString(R.string.large_single_sample_algorithm)
                     else -> getString(R.string.default_algorithm)
