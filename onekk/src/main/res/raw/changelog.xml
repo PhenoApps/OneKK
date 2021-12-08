@@ -1,8 +1,9 @@
 <changelog>
     <release
         date="2022-01-01"
-        versionCode="201"
+        versionCode="210"
         versionName="v2.1.0">
+        <new>Updated default region of interest recognition</new>
         <new>Added gyroscope leveling guide to camera preview</new>
     </release>
 
