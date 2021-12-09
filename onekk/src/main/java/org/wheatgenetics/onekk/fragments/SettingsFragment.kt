@@ -9,9 +9,7 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
-import androidx.preference.ListPreference
-import androidx.preference.Preference
-import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -173,6 +171,25 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
                     putString(getString(R.string.onekk_preference_algorithm_mode_key), (newValue as? String) ?: "0")
                 }.apply()
 
+                if (newValue.toString() == "1") {
+                    val measurePref = findPreference<ListPreference>("org.wheatgenetics.onekk.MEASURE_TYPE")
+
+                    if (mPreferences.getString("org.wheatgenetics.onekk.MEASURE_TYPE", "0") != "2") {
+                        Dialogs.onOk(AlertDialog.Builder(context),
+                            getString(R.string.dialog_preference_update_measurement),
+                            getString(android.R.string.cancel),
+                            getString(android.R.string.ok),
+                            getString(R.string.dialog_preference_update_measurement_message)) {
+
+                            if (it) {
+
+                                measurePref?.setValueIndex(2)
+
+                            }
+                        }
+                    }
+                }
+
                 preference.summary = when (newValue.toString()) {
                     "1" -> getString(R.string.large_single_sample_algorithm)
                     else -> getString(R.string.default_algorithm)
@@ -216,7 +233,63 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
             }
         }
 
+        updateReferenceTypeVis()
+
+        val refTypePref = findPreference<ListPreference>("org.wheatgenetics.onekk.REFERENCE_TYPE")
+
+        refTypePref?.setOnPreferenceChangeListener { preference, newValue ->
+
+            mPreferences.edit().putInt("org.wheatgenetics.onekk.REFERENCE_TYPE",
+                ((newValue as? String) ?: "1").toInt()).apply()
+
+            updateReferenceTypeVis()
+
+            true
+        }
+
+        val refManualPref = findPreference<EditTextPreference>("org.wheatgenetics.onekk.REFERENCE_MANUAL")
+        refManualPref?.setOnPreferenceChangeListener { preference, newValue ->
+
+            val diameter = newValue as String
+            mPreferences.edit().putString("org.wheatgenetics.onekk.REFERENCE_MANUAL_DIAMETER", diameter).apply()
+
+            true
+
+        }
+
+        val measurePref = findPreference<ListPreference>("org.wheatgenetics.onekk.MEASURE_TYPE")
+        measurePref?.setOnPreferenceChangeListener { preference, newValue ->
+
+            mPreferences.edit().putString("org.wheatgenetics.onekk.MEASURE_TYPE", newValue as String).apply()
+
+            true
+
+        }
+
         return super.onCreateView(inflater, container, savedInstanceState)
+    }
+
+    private fun updateReferenceTypeVis() {
+        val refType = mPreferences.getInt("org.wheatgenetics.onekk.REFERENCE_TYPE", 1)
+        val manualPref = findPreference<EditTextPreference>("org.wheatgenetics.onekk.REFERENCE_MANUAL")
+        val countryPref = findPreference<ListPreference>("org.wheatgenetics.onekk.REFERENCE_COUNTRY")
+        val coinPref = findPreference<ListPreference>("org.wheatgenetics.onekk.REFERENCE_NAME")
+        val managerPref = findPreference<Preference>("org.wheatgenetics.onekk.COIN_MANAGER_NAVIGATE")
+
+        if (refType == 1) {
+
+            countryPref?.isVisible = true
+            coinPref?.isVisible = true
+            managerPref?.isVisible = true
+            manualPref?.isVisible = false
+
+        } else {
+
+            countryPref?.isVisible = false
+            coinPref?.isVisible = false
+            managerPref?.isVisible = false
+            manualPref?.isVisible = true
+        }
     }
 
     private fun updateCoinList(name: String) {
@@ -252,6 +325,12 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
 
         mDeviceFinder.observeBleDevices(this)
 
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        updateReferenceTypeVis()
     }
 
     //private fun List<String>.toEntryValues() = indices.toList().map { it.toString() }.toTypedArray()

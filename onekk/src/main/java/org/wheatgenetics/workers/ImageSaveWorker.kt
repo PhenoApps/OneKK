@@ -76,6 +76,8 @@ class ImageSaveWorker(val appContext: Context, workerParams: WorkerParameters):
 
         val algorithm = inputData.getString("algorithm") ?: "0"
 
+        val measure = inputData.getString("measure") ?: "0"
+
         //check if file was imported, this will need content resolver to load bitmap
         val bmp = withContext(CoroutineScope(Dispatchers.IO).coroutineContext) {
             if (imported) {
@@ -95,7 +97,7 @@ class ImageSaveWorker(val appContext: Context, workerParams: WorkerParameters):
 
         val result = try {
 
-            runDetector(bmp, algorithm, diameter)
+            runDetector(bmp, algorithm, diameter, measure)
 
         } catch (e: Exception) {
 
@@ -122,9 +124,9 @@ class ImageSaveWorker(val appContext: Context, workerParams: WorkerParameters):
 
     }
 
-    private fun runDetector(src: Bitmap, algorithm: String, diameter: Double): DetectorAlgorithm.Result? {
+    private fun runDetector(src: Bitmap, algorithm: String, diameter: Double, measure: String): DetectorAlgorithm.Result? {
 
-        return Detector(appContext, diameter, algorithm = algorithm).scan(src)
+        return Detector(appContext, diameter, algorithm = algorithm, measure).scan(src)
     }
 
     private suspend fun commitToDatabase(dst: String, src: String, name: String, weight: Double, result: DetectorAlgorithm.Result): Int {

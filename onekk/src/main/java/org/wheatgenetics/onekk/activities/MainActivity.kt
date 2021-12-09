@@ -251,7 +251,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
      * Hack to update the options menu selected item by re inflating the menu
      * By default, the bottom nav bar does not update the selected item when back button is pressed.
      */
-    private fun invalidateMenu() {
+    fun invalidateMenu() {
 
         launch {
 
