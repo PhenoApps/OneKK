@@ -472,7 +472,7 @@
     <string name="frag_setting_reference_title">Reference</string>
     <string name="pref_manual_ref_title">Reference Diameter</string>
     <string name="pref_manual_ref_summary">Type the reference diameter here in millimeters.</string>
-    <string name="frag_setting_measure_title">Measurement</string>
+    <string name="frag_setting_measure_title">Analysis</string>
     <string name="measure_type_title">Measurement Method</string>
     <string name="frag_contour_dialog_update_count_title">Update Count</string>
     <string name="export_x_header">x</string>
@@ -481,4 +481,6 @@
     <string name="frag_setting_measure_fast">Fast</string>
     <string name="frag_setting_measure_medium">Medium</string>
     <string name="frag_settings_measure_slow">Slow</string>
+    <string name="dialog_preference_update_measurement">Swap Measurement Algorithm</string>
+    <string name="dialog_preference_update_measurement_message">Large, non-symmetric objects are poorly measured with the Fast/Medium measuring settings. Would you like to switch to the slow method?</string>
 </resources>

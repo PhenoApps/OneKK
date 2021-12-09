@@ -99,7 +99,7 @@ class Dialogs {
             }
         }
 
-        fun onOk(builder: AlertDialog.Builder, title: String, cancel: String, ok: String, function: (Boolean) -> Unit) {
+        fun onOk(builder: AlertDialog.Builder, title: String, cancel: String, ok: String, message: String? = null, function: (Boolean) -> Unit) {
 
             builder.apply {
 
@@ -116,6 +116,8 @@ class Dialogs {
                     function(true)
 
                 }
+
+                setMessage(message ?: "")
 
                 setTitle(title)
 

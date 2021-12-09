@@ -173,7 +173,21 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
 
                 if (newValue.toString() == "1") {
                     val measurePref = findPreference<ListPreference>("org.wheatgenetics.onekk.MEASURE_TYPE")
-                    measurePref?.setValueIndex(2)
+
+                    if (mPreferences.getString("org.wheatgenetics.onekk.MEASURE_TYPE", "0") != "2") {
+                        Dialogs.onOk(AlertDialog.Builder(context),
+                            getString(R.string.dialog_preference_update_measurement),
+                            getString(android.R.string.cancel),
+                            getString(android.R.string.ok),
+                            getString(R.string.dialog_preference_update_measurement_message)) {
+
+                            if (it) {
+
+                                measurePref?.setValueIndex(2)
+
+                            }
+                        }
+                    }
                 }
 
                 preference.summary = when (newValue.toString()) {
@@ -258,14 +272,22 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
     private fun updateReferenceTypeVis() {
         val refType = mPreferences.getInt("org.wheatgenetics.onekk.REFERENCE_TYPE", 1)
         val manualPref = findPreference<EditTextPreference>("org.wheatgenetics.onekk.REFERENCE_MANUAL")
-        val coinCatPref = findPreference<PreferenceCategory>("org.wheatgenetics.onekk.COIN_TYPE_REFERENCE_CAT")
+        val countryPref = findPreference<ListPreference>("org.wheatgenetics.onekk.REFERENCE_COUNTRY")
+        val coinPref = findPreference<ListPreference>("org.wheatgenetics.onekk.REFERENCE_NAME")
+        val managerPref = findPreference<Preference>("org.wheatgenetics.onekk.COIN_MANAGER_NAVIGATE")
+
         if (refType == 1) {
 
-            coinCatPref?.isVisible = true
+            countryPref?.isVisible = true
+            coinPref?.isVisible = true
+            managerPref?.isVisible = true
             manualPref?.isVisible = false
 
         } else {
-            coinCatPref?.isVisible = false
+
+            countryPref?.isVisible = false
+            coinPref?.isVisible = false
+            managerPref?.isVisible = false
             manualPref?.isVisible = true
         }
     }
