@@ -11,6 +11,13 @@
             android:key="@string/onekk_preference_collector_key"
             android:icon="@drawable/ic_person"
             android:title="@string/collector" />
+
+        <CheckBoxPreference
+            android:key="VerifyUserEvery24Hours"
+            android:icon="@drawable/ic_pref_profile_verify"
+            android:defaultValue="true"
+            android:title="@string/frag_settings_verify_user_title"/>
+
     </PreferenceCategory>
 
     <PreferenceCategory app:iconSpaceReserved="false"
