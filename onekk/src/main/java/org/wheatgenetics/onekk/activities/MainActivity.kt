@@ -7,10 +7,10 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.*
 import org.wheatgenetics.onekk.BuildConfig
 import org.wheatgenetics.onekk.R
@@ -27,7 +27,7 @@ import java.io.File
 /**
  * Basic main activity class that holds the navigation drawer view and all other fragments.
  */
-class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
+class MainActivity : RequireCollectorActivity(), CoroutineScope by MainScope() {
 
 //    private val mFirebaseAnalytics by lazy {
 //        FirebaseAnalytics.getInstance(this)
@@ -89,6 +89,10 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             iob.printStackTrace()
 
         }
+    }
+
+    fun getBottomBar(): BottomNavigationView {
+        return mBinding.bottomNavView
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

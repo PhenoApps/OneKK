@@ -483,4 +483,12 @@
     <string name="frag_settings_measure_slow">Slow</string>
     <string name="dialog_preference_update_measurement">Swap Measurement Algorithm</string>
     <string name="dialog_preference_update_measurement_message">Large, non-symmetric objects are poorly measured with the Fast/Medium measuring settings. Would you like to switch to the slow method?</string>
+
+    <string name="activity_dialog_verify_collector">Is this still %s</string>
+    <string name="activity_dialog_verify_yes_button">Yes</string>
+    <string name="activity_dialog_neutral_button">Don\'t ask again</string>
+    <string name="activity_dialog_verify_no_button">No</string>
+    <string name="activity_dialog_new_collector">Do you want to save the name of the person collecting data?</string>
+    <string name="frag_settings_verify_user_title">Verify person every 24 hours.</string>
+
 </resources>
