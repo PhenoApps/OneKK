@@ -41,10 +41,12 @@ open class FileUtil(private val ctx: Context) {
     private val widthHeader: String by lazy { ctx.getString(R.string.export_width_header) }
     private val areaHeader: String by lazy { ctx.getString(R.string.export_area_header) }
     private val weightHeader: String by lazy { ctx.getString(R.string.export_weight_header) }
+    private val xHeader: String by lazy { ctx.getString(R.string.export_x_header) }
+    private val yHeader: String by lazy { ctx.getString(R.string.export_y_header) }
 
     private val exportSeedsHeaderString by lazy {
         arrayOf(nameHeader, numberHeader, lengthHeader, widthHeader,
-                areaHeader, weightHeader)
+                areaHeader, weightHeader, xHeader, yHeader)
                 .joinToString(", ")
     }
 
@@ -69,11 +71,11 @@ open class FileUtil(private val ctx: Context) {
 
                             if (it.contour?.count == 1) {
 
-                                write("${analysis.name}, ${it.contour?.count}, ${it.contour?.maxAxis}, ${it.contour?.minAxis}, ${it.contour?.area}, ${(analysis.weight ?: 0.0) / (analysis.totalArea ?: 1.0) * (it.contour?.area ?: 1.0)}, ${it.contour?.x}, ${it.contour?.y}".toByteArray())
+                                write("${analysis.name}, ${it.contour?.count}, ${it.contour?.maxAxis}, ${it.contour?.minAxis}, ${it.contour?.area}, ${analysis.weight ?: 0.0}, ${it.contour?.x}, ${it.contour?.y}".toByteArray())
 
                             } else {
 
-                                write("${analysis.name}, ${it.contour?.count}, N/A, N/A, ${it.contour?.area}, ${(analysis.weight ?: 0.0) / (it.contour?.area ?: 1.0)}, ${it.contour?.x}, ${it.contour?.y}".toByteArray())
+                                write("${analysis.name}, ${it.contour?.count}, N/A, N/A, ${it.contour?.area}, ${analysis.weight ?: 0.0}, ${it.contour?.x}, ${it.contour?.y}".toByteArray())
 
                             }
 

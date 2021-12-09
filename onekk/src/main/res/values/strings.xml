@@ -473,6 +473,9 @@
     <string name="dialog_export_title">Export</string>
     <string name="dialog_export_data_tv">Data to export:</string>
     <string name="dialog_export_bundle_tv">Images to bundle with data:</string>
+    <string name="frag_contour_dialog_update_count_title">Update Count</string>
+    <string name="export_x_header">x</string>
+    <string name="export_y_header">y</string>
 
 
 </resources>

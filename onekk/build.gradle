@@ -89,8 +89,6 @@ dependencies {
 
     //TODO clean dependencies
 
-    implementation project(path: ':PhenoIcons')
-
     implementation 'org.apache.commons:commons-math3:3.6.1'
     implementation 'androidx.work:work-runtime:2.4.0'
     implementation project(path: ':openCVLibrary343')
@@ -183,6 +181,7 @@ dependencies {
     implementation 'com.github.daniel-stoneuk:material-about-library:2.4.2'
     //app intro github AndroidX Capable version
     implementation 'com.github.AppIntro:AppIntro:6.1.0'
+    implementation 'com.github.evrencoskun:TableView:v0.8.9.4'
 
     // CameraX core library using the camera2 implementation
     def camerax_version = "1.1.0-alpha02"
