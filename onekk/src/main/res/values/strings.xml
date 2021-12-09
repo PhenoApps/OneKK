@@ -466,6 +466,14 @@
     <string name="intro_slide_2_description">OneKK can optionally connect to Ohaus Bluetooth scales to collect sample weight and calculate an estimated thousand kernel weight.</string>
     <string name="intro_slide_3_description">To use OneKK, arrange four coins in a rectangle and spread seeds between them. Seeds that are outside of the coins will not be measured. OneKK will estimate the total number of seeds and collect measurements from non-clustered seeds.</string>
     <string name="intro_slide_4_description">The OneKK app is divided into three primary sections: Camera to capture photos of seeds, Samples to view and export collected data, and Settings to adjust different app options.</string>
+    <string name="frag_setting_reference_type_manual">Manual</string>
+    <string name="frag_setting_reference_type_coins">Coins</string>
+    <string name="reference_type_title">Reference Type</string>
+    <string name="frag_setting_reference_title">Reference</string>
+    <string name="pref_manual_ref_title">Reference Diameter</string>
+    <string name="pref_manual_ref_summary">Type the reference diameter here in millimeters.</string>
+    <string name="frag_setting_measure_title">Analysis</string>
+    <string name="measure_type_title">Measurement Method</string>
     <string name="frag_contour_dialog_update_count_title">Update Count</string>
     <string name="export_x_header">x</string>
     <string name="export_y_header">y</string>
@@ -475,6 +483,7 @@
     <string name="frag_settings_measure_slow">Slow</string>
     <string name="dialog_preference_update_measurement">Swap Measurement Algorithm</string>
     <string name="dialog_preference_update_measurement_message">Large, non-symmetric objects are poorly measured with the Fast/Medium measuring settings. Would you like to switch to the slow method?</string>
+
     <string name="activity_dialog_verify_collector">Is this still %s</string>
     <string name="activity_dialog_verify_yes_button">Yes</string>
     <string name="activity_dialog_neutral_button">Don\'t ask again</string>

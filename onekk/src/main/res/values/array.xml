@@ -25,4 +25,26 @@
         <item>3</item>
     </string-array>
 
+    <string-array name="reference_type_entries">
+        <item>@string/frag_setting_reference_type_manual</item>
+        <item>@string/frag_setting_reference_type_coins</item>
+    </string-array>
+
+    <string-array name="reference_type_values">
+        <item>0</item>
+        <item>1</item>
+    </string-array>
+
+    <string-array name="measure_type_entries">
+        <item>@string/frag_setting_measure_fast</item>
+        <item>@string/frag_setting_measure_medium</item>
+        <item>@string/frag_settings_measure_slow</item>
+    </string-array>
+
+    <string-array name="measure_type_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
 </resources>
