@@ -134,7 +134,7 @@ class MainActivity : RequireCollectorActivity(), CoroutineScope by MainScope() {
 
         val mPreferences = getSharedPreferences(getString(R.string.onekk_preference_key), MODE_PRIVATE)
 
-        viewModel.coins().observeOnce(this, {
+        viewModel.coins().observeOnce(this) {
 
             it?.let {
 
@@ -147,7 +147,7 @@ class MainActivity : RequireCollectorActivity(), CoroutineScope by MainScope() {
                     }
                 }
             }
-        })
+        }
 
         with(mPreferences.edit()) {
             putString(getString(R.string.onekk_country_pref_key), "USA")

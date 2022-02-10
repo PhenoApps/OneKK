@@ -31,9 +31,7 @@ class ExperimentViewModel(
 //        repo.deleteAnalysis(aid)
 //    }
 
-    fun updateSelectAllAnalysis(selected: Boolean) = viewModelScope.launch {
-        repo.updateSelectAllAnalysis(selected)
-    }
+    fun updateSelectAllAnalysis(selected: Boolean) = repo.updateSelectAllAnalysis(selected)
 
     fun deleteAnalysis(rowid: Int) = viewModelScope.launch {
         repo.deleteAnalysis(rowid)

@@ -60,7 +60,7 @@ interface OnekkDao {
     suspend fun updateAnalysisSelected(aid: Int, selected: Boolean)
 
     @Query("UPDATE analysis SET selected = :selected")
-    suspend fun updateSelectAllAnalysis(selected: Boolean)
+    fun updateSelectAllAnalysis(selected: Boolean)
 
     /** Inserts **/
     @Insert

@@ -28,7 +28,7 @@ class OnekkRepository
 
     suspend fun deleteAllCoins() = coinDao.deleteAllCoin()
 
-    suspend fun updateSelectAllAnalysis(selected: Boolean) = dao.updateSelectAllAnalysis(selected)
+    fun updateSelectAllAnalysis(selected: Boolean) = dao.updateSelectAllAnalysis(selected)
 
     suspend fun selectAllCountries(): List<String> {
 

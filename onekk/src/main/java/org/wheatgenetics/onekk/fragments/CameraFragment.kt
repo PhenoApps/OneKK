@@ -407,7 +407,7 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
                     .bufferedReader().readLines().drop(1).first().split(",").map { x -> x.trim() }
 
                 //decode and save capture and analyzed photos to the respective directories
-                BitmapFactory.decodeStream(context?.assets?.open("samples/sample_original.jpg"))
+                val src = BitmapFactory.decodeStream(context?.assets?.open("samples/sample_original.jpg"))
                     .toFile(captureDirectory.path, "sample.jpg")
 
                 val analyzedSample = BitmapFactory.decodeStream(context?.assets?.open("samples/sample_analyzed.png"))
@@ -416,6 +416,9 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
                 //insert the analysis into the database, count is not in the export file format, so it is defined statically here
                 val aid = viewModel.insert(AnalysisEntity(
                     name = "sample",
+                    date = DateUtil().getTime(),
+                    uri = analyzedSample.toUri().path,
+                    src = src.toUri().path,
                     count = 74,
                     maxAxisAvg = sampleTokens[4].toDoubleOrNull(),
                     maxAxisVar = sampleTokens[5].toDoubleOrNull(),

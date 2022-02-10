@@ -9,6 +9,7 @@
         <new>Multiple measurement methods supported: fast (rotated rectangle), medium (SmartGrain), slow (skeletonize)</new>
         <new>Support for manual reference circles</new>
         <new>Analyzed images include length/width lines or bounding rectangle</new>
+        <new>Export improved to bundle data and photos</new>
         <info>Changed individual seed export to show seed area and total sample weight</info>
     </release>
 
