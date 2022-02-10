@@ -9,6 +9,8 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.wheatgenetics.imageprocess.PotatoDetector
+import org.wheatgenetics.onekk.toFile
+import org.wheatgenetics.utils.DateUtil
 import java.io.File
 import java.io.IOException
 import kotlin.math.abs
@@ -88,7 +90,7 @@ class SweetPotatoUnitTest : OpenCvTest() {
                     potato
                 }
 
-            assert(potatoes.size == 269)
+            assert(potatoes.size == 268)
 
             val lData = potatoes.map { it.length.actual }.toTypedArray()
             val lfData = potatoes.map { it.length.model }.toTypedArray()
@@ -131,6 +133,8 @@ class SweetPotatoUnitTest : OpenCvTest() {
             //gets instrumentation context
             with(ApplicationProvider.getApplicationContext<Context>()) {
 
+                val detector = PotatoDetector(applicationContext, 24.26, "2")
+
                 //creates buffered writer for the output csv file in the external media directory
                 //be careful of using filesDir here (has size limits of ~3.5Kb)
                 File(externalMediaDirs[0], "sweet_potatoes_onekk.csv").bufferedWriter().use { out ->
@@ -138,14 +142,16 @@ class SweetPotatoUnitTest : OpenCvTest() {
                     //iterate over all images in the dataset
                     assets.list(imageDirectory)?.forEach { imageName ->
 
+//                        val toc = System.nanoTime()
                         if (imageName in mPictureToIdMap) {
                             //decode image from an asset input stream
                             val imagePath = "$imageDirectory/$imageName"
                             val bmp = BitmapFactory.decodeStream(assets.open(imagePath))
 
                             //process image expecting a quarter as reference (24.26mm diameter)
-                            val detector = PotatoDetector(applicationContext, 24.26)
                             val result = detector.process(bmp)
+
+                            result.dst.toFile("${externalMediaDirs[0]}/test", name = "${imageName}.png")
 
                             //finally print out contour information to the csv
                             result.contours.forEach { detection ->
@@ -172,6 +178,11 @@ class SweetPotatoUnitTest : OpenCvTest() {
 
                                 out.newLine()
                             }
+
+//                            val tic = System.nanoTime()
+//                            val time = (tic-toc)*1e9
+//                            out.write("$imageName, $time")
+//                            out.newLine()
                         }
                     }
                 }

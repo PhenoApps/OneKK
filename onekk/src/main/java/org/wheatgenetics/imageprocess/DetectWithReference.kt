@@ -2,20 +2,24 @@ package org.wheatgenetics.imageprocess
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.util.Log
 import org.opencv.android.Utils
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
 import org.wheatgenetics.onekk.interfaces.DetectorAlgorithm
-import org.wheatgenetics.utils.ImageProcessingUtil.Companion.euclideanDistance
+import org.wheatgenetics.utils.ImageProcessingUtil
+import org.wheatgenetics.utils.ImageProcessingUtil.Companion.center
+import org.wheatgenetics.utils.ImageProcessingUtil.Companion.estimateMillis
+import org.wheatgenetics.utils.ImageProcessingUtil.Companion.estimateSeedArea
+import org.wheatgenetics.utils.ImageProcessingUtil.Companion.findCoins
 import org.wheatgenetics.utils.ImageProcessingUtil.Companion.quartileRange
 import org.wheatgenetics.utils.ImageProcessingUtil.Companion.toBitmap
 import org.wheatgenetics.utils.ImageProcessingUtil.Companion.toMatOfPoint2f
-import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.*
 
 
-class DetectWithReference(context: Context, private val coinReferenceDiameter: Double): OpenCVTransformation(context), DetectorAlgorithm {
+class DetectWithReference(private val context: Context, private val coinReferenceDiameter: Double, private val measure: String): OpenCVTransformation(context), DetectorAlgorithm {
 
     private fun process(original: Mat): DetectorAlgorithm.Result {
 
@@ -64,11 +68,12 @@ class DetectWithReference(context: Context, private val coinReferenceDiameter: D
 
         //finds the four contours closest to the corners
         val coins: List<MatOfPoint> = findCoins(contours, imageWidth, imageHeight)
+        val avgCoinDiameter = coins.map { it.minMaxAxis().second }.reduceRight { x, y -> x + y } / coins.size
 
         //from the original contours, filter out the found seeds
         //filter out any duplicates. Sometimes shadows or object features can have distinct continous gradients which causes multiple contours per object.
         //this filter simply checks if the center points are too close and eliminates one.
-        val seeds = filterInsideRoi(coins, filterDuplicatesByCenter(contours - coins))
+        val seeds = filterInsideRoi(coins, ImageProcessingUtil.filterDuplicatesByCenter(contours - coins))
 
         val dst = original.clone()
 
@@ -127,7 +132,33 @@ class DetectWithReference(context: Context, private val coinReferenceDiameter: D
 
             val center = it.center()
 
-            val (minAxis, maxAxis) = axisEstimates[it] ?: 0.0 to 0.0
+            val (minAxis, maxAxis) = if (measure == "0") {
+                val rect = Imgproc.minAreaRect(it.toMatOfPoint2f())
+                val points = Array(4) { Point () }
+                rect.points(points)
+                Imgproc.drawContours(dst, listOf(MatOfPoint(*points)), -1, Scalar(255.0, 255.0, 0.0), 3)
+                axisEstimates[it] ?: 0.0 to 0.0
+
+            } else if (measure == "1") {
+
+                val lw = ImageProcessingUtil.measureSmartGrain(dst, it)
+                val maxAxis = estimateMillis(avgCoinDiameter, coinReferenceDiameter, lw.first)
+                val minAxis = estimateMillis(avgCoinDiameter, coinReferenceDiameter, lw.second)
+
+                minAxis to maxAxis
+            } else {
+
+                val l = ImageProcessingUtil.findLongestLine(it.toArray(), arrayOf())
+                Imgproc.line(dst, l.first, l.second, Scalar(0.0, 255.0, 0.0), 2); // length
+
+                val d = sqrt((l.first.x-l.second.x).pow(2.0) + (l.first.y-l.second.y).pow(2.0))
+                val w = ImageProcessingUtil.carrotMethod(dst, it, d, 0.0)
+
+                val maxAxis = estimateMillis(avgCoinDiameter, coinReferenceDiameter, d)
+                val minAxis = estimateMillis(avgCoinDiameter, coinReferenceDiameter, w)
+
+                minAxis to maxAxis
+            }
 
             DetectorAlgorithm.Contour(center.x, center.y, minAxis, maxAxis, singleEstimates[it] ?: error(""), 1)
 
@@ -238,27 +269,6 @@ class DetectWithReference(context: Context, private val coinReferenceDiameter: D
         return minAxis to maxAxis
     }
 
-    //function that returns the center point of a contour
-    private fun MatOfPoint.center() = with(Imgproc.moments(this@center)) {
-        Point(m10 / m00, m01 / m00)
-    }
-
-    /**
-     * Uses cross multiplication to convert a measurement in px to a millimeters.
-     */
-    private fun estimateMillis(groundTruthPixels: Double, groundTruthMillis: Double, unknown: Double) = unknown * groundTruthMillis / groundTruthPixels
-
-    /**
-     * Uses the known reference measurements (e.g a penny is 19.05 mm in diameter) to estimate the found contour areas.
-     */
-    private fun estimateSeedArea(contours: List<MatOfPoint>, coins: List<MatOfPoint>, coinAreaMilli: Double): Map<MatOfPoint, Double> {
-
-        val avgCoinArea = coins.map { Imgproc.contourArea(it) }.reduceRight { x, y -> x + y } / coins.size
-
-        return contours.associateWith { estimateMillis(avgCoinArea, coinAreaMilli, Imgproc.contourArea(it)) }
-
-    }
-
     /**
      * Uses the known reference measurements (e.g a penny is 19.05 mm in diameter) to estimate the found contour areas.
      */
@@ -339,128 +349,6 @@ class DetectWithReference(context: Context, private val coinReferenceDiameter: D
         //subtract the background label and border label
         return contours.size
 
-    }
-
-    /**
-     * A simple max-area filtering algorithm that finds and replaces duplicates with whichever has the largest area.
-     * Contours with center points within 100px of eachother are considered duplicates.
-     */
-    private fun filterDuplicatesByCenter(duplicates: List<MatOfPoint>): List<MatOfPoint> {
-
-        val contours = arrayListOf<MatOfPoint>()
-
-        duplicates.forEach { dup ->
-
-            val x = Imgproc.moments(dup)
-            val u = Point(x.m10 / x.m00, x.m01 / x.m00)
-
-            val others = contours.filter {
-
-                val y = Imgproc.moments(it)
-                val v = Point(y.m10 / y.m00, y.m01 / y.m00)
-
-                euclideanDistance(u, v) < 10
-            }
-
-            if (others.isEmpty()) {
-
-                contours.add(dup)
-
-            } else {
-
-                contours.removeAll(others)
-
-                (others + dup).maxByOrNull { Imgproc.contourArea(it) }?.let { bigDup ->
-
-                    contours.add(bigDup)
-
-                }
-            }
-        }
-
-        return contours
-
-    }
-
-    /**
-     * Greedy algorithm that takes the contours of an image and partitions them into coins and seed classes.
-     * Coins are defined as the four contours closest to the the corners of the image. There will always be four.
-     * Seeds are everything other than the coins, these could be clusters of seeds still.
-     */
-    private fun findCoins(contours: List<MatOfPoint>, imageWidth: Double, imageHeight: Double): List<MatOfPoint> {
-
-        //initialize the greedy parameters with null values
-        val coins = arrayOfNulls<Pair<MatOfPoint, Point>>(4)
-        val topLeft = 0
-        val topRight = 1
-        val bottomLeft = 2
-        val bottomRight = 3
-
-        //set the starting assumptions to be opposite corners.
-        //e.g TOP_LEFT is set to the bottom right corner, any other contour should be closer to the TOP_LEFT corner
-        if (contours.size >= 4) {
-
-            coins[topLeft] = contours[0] to Point(imageWidth, imageHeight)
-            coins[topRight] = contours[1] to Point(0.0, imageHeight)
-            coins[bottomLeft] = contours[2] to Point(imageWidth, 0.0)
-            coins[bottomRight] = contours[3] to Point(0.0, 0.0)
-
-            //search through and approximate all contours,
-            //update the coins based on how close they are to the respective corners
-            for (i in contours.indices) {
-
-                val contour = contours[i]// sortedContours[i]
-
-                val approxCurve = MatOfPoint2f()
-
-                //contour approximation: https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_contours/py_contour_features/py_contour_features.html
-                //Douglas-Peucker algorithm that approximates a contour with a polygon with less vertices
-                //epsilon is the maximum distance from the contour and the approximation
-                val preciseContour = MatOfPoint2f(*contour.toArray())
-                val epsilon = 0.009*Imgproc.arcLength(preciseContour, true)
-
-                Imgproc.approxPolyDP(preciseContour, approxCurve, epsilon, true)
-
-                //TODO put center point function in ImageProcessingUtils
-                //moment calculation: Cx = M10/M00 and Cy = M01/M00
-                val center = Imgproc.moments(approxCurve)
-                val centerPoint = Point(center.m10 / center.m00, center.m01 / center.m00)
-
-                //start of the four greedy search updates, checks if this contour's center point
-                //is closer to the corner than the previous
-                coins[topRight]?.let {
-                    if (euclideanDistance(centerPoint, Point(imageWidth, 0.0)) <
-                            euclideanDistance(it.second, Point(imageWidth, 0.0))) {
-                        coins[topRight] = contour to centerPoint
-                    }
-                }
-
-                coins[topLeft]?.let {
-                    if (euclideanDistance(centerPoint, Point(0.0, 0.0)) <
-                            euclideanDistance(it.second, Point(0.0, 0.0))) {
-                        coins[topLeft] = contour to centerPoint
-                    }
-                }
-
-                coins[bottomLeft]?.let {
-                    if (euclideanDistance(centerPoint, Point(0.0, imageHeight)) <
-                            euclideanDistance(it.second, Point(0.0, imageHeight))) {
-                        coins[bottomLeft] = contour to centerPoint
-                    }
-                }
-
-                coins[bottomRight]?.let {
-                    if (euclideanDistance(centerPoint, Point(imageWidth, imageHeight)) <
-                            euclideanDistance(it.second, Point(imageWidth, imageHeight))) {
-                        coins[bottomRight] = contour to centerPoint
-                    }
-                }
-            }
-
-            return coins.mapNotNull { it?.first }
-        }
-
-        return listOf()
     }
 
 //    fun process(inputBitmap: Bitmap?): ArrayList<Detections> {

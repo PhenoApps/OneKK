@@ -30,6 +30,7 @@ import com.polidea.rxandroidble2.RxBleClient
 import com.polidea.rxandroidble2.helpers.ValueInterpreter
 import kotlinx.coroutines.*
 import org.wheatgenetics.onekk.R
+import org.wheatgenetics.onekk.activities.MainActivity
 import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
 import org.wheatgenetics.onekk.database.models.AnalysisEntity
@@ -339,6 +340,7 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
                 android.Manifest.permission.WRITE_EXTERNAL_STORAGE))
 
         if (requireArguments().getString("mode") == "import") {
+            (activity as? MainActivity)?.invalidateMenu()
             importFile.launch("image/*")
             arguments?.putString("mode", "default")
         }
@@ -454,7 +456,11 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
     private fun initiateDetector(path: String, name: String? = null) {
 
         //default is the size for a quarter
-        val diameter = mPreferences?.getString(getString(R.string.onekk_coin_pref_diameter_key), "19.05")?.toDoubleOrNull() ?: 19.05
+        val coinDiameter = mPreferences?.getString(getString(R.string.onekk_coin_pref_diameter_key), "19.05")?.toDoubleOrNull() ?: 19.05
+        val manualDiameter = mPreferences?.getString("org.wheatgenetics.onekk.REFERENCE_MANUAL_DIAMETER", "19.05")?.toDoubleOrNull() ?: 19.05
+        val referenceType = mPreferences?.getInt("org.wheatgenetics.onekk.REFERENCE_TYPE", 1)
+        val diameter = if (referenceType == 1) coinDiameter else manualDiameter
+        val measure = mPreferences?.getString("org.wheatgenetics.onekk.MEASURE_TYPE", "0")
 
         val weight = when (mPreferences?.getString("org.wheatgenetics.onekk.SCALE_STEPS", "1")) {
             "1", "2" -> mBinding?.weightEditText?.text?.toString()?.toDoubleOrNull()
@@ -472,6 +478,7 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
                 "name" to savedFileName,
                 "path" to path,
                 "weight" to weight,
+                "measure" to measure,
                 "imported" to (name == null),
                 "diameter" to diameter)
 
@@ -496,7 +503,6 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
                 manager.cancelWorkById(request.id)
 
             }
-
 
             manager.getWorkInfoByIdLiveData(request.id).observe(this@CameraFragment, {
 
