@@ -164,7 +164,7 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
 
         (mBinding?.recyclerView?.adapter as? AnalysisAdapter)?.currentList?.filter { analysis -> analysis.selected }?.let { analysis ->
 
-            viewModel.selectAllContours().observeOnce(viewLifecycleOwner, { contours ->
+            viewModel.selectAllContours().observeOnce(viewLifecycleOwner) { contours ->
 
                 val seedUri = File(context?.externalCacheDir, "${fileName}_seeds.csv").toUri()
                 val sampleUri = File(context?.externalCacheDir, "${fileName}_samples.csv").toUri()
@@ -206,23 +206,35 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
 
                         if (it.analyzed) {
                             paths.add(analyzedDir.toPath().toString())
-                            analysis.forEach {
-                                val dst = File(analyzedDir, "${it.name}-${it.date}.png")
-                                if (!dst.exists()) {
-                                    File(it.uri).copyTo(dst)
+                            analysis.forEach { analysis ->
+                                try {
+                                    val dst = if (analysis.date != null) File(analyzedDir, "${analysis.name}-${analysis.date}.png")
+                                        else File(analyzedDir, "${analysis.name}.png")
+                                    if (!dst.exists()) {
+                                        analysis?.uri?.let { uriFile ->
+                                            File(uriFile).copyTo(dst)
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
                                 }
                             }
                         }
 
                         if (it.captures) {
                             paths.add(captureDir.toPath().toString())
-                            analysis.forEach {
+                            analysis.forEach { analysis ->
                                 try {
-                                    val dst = File(captureDir, "${it.name}-${it.date}.png")
+                                    val dst = if (analysis.date != null) File(captureDir, "${analysis.name}-${analysis.date}.png")
+                                        else File(captureDir, "${analysis.name}.png")
                                     if (!dst.exists()) {
-                                        File(it.src).copyTo(dst)
+                                        analysis?.src?.let { srcFile ->
+                                            File(srcFile).copyTo(dst)
+                                        }
                                     }
-                                } catch (e: NoSuchFileException) { }
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
                             }
                         }
 
@@ -236,7 +248,7 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
 
                 }.show()
 
-            })
+            }
         }
     }
 
