@@ -222,15 +222,21 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
     private fun callAskConnectDialog() {
 
-        Dialogs.onOk(AlertDialog.Builder(requireContext()),
+        Dialogs.askWithNeutral(AlertDialog.Builder(requireContext()),
             getString(R.string.camera_fragment_dialog_first_load_ask_address),
             getString(R.string.cancel),
-            getString(R.string.camera_fragment_dialog_first_load_ok)) { theyWantToSetAddress ->
+            getString(R.string.camera_fragment_dialog_first_load_ok),
+            getString(R.string.dialog_pair_dont_ask_again)) { theyWantToSetAddress ->
 
-            if (theyWantToSetAddress) {
+            if (theyWantToSetAddress == 1) {
 
                 startMacAddressSearch()
 
+            } else if (theyWantToSetAddress == 0) {
+
+                mPreferences?.edit()
+                    ?.putBoolean("org.wheatgenetics.onekk.ASK_CONNECT", false)
+                    ?.apply()
             }
         }
     }

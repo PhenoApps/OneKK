@@ -81,7 +81,7 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
 //            e.printStackTrace()
 //        }
 
-        viewModel.countries().observeOnce(viewLifecycleOwner, {
+        viewModel.countries().observeOnce(viewLifecycleOwner) {
 
             countryPreference?.entries = it.toTypedArray()
             countryPreference?.entryValues = it.toTypedArray()
@@ -94,12 +94,13 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
 
                 updateCoinList(countryName)
 
-                mPreferences.edit().putString(getString(R.string.onekk_country_pref_key), countryName).apply()
+                mPreferences.edit()
+                    .putString(getString(R.string.onekk_country_pref_key), countryName).apply()
 
                 true
 
             }
-        })
+        }
 
         findPreference<Preference>("org.wheatgenetics.onekk.ASK_CONNECT")!!
                 .setOnPreferenceChangeListener { _, newValue ->
@@ -191,12 +192,12 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
                     }
                 }
 
-                preference.summary = when (newValue.toString()) {
-                    "1" -> getString(R.string.large_single_sample_algorithm)
-                    else -> getString(R.string.default_algorithm)
-                }
+                updateAlgSummary()
+                updateMeasureVisibility()
+
                 true
             }
+
             this?.summary = when(mPreferences.getString(getString(R.string.onekk_preference_algorithm_mode_key), "0") ?: "0") {
                 "1" -> getString(R.string.large_single_sample_algorithm)
                 else -> getString(R.string.default_algorithm)
@@ -293,11 +294,30 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
         }
     }
 
+    private fun updateMeasureVisibility() {
+        val measurePref = findPreference<ListPreference>("org.wheatgenetics.onekk.MEASURE_TYPE")
+
+        measurePref?.isVisible = when (mPreferences?.getString(getString(R.string.onekk_preference_algorithm_mode_key), "0")) {
+            "0", "1" -> true
+            else -> false
+        }
+    }
+
+    private fun updateAlgSummary() {
+
+        val preference = findPreference<Preference>(getString(R.string.onekk_preference_algorithm_mode_key))
+        preference?.summary = when (mPreferences?.getString(getString(R.string.onekk_preference_algorithm_mode_key), "0")) {
+            "0" -> getString(R.string.default_algorithm)
+            "1" -> getString(R.string.large_single_sample_algorithm)
+            else -> getString(R.string.none_algorithm)
+        }
+    }
+
     private fun updateCoinList(name: String) {
 
         val namePreference = findPreference<ListPreference>("org.wheatgenetics.onekk.REFERENCE_NAME")
 
-        viewModel.coinModels(name).observe(viewLifecycleOwner, { coins ->
+        viewModel.coinModels(name).observe(viewLifecycleOwner) { coins ->
 
             val names = coins.map { it.name }
             namePreference?.entries = names.toTypedArray()
@@ -311,13 +331,16 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
 
                 namePreference.summary = "$coinName $coinDiameter"
 
-                mPreferences.edit().putString(getString(R.string.onekk_coin_pref_key), coinName).apply()
-                mPreferences.edit().putString(getString(R.string.onekk_coin_pref_diameter_key), coinDiameter).apply()
+                mPreferences.edit().putString(getString(R.string.onekk_coin_pref_key), coinName)
+                    .apply()
+                mPreferences.edit()
+                    .putString(getString(R.string.onekk_coin_pref_diameter_key), coinDiameter)
+                    .apply()
 
                 true
 
             }
-        })
+        }
     }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
@@ -331,7 +354,9 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
     override fun onResume() {
         super.onResume()
 
+        updateAlgSummary()
         updateReferenceTypeVis()
+        updateMeasureVisibility()
     }
 
     //private fun List<String>.toEntryValues() = indices.toList().map { it.toString() }.toTypedArray()

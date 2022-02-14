@@ -487,6 +487,8 @@
     <string name="frag_contour_dialog_update_count_title">Update Count</string>
     <string name="export_x_header">x</string>
     <string name="export_y_header">y</string>
+    <string name="dialog_pair_dont_ask_again">Don\'t ask again</string>
+    <string name="none_algorithm">None</string>
 
     <string name="frag_setting_measure_fast">Fast</string>
     <string name="frag_setting_measure_medium">Medium</string>
