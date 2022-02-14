@@ -20,14 +20,14 @@ android {
         }
     }
 
-    compileSdkVersion 29
+    compileSdkVersion 31
 
     defaultConfig {
         applicationId "org.wheatgenetics.onekk"
         minSdkVersion 26
-        targetSdkVersion 29
-        versionCode = 201
-        versionName = '2.0.1'
+        targetSdkVersion 31
+        versionCode = 210
+        versionName = '2.1.0'
         multiDexEnabled true
         renderscriptTargetApi 24
         renderscriptSupportModeEnabled false
