@@ -127,6 +127,38 @@ class Dialogs {
             }
         }
 
+        fun askWithNeutral(builder: AlertDialog.Builder, title: String, cancel: String, ok: String, neutral: String, function: (Int) -> Unit) {
+
+            builder.apply {
+
+                setCancelable(false)
+
+                setNegativeButton(cancel) { _, _ ->
+
+                    function(-1)
+
+                }
+
+                setNeutralButton(neutral) { _, _ ->
+
+                    function(0)
+
+                }
+
+                setPositiveButton(ok) { _, _ ->
+
+                    function(1)
+
+                }
+
+                setTitle(title)
+
+                create()
+
+                show()
+            }
+        }
+
         fun askAcceptableImage(activity: Activity,
                                builder: AlertDialog.Builder,
                                title: String,
