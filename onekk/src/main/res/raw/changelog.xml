@@ -1,5 +1,27 @@
 <changelog>
     <release
+        date="2022-02-15"
+        versionCode="210"
+        versionName="v2.1.0">
+        <new>Updated default region of interest recognition</new>
+        <new>Added gyroscope leveling guide to camera preview</new>
+        <new>Replaced custom seed table with library</new>
+        <new>Multiple measurement methods supported: fast (rotated rectangle), medium (SmartGrain), slow (skeletonize)</new>
+        <new>Support for manual reference circles</new>
+        <new>Analyzed images include length/width lines or bounding rectangle</new>
+        <new>Export improved to bundle data and photos</new>
+        <info>Changed individual seed export to show seed area and total sample weight</info>
+    </release>
+
+    <release
+        date="2021-09-01"
+        versionCode="201"
+        versionName="v2.0.1">
+        <new>Added intro text</new>
+        <bugfix>Fixed scale not correctly connecting</bugfix>
+    </release>
+
+    <release
         date="2021-06-01"
         versionCode="200"
         versionName="v2.0">

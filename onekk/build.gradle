@@ -20,14 +20,14 @@ android {
         }
     }
 
-    compileSdkVersion 29
+    compileSdkVersion 31
 
     defaultConfig {
         applicationId "org.wheatgenetics.onekk"
         minSdkVersion 26
-        targetSdkVersion 29
-        versionCode = 200
-        versionName = '2.0'
+        targetSdkVersion 31
+        versionCode = 210
+        versionName = '2.1.0'
         multiDexEnabled true
         renderscriptTargetApi 24
         renderscriptSupportModeEnabled false
@@ -88,8 +88,6 @@ dependencies {
     implementation 'com.google.firebase:firebase-crashlytics'
 
     //TODO clean dependencies
-
-    implementation project(path: ':PhenoIcons')
 
     implementation 'org.apache.commons:commons-math3:3.6.1'
     implementation 'androidx.work:work-runtime:2.4.0'
@@ -183,6 +181,9 @@ dependencies {
     implementation 'com.github.daniel-stoneuk:material-about-library:2.4.2'
     //app intro github AndroidX Capable version
     implementation 'com.github.AppIntro:AppIntro:6.1.0'
+    implementation 'com.github.evrencoskun:TableView:v0.8.9.4'
+
+    implementation 'math.geom2d:javaGeom:0.11.1'
 
     // CameraX core library using the camera2 implementation
     def camerax_version = "1.1.0-alpha02"

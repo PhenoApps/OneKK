@@ -30,6 +30,7 @@ import com.polidea.rxandroidble2.RxBleClient
 import com.polidea.rxandroidble2.helpers.ValueInterpreter
 import kotlinx.coroutines.*
 import org.wheatgenetics.onekk.R
+import org.wheatgenetics.onekk.activities.MainActivity
 import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
 import org.wheatgenetics.onekk.database.models.AnalysisEntity
@@ -221,15 +222,21 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
     private fun callAskConnectDialog() {
 
-        Dialogs.onOk(AlertDialog.Builder(requireContext()),
+        Dialogs.askWithNeutral(AlertDialog.Builder(requireContext()),
             getString(R.string.camera_fragment_dialog_first_load_ask_address),
             getString(R.string.cancel),
-            getString(R.string.camera_fragment_dialog_first_load_ok)) { theyWantToSetAddress ->
+            getString(R.string.camera_fragment_dialog_first_load_ok),
+            getString(R.string.dialog_pair_dont_ask_again)) { theyWantToSetAddress ->
 
-            if (theyWantToSetAddress) {
+            if (theyWantToSetAddress == 1) {
 
                 startMacAddressSearch()
 
+            } else if (theyWantToSetAddress == 0) {
+
+                mPreferences?.edit()
+                    ?.putBoolean("org.wheatgenetics.onekk.ASK_CONNECT", false)
+                    ?.apply()
             }
         }
     }
@@ -339,6 +346,7 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
                 android.Manifest.permission.WRITE_EXTERNAL_STORAGE))
 
         if (requireArguments().getString("mode") == "import") {
+            (activity as? MainActivity)?.invalidateMenu()
             importFile.launch("image/*")
             arguments?.putString("mode", "default")
         }
@@ -405,7 +413,7 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
                     .bufferedReader().readLines().drop(1).first().split(",").map { x -> x.trim() }
 
                 //decode and save capture and analyzed photos to the respective directories
-                BitmapFactory.decodeStream(context?.assets?.open("samples/sample_original.jpg"))
+                val src = BitmapFactory.decodeStream(context?.assets?.open("samples/sample_original.jpg"))
                     .toFile(captureDirectory.path, "sample.jpg")
 
                 val analyzedSample = BitmapFactory.decodeStream(context?.assets?.open("samples/sample_analyzed.png"))
@@ -414,6 +422,9 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
                 //insert the analysis into the database, count is not in the export file format, so it is defined statically here
                 val aid = viewModel.insert(AnalysisEntity(
                     name = "sample",
+                    date = DateUtil().getTime(),
+                    uri = analyzedSample.toUri().path,
+                    src = src.toUri().path,
                     count = 74,
                     maxAxisAvg = sampleTokens[4].toDoubleOrNull(),
                     maxAxisVar = sampleTokens[5].toDoubleOrNull(),
@@ -451,7 +462,11 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
     private fun initiateDetector(path: String, name: String? = null) {
 
         //default is the size for a quarter
-        val diameter = mPreferences?.getString(getString(R.string.onekk_coin_pref_diameter_key), "19.05")?.toDoubleOrNull() ?: 19.05
+        val coinDiameter = mPreferences?.getString(getString(R.string.onekk_coin_pref_diameter_key), "19.05")?.toDoubleOrNull() ?: 19.05
+        val manualDiameter = mPreferences?.getString("org.wheatgenetics.onekk.REFERENCE_MANUAL_DIAMETER", "19.05")?.toDoubleOrNull() ?: 19.05
+        val referenceType = mPreferences?.getInt("org.wheatgenetics.onekk.REFERENCE_TYPE", 1)
+        val diameter = if (referenceType == 1) coinDiameter else manualDiameter
+        val measure = mPreferences?.getString("org.wheatgenetics.onekk.MEASURE_TYPE", "0")
 
         val weight = when (mPreferences?.getString("org.wheatgenetics.onekk.SCALE_STEPS", "1")) {
             "1", "2" -> mBinding?.weightEditText?.text?.toString()?.toDoubleOrNull()
@@ -469,6 +484,7 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
                 "name" to savedFileName,
                 "path" to path,
                 "weight" to weight,
+                "measure" to measure,
                 "imported" to (name == null),
                 "diameter" to diameter)
 
@@ -493,7 +509,6 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
                 manager.cancelWorkById(request.id)
 
             }
-
 
             manager.getWorkInfoByIdLiveData(request.id).observe(this@CameraFragment, {
 

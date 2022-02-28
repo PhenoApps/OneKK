@@ -9,13 +9,12 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
-import androidx.preference.ListPreference
-import androidx.preference.Preference
-import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import org.wheatgenetics.onekk.R
+import org.wheatgenetics.onekk.activities.MainActivity
 import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
 import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
@@ -82,7 +81,7 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
 //            e.printStackTrace()
 //        }
 
-        viewModel.countries().observeOnce(viewLifecycleOwner, {
+        viewModel.countries().observeOnce(viewLifecycleOwner) {
 
             countryPreference?.entries = it.toTypedArray()
             countryPreference?.entryValues = it.toTypedArray()
@@ -95,12 +94,13 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
 
                 updateCoinList(countryName)
 
-                mPreferences.edit().putString(getString(R.string.onekk_country_pref_key), countryName).apply()
+                mPreferences.edit()
+                    .putString(getString(R.string.onekk_country_pref_key), countryName).apply()
 
                 true
 
             }
-        })
+        }
 
         findPreference<Preference>("org.wheatgenetics.onekk.ASK_CONNECT")!!
                 .setOnPreferenceChangeListener { _, newValue ->
@@ -173,12 +173,31 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
                     putString(getString(R.string.onekk_preference_algorithm_mode_key), (newValue as? String) ?: "0")
                 }.apply()
 
-                preference.summary = when (newValue.toString()) {
-                    "1" -> getString(R.string.large_single_sample_algorithm)
-                    else -> getString(R.string.default_algorithm)
+                if (newValue.toString() == "1") {
+                    val measurePref = findPreference<ListPreference>("org.wheatgenetics.onekk.MEASURE_TYPE")
+
+                    if (mPreferences.getString("org.wheatgenetics.onekk.MEASURE_TYPE", "0") != "2") {
+                        Dialogs.onOk(AlertDialog.Builder(context),
+                            getString(R.string.dialog_preference_update_measurement),
+                            getString(android.R.string.cancel),
+                            getString(android.R.string.ok),
+                            getString(R.string.dialog_preference_update_measurement_message)) {
+
+                            if (it) {
+
+                                measurePref?.setValueIndex(2)
+
+                            }
+                        }
+                    }
                 }
+
+                updateAlgSummary()
+                updateMeasureVisibility()
+
                 true
             }
+
             this?.summary = when(mPreferences.getString(getString(R.string.onekk_preference_algorithm_mode_key), "0") ?: "0") {
                 "1" -> getString(R.string.large_single_sample_algorithm)
                 else -> getString(R.string.default_algorithm)
@@ -216,14 +235,89 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
             }
         }
 
+        updateReferenceTypeVis()
+
+        val refTypePref = findPreference<ListPreference>("org.wheatgenetics.onekk.REFERENCE_TYPE")
+
+        refTypePref?.setOnPreferenceChangeListener { preference, newValue ->
+
+            mPreferences.edit().putInt("org.wheatgenetics.onekk.REFERENCE_TYPE",
+                ((newValue as? String) ?: "1").toInt()).apply()
+
+            updateReferenceTypeVis()
+
+            true
+        }
+
+        val refManualPref = findPreference<EditTextPreference>("org.wheatgenetics.onekk.REFERENCE_MANUAL")
+        refManualPref?.setOnPreferenceChangeListener { preference, newValue ->
+
+            val diameter = newValue as String
+            mPreferences.edit().putString("org.wheatgenetics.onekk.REFERENCE_MANUAL_DIAMETER", diameter).apply()
+
+            true
+
+        }
+
+        val measurePref = findPreference<ListPreference>("org.wheatgenetics.onekk.MEASURE_TYPE")
+        measurePref?.setOnPreferenceChangeListener { preference, newValue ->
+
+            mPreferences.edit().putString("org.wheatgenetics.onekk.MEASURE_TYPE", newValue as String).apply()
+
+            true
+
+        }
+
         return super.onCreateView(inflater, container, savedInstanceState)
+    }
+
+    private fun updateReferenceTypeVis() {
+        val refType = mPreferences.getInt("org.wheatgenetics.onekk.REFERENCE_TYPE", 1)
+        val manualPref = findPreference<EditTextPreference>("org.wheatgenetics.onekk.REFERENCE_MANUAL")
+        val countryPref = findPreference<ListPreference>("org.wheatgenetics.onekk.REFERENCE_COUNTRY")
+        val coinPref = findPreference<ListPreference>("org.wheatgenetics.onekk.REFERENCE_NAME")
+        val managerPref = findPreference<Preference>("org.wheatgenetics.onekk.COIN_MANAGER_NAVIGATE")
+
+        if (refType == 1) {
+
+            countryPref?.isVisible = true
+            coinPref?.isVisible = true
+            managerPref?.isVisible = true
+            manualPref?.isVisible = false
+
+        } else {
+
+            countryPref?.isVisible = false
+            coinPref?.isVisible = false
+            managerPref?.isVisible = false
+            manualPref?.isVisible = true
+        }
+    }
+
+    private fun updateMeasureVisibility() {
+        val measurePref = findPreference<ListPreference>("org.wheatgenetics.onekk.MEASURE_TYPE")
+
+        measurePref?.isVisible = when (mPreferences?.getString(getString(R.string.onekk_preference_algorithm_mode_key), "0")) {
+            "0", "1" -> true
+            else -> false
+        }
+    }
+
+    private fun updateAlgSummary() {
+
+        val preference = findPreference<Preference>(getString(R.string.onekk_preference_algorithm_mode_key))
+        preference?.summary = when (mPreferences?.getString(getString(R.string.onekk_preference_algorithm_mode_key), "0")) {
+            "0" -> getString(R.string.default_algorithm)
+            "1" -> getString(R.string.large_single_sample_algorithm)
+            else -> getString(R.string.none_algorithm)
+        }
     }
 
     private fun updateCoinList(name: String) {
 
         val namePreference = findPreference<ListPreference>("org.wheatgenetics.onekk.REFERENCE_NAME")
 
-        viewModel.coinModels(name).observe(viewLifecycleOwner, { coins ->
+        viewModel.coinModels(name).observe(viewLifecycleOwner) { coins ->
 
             val names = coins.map { it.name }
             namePreference?.entries = names.toTypedArray()
@@ -237,13 +331,16 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
 
                 namePreference.summary = "$coinName $coinDiameter"
 
-                mPreferences.edit().putString(getString(R.string.onekk_coin_pref_key), coinName).apply()
-                mPreferences.edit().putString(getString(R.string.onekk_coin_pref_diameter_key), coinDiameter).apply()
+                mPreferences.edit().putString(getString(R.string.onekk_coin_pref_key), coinName)
+                    .apply()
+                mPreferences.edit()
+                    .putString(getString(R.string.onekk_coin_pref_diameter_key), coinDiameter)
+                    .apply()
 
                 true
 
             }
-        })
+        }
     }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
@@ -252,6 +349,14 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
 
         mDeviceFinder.observeBleDevices(this)
 
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        updateAlgSummary()
+        updateReferenceTypeVis()
+        updateMeasureVisibility()
     }
 
     //private fun List<String>.toEntryValues() = indices.toList().map { it.toString() }.toTypedArray()

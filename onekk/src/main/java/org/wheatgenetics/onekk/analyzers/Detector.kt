@@ -9,16 +9,16 @@ import org.wheatgenetics.imageprocess.PotatoDetector
 import org.wheatgenetics.onekk.interfaces.DetectorAlgorithm
 import java.io.File
 
-class Detector(context: Context, referenceDiameter: Double, algorithm: String? = null): CoroutineScope by MainScope() {
+class Detector(context: Context, referenceDiameter: Double, algorithm: String? = null, measure: String): CoroutineScope by MainScope() {
 
 //    private var frames = 0.0
 //    private var startAnalysisTime = System.currentTimeMillis()
 
     val detector: DetectorAlgorithm = when (algorithm?.toIntOrNull() ?: 0) {
 
-        DetectorAlgorithm.LSS -> PotatoDetector(context, referenceDiameter)
+        DetectorAlgorithm.LSS -> PotatoDetector(context, referenceDiameter, measure)
 
-        else -> DetectWithReference(context, referenceDiameter)
+        else -> DetectWithReference(context, referenceDiameter, measure)
     }
 
     fun scan(src: Bitmap): DetectorAlgorithm.Result? {

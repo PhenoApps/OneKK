@@ -99,7 +99,7 @@ class Dialogs {
             }
         }
 
-        fun onOk(builder: AlertDialog.Builder, title: String, cancel: String, ok: String, function: (Boolean) -> Unit) {
+        fun onOk(builder: AlertDialog.Builder, title: String, cancel: String, ok: String, message: String? = null, function: (Boolean) -> Unit) {
 
             builder.apply {
 
@@ -114,6 +114,40 @@ class Dialogs {
                 setPositiveButton(ok) { _, _ ->
 
                     function(true)
+
+                }
+
+                setMessage(message ?: "")
+
+                setTitle(title)
+
+                create()
+
+                show()
+            }
+        }
+
+        fun askWithNeutral(builder: AlertDialog.Builder, title: String, cancel: String, ok: String, neutral: String, function: (Int) -> Unit) {
+
+            builder.apply {
+
+                setCancelable(false)
+
+                setNegativeButton(cancel) { _, _ ->
+
+                    function(-1)
+
+                }
+
+                setNeutralButton(neutral) { _, _ ->
+
+                    function(0)
+
+                }
+
+                setPositiveButton(ok) { _, _ ->
+
+                    function(1)
 
                 }
 

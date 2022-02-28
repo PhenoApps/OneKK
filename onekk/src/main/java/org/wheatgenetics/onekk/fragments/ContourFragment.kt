@@ -1,20 +1,28 @@
 package org.wheatgenetics.onekk.fragments
 
+import android.app.ActionBar
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.view.*
+import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.view.ContextThemeWrapper
+import androidx.core.view.marginStart
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.evrencoskun.tableview.listener.ITableViewListener
 import kotlinx.android.synthetic.main.fragment_contour_list.*
 import kotlinx.coroutines.*
 import org.opencv.core.CvException
@@ -22,6 +30,7 @@ import org.wheatgenetics.imageprocess.DrawSelectedContour
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.activities.MainActivity
 import org.wheatgenetics.onekk.adapters.ContourAdapter
+import org.wheatgenetics.onekk.adapters.ContourListAdapter
 import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
 import org.wheatgenetics.onekk.database.models.ContourEntity
@@ -30,9 +39,11 @@ import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentContourListBinding
 import org.wheatgenetics.onekk.interfaces.ContourOnTouchListener
 import org.wheatgenetics.onekk.observeOnce
+import java.lang.NullPointerException
 import kotlin.properties.Delegates
 
-class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouchListener {
+class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouchListener,
+    ITableViewListener {
 
     private val db: OnekkDatabase by lazy {
         OnekkDatabase.getInstance(requireContext())
@@ -49,12 +60,39 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
     }
 
-    private val mUpdateMap = HashMap<Int, Int>()
+    private var mContours: List<ContourEntity>? = null
     private var mSourceBitmap: String? = null
     private var aid by Delegates.notNull<Int>()
     private var mSortState: Boolean = true
     private var mSortMode: Int = 0
     private var mBinding: FragmentContourListBinding? = null
+
+    private var mSelected = true
+    private var mAdapter: ContourListAdapter? = null
+
+    /***
+     * Polymorphism class structure to serve different cell types to the grid.
+     */
+    open class BlockData(open val code: String) {
+        override fun hashCode(): Int {
+            return code.hashCode()
+        }
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as BlockData
+
+            if (code != other.code) return false
+
+            return true
+        }
+    }
+
+    data class HeaderData(val name: String, override val code: String) : BlockData(code)
+    data class CellData(val value: String?, override val code: String, val color: Int = Color.GREEN, val onClick: View.OnClickListener? = null): BlockData(code)
+    class EmptyCell(override val code: String): BlockData(code)
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
@@ -68,12 +106,6 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
         setHasOptionsMenu(true)
 
-        mBinding?.setupRecyclerView()
-
-        mBinding?.setupHeaderSortButtons()
-
-        updateUi(aid)
-
         //custom support action toolbar
         with(mBinding?.toolbar) {
             //create back button listener in toolbar
@@ -81,6 +113,8 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
                 findNavController().popBackStack()
             }
         }
+
+        mBinding?.fragContourListTableView?.selectionHandler?.isShadowEnabled = false
 
         sViewModel.getSourceImage(aid).observeOnce(viewLifecycleOwner, { uri ->
 
@@ -99,55 +133,25 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
         })
 
-        mBinding?.setupButtons()
+        sViewModel.contours(aid).observeOnce(viewLifecycleOwner, { data ->
 
-        updateTotal()
+            mContours = data
+
+            activity?.runOnUiThread {
+
+                updateUi()
+
+            }
+        })
+
+        mAdapter = ContourListAdapter(0, 0, this)
+
+        mBinding?.setupButtons()
 
         return mBinding?.root
     }
 
-    /**
-     * Clicking on the headers sorts by the header name.
-     * Elements are also sorted by the tool bar ascending/descending mode.
-     */
-    private fun FragmentContourListBinding.setupHeaderSortButtons() {
-
-        contourHeader.areaTextView.setOnClickListener {
-            if (mSortMode == 0) mSortState = !mSortState
-            mSortMode = 0
-            updateUi(aid)
-            scrollToTop()
-        }
-
-        contourHeader.lengthTextView.setOnClickListener {
-            if (mSortMode == 1) mSortState = !mSortState
-            mSortMode = 1
-            updateUi(aid)
-            scrollToTop()
-        }
-
-        contourHeader.widthTextView.setOnClickListener {
-            if (mSortMode == 2) mSortState = !mSortState
-            mSortMode = 2
-            updateUi(aid)
-            scrollToTop()
-        }
-
-        contourHeader.countTextView.setOnClickListener {
-            if (mSortMode == 3) mSortState = !mSortState
-            mSortMode = 3
-            updateUi(aid)
-            scrollToTop()
-        }
-    }
-
-    private fun scrollToTop() {
-        Handler().postDelayed({
-            mBinding?.recyclerView?.scrollToPosition(0)
-        }, 500)
-    }
-
-    suspend fun updateImageViewAsync(x: Double, y: Double, cluster: Boolean, minAxis: Double, maxAxis: Double): Deferred<Bitmap> = withContext(Dispatchers.IO) {
+    private suspend fun updateImageViewAsync(x: Double, y: Double, cluster: Boolean, minAxis: Double, maxAxis: Double): Deferred<Bitmap> = withContext(Dispatchers.IO) {
 
         async {
 
@@ -207,29 +211,25 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
     //this isn't saved in the database until the submit button is pressed.
     private fun updateTotal() = try {
 
-        activity?.let {
+        mContours?.let { contours ->
 
-            sViewModel.contours(aid).observeOnce(viewLifecycleOwner, { contours ->
+            //update the count in the toolbar
+            if (contours.isNotEmpty()) {
 
-                //update the count in the toolbar
-                if (contours.isNotEmpty()) {
+                val countable = contours.filter { it.selected }
 
-                    //use the update map to adjust count when the save button is pressed
-                    val count = contours.filter { it.selected }.mapNotNull {
-                        if (it.cid in mUpdateMap.keys) {
-                            val adjustedCount = mUpdateMap[it.cid] ?: 0
-                            it.cid?.let { id ->
-                                launch {
-                                    sViewModel.updateContourCount(id, adjustedCount)
-                                }
-                            }
-                            adjustedCount
-                        } else it.contour?.count
-                    }.reduceRight { x, y -> y + x }
+                val count = if (countable.isNotEmpty()) {
+                    countable.map {
+                        it.contour?.count ?: 0
+                    }.reduceRight { x, y ->  y + x }
+                } else 0
 
-                    mBinding?.toolbar?.findViewById<TextView>(R.id.countTextView)?.text = "$count"
-                }
-            })
+                mBinding?.toolbar?.findViewById<TextView>(R.id.countTextView)?.text = "$count"
+
+            } else {
+
+                mBinding?.toolbar?.findViewById<TextView>(R.id.countTextView)?.text = "0"
+            }
         }
 
     } catch (e: Exception) {
@@ -241,93 +241,103 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
     //interface listener for the contour adapter
     override fun onCountEdited(cid: Int, count: Int) {
 
-        mUpdateMap[cid] = count
+        activity?.let { act ->
 
-        updateTotal()
+            val et = EditText(act).apply {
+                setText(count.toString())
+                gravity = Gravity.CENTER_HORIZONTAL
+            }
 
+            AlertDialog.Builder(act)
+                .setTitle(R.string.frag_contour_dialog_update_count_title)
+                .setView(et)
+                .setPositiveButton(android.R.string.ok) { dialog, _ ->
+
+                    val n = et.text.toString().toIntOrNull()
+                    if (et.text.isNotBlank() && n != null) {
+
+                        mContours?.find { it.cid == cid }?.contour?.count = n
+
+                        updateUi()
+                    }
+
+                    dialog.dismiss()
+
+                }
+                .setNegativeButton(android.R.string.cancel) { dialog, _ ->
+
+                    dialog.dismiss()
+
+                }.show()
+        }
     }
 
     override fun onChoiceSwapped(id: Int, selected: Boolean) {
 
-        try {
+        mContours?.find { it.cid == id }?.selected = selected
 
-            launch {
+        updateUi()
 
-                sViewModel.switchSelectedContour(aid, id, selected)
-
-                updateTotal()
-
-                updateUi(aid)
-
-            }
-
-        } catch (e: Exception) {
-
-            e.printStackTrace()
-
-        }
     }
 
     private fun FragmentContourListBinding.setupButtons() {
 
         submitButton.setOnClickListener {
 
-            sViewModel.contours(aid).observeOnce(viewLifecycleOwner, { contours ->
+            if (mContours?.isEmpty() == true) {
 
-                //update the count in the toolbar
-                if (contours.isNotEmpty()) {
+                mBinding?.toolbar?.findViewById<TextView>(R.id.countTextView)?.text = "0"
 
-                    //use the update map to adjust count when the save button is pressed
-                    val count = contours.filter { it.selected }.mapNotNull {
-                        if (it.cid in mUpdateMap.keys) {
-                            val adjustedCount = mUpdateMap[it.cid] ?: 0
-                            it.cid?.let { id ->
-                                launch {
-                                    sViewModel.updateContourCount(id, adjustedCount)
-                                }
-                            }
-                            adjustedCount
-                        }
-                        else it.contour?.count
-                    }.reduceRight { x, y ->  y + x }
+            }
 
-                    mBinding?.toolbar?.findViewById<TextView>(R.id.countTextView)?.text = "$count"
+            mContours?.let { contours ->
 
-                    try {
-
-                        sViewModel.updateAnalysisCount(aid, count)
-
-                        when (mPreferences.getString(getString(R.string.onekk_preference_mode_key), "1")) {
-
-                            "1", "2" -> findNavController().popBackStack()
-
-                            else -> findNavController().navigate(ContourFragmentDirections.actionToScale(aid))
-                        }
-
-                    } catch (e: Exception) {
-
-                        e.printStackTrace()
-
+                //update selection status and count in db
+                launch {
+                    contours.forEach {
+                        sViewModel.switchSelectedContour(it.aid, it.cid ?: -1, it.selected)
+                        sViewModel.updateContourCount(it.cid ?: -1, it.contour?.count ?: 0)
                     }
                 }
-            })
+
+                //aggregate the count
+                val countable = contours.filter { it.selected }
+
+                val count = if (countable.isNotEmpty()) {
+                    countable.map {
+                        it.contour?.count ?: 0
+                    }.reduceRight { x, y ->  y + x }
+                } else 0
+
+                mBinding?.toolbar?.findViewById<TextView>(R.id.countTextView)?.text = "$count"
+
+                try {
+
+                    sViewModel.updateAnalysisCount(aid, count)
+
+                    when (mPreferences.getString(getString(R.string.onekk_preference_mode_key), "1")) {
+
+                        "1", "2" -> findNavController().popBackStack()
+
+                        else -> findNavController().navigate(ContourFragmentDirections.actionToScale(aid))
+                    }
+
+                } catch (e: Exception) {
+
+                    e.printStackTrace()
+
+                }
+            }
         }
     }
 
-    private fun FragmentContourListBinding.setupRecyclerView() {
+    private fun updateUi() {
 
-        recyclerView.layoutManager = LinearLayoutManager(context).apply {
-            orientation = LinearLayoutManager.VERTICAL
-        }
-
-        recyclerView.adapter = ContourAdapter(this@ContourFragment)
-
-    }
-
-    private fun updateUi(aid: Int) {
+        val headers = arrayOf("Counted", "Area", "Length", "Width", "Count")
 
         try {
-            sViewModel.contours(aid).observeOnce(viewLifecycleOwner, { data ->
+
+            mContours?.let { data ->
 
                 val singles = data.filter { it.contour?.count ?: 0 <= 1 }
 
@@ -338,11 +348,43 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
                 //uses the two different modes to sort (ascending/descending) vs (area/l/w/count)
                 val sorted = sortByState(contours)
 
-                activity?.runOnUiThread {
-                    (mBinding?.recyclerView?.adapter as? ContourAdapter)
-                            ?.submitList(sorted)
+                val dataMap = arrayListOf<List<CellData>>()
+
+                sorted.forEach {
+                    val dataList = arrayListOf<CellData>()
+                    val id = it.cid?.toString() ?: "-1"
+                    val selected = if (it.selected) "true" else "false"
+                    val minAxis = if ((it.contour?.minAxis ?: 0.0) == 0.0) "N/A" else (it.contour?.minAxis ?: 0.0).toString()
+                    val maxAxis = if ((it.contour?.maxAxis ?: 0.0) == 0.0) "N/A" else (it.contour?.maxAxis ?: 0.0).toString()
+
+                    dataList.add(CellData(selected, id))
+                    dataList.add(CellData(it.contour?.area?.toString(), id))
+                    dataList.add(CellData(minAxis, id))
+                    dataList.add(CellData(maxAxis, id))
+                    dataList.add(CellData(it.contour?.count?.toString(), id))
+                    dataMap.add(dataList)
                 }
-            })
+
+                activity?.runOnUiThread {
+
+                    updateTotal()
+
+                    mBinding?.fragContourListTableView?.apply {
+                        setHasFixedWidth(true)
+                        tableViewListener = this@ContourFragment
+                        isShowHorizontalSeparators = false
+                        isShowVerticalSeparators = false
+                        isIgnoreSelectionColors = true
+                        setAdapter(mAdapter)
+                    }
+
+                    mAdapter?.setAllItems(
+                        headers.map { HeaderData(it, it) },
+                        null,
+                        dataMap.toList())
+
+                }
+            }
 
         } catch (e: Exception) {
 
@@ -394,4 +436,76 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
             }
         }
     }
+
+    override fun onCellClicked(cellView: RecyclerView.ViewHolder, column: Int, row: Int) {
+
+        mAdapter?.getCellItem(column, row)?.let { cell ->
+
+           mContours?.find { it.cid?.toString() == cell.code }?.let { x ->
+
+               if (column == 0) {
+
+                   onChoiceSwapped(cell.code.toInt(), !x.selected)
+
+               } else {
+                   with (x.contour) {
+                       onTouch(cell.code.toInt(),
+                           this?.x ?: 0.0,
+                           this?.y ?: 0.0,
+                           this?.count ?: 0 > 1,
+                           this?.minAxis ?: 0.0,
+                           this?.maxAxis ?: 0.0)
+                   }
+               }
+           }
+        }
+    }
+
+    override fun onColumnHeaderClicked(columnHeaderView: RecyclerView.ViewHolder, column: Int) {
+
+        when (column) {
+            0 -> {
+
+                if ((mContours?.filter { !it.selected }?.size ?: 0) == 0) {
+                    mSelected = false
+                }
+
+                mContours?.forEach {
+                    onChoiceSwapped(it.cid ?: -1, mSelected)
+                }
+
+                updateUi()
+
+                mSelected = !mSelected
+            }
+            1 -> {
+                if (mSortMode == 0) mSortState = !mSortState
+                mSortMode = 0
+                updateUi()
+            }
+            2 -> {
+                if (mSortMode == 1) mSortState = !mSortState
+                mSortMode = 1
+                updateUi()
+            }
+            3 -> {
+                if (mSortMode == 2) mSortState = !mSortState
+                mSortMode = 2
+                updateUi()
+            }
+            4 -> {
+                if (mSortMode == 3) mSortState = !mSortState
+                mSortMode = 3
+                updateUi()
+            }
+        }
+    }
+
+    override fun onCellDoubleClicked(cellView: RecyclerView.ViewHolder, column: Int, row: Int) {}
+    override fun onCellLongPressed(cellView: RecyclerView.ViewHolder, column: Int, row: Int) {}
+    override fun onColumnHeaderDoubleClicked(columnHeaderView: RecyclerView.ViewHolder, column: Int) {}
+    override fun onColumnHeaderLongPressed(columnHeaderView: RecyclerView.ViewHolder, column: Int) {}
+    override fun onRowHeaderClicked(rowHeaderView: RecyclerView.ViewHolder, row: Int) {}
+    override fun onRowHeaderDoubleClicked(rowHeaderView: RecyclerView.ViewHolder, row: Int) {}
+    override fun onRowHeaderLongPressed(rowHeaderView: RecyclerView.ViewHolder, row: Int) {}
 }

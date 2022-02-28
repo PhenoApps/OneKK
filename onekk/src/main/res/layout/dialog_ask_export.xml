@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data/>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:textSize="24sp"
+            android:layout_margin="16dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/dialog_export_summary_tv"
+            android:text="@string/dialog_export_title"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+        <TextView
+            android:layout_margin="16dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/dialog_export_data_tv"
+            android:text="@string/dialog_export_data_tv"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/dialog_export_summary_tv"/>
+
+        <CheckBox android:layout_marginStart="16dp"
+            android:text="@string/dialog_export_seeds"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:id="@+id/dialog_export_seeds_cb"
+            app:layout_constraintTop_toBottomOf="@id/dialog_export_data_tv"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+        <CheckBox
+            android:layout_marginEnd="16dp"
+            android:layout_marginStart="16dp"
+            android:text="@string/dialog_export_samples"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/dialog_export_samples_cb"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/dialog_export_data_tv"
+            app:layout_constraintStart_toEndOf="@id/dialog_export_seeds_cb"/>
+
+        <TextView android:layout_marginStart="16dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/dialog_export_bundle_tv"
+            android:text="@string/dialog_export_bundle_tv"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/dialog_export_samples_cb"/>
+
+        <CheckBox android:layout_marginStart="16dp"
+            android:text="@string/dialog_export_bundle_captures"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/dialog_export_bundle_captures_cb"
+            app:layout_constraintTop_toBottomOf="@id/dialog_export_bundle_tv"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+        <CheckBox
+            android:layout_marginEnd="16dp"
+            android:layout_marginStart="16dp"
+            android:text="@string/dialog_export_bundle_analyzed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/dialog_export_bundle_analyzed_cb"
+            app:layout_constraintTop_toBottomOf="@id/dialog_export_bundle_tv"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/dialog_export_bundle_captures_cb"/>
+
+        <Button
+            android:layout_margin="16dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/dialog_export_positive_button"
+            android:text="@android:string/ok"
+            app:layout_constraintTop_toBottomOf="@id/dialog_export_bundle_analyzed_cb"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+        <Button
+            android:layout_margin="16dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/dialog_export_negative_button"
+            android:text="@android:string/cancel"
+            app:layout_constraintTop_toBottomOf="@id/dialog_export_bundle_analyzed_cb"
+            app:layout_constraintEnd_toStartOf="@id/dialog_export_positive_button"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</layout>

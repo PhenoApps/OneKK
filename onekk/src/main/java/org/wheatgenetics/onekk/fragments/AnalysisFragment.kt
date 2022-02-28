@@ -1,11 +1,14 @@
 package org.wheatgenetics.onekk.fragments
 
+import android.net.Uri
 import android.os.Bundle
 import android.view.*
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.core.net.toFile
+import androidx.core.net.toUri
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -20,13 +23,20 @@ import org.wheatgenetics.onekk.database.models.AnalysisEntity
 import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
 import org.wheatgenetics.onekk.database.viewmodels.factory.OnekkViewModelFactory
 import org.wheatgenetics.onekk.databinding.FragmentAnalysisManagerBinding
+import org.wheatgenetics.onekk.dialogs.ExportDialog
 import org.wheatgenetics.onekk.interfaces.AnalysisUpdateListener
 import org.wheatgenetics.onekk.interfaces.OnClickAnalysis
 import org.wheatgenetics.onekk.observeOnce
 import org.wheatgenetics.utils.DateUtil
 import org.wheatgenetics.utils.Dialogs
 import org.wheatgenetics.utils.FileUtil
+import org.wheatgenetics.utils.ZipUtil
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.OutputStream
 import java.util.*
+import kotlin.math.exp
 
 class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, CoroutineScope by MainScope() {
 
@@ -63,7 +73,7 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
         }
 
         //deselect all analysis before view is created
-        launch {
+        launch(Dispatchers.IO) {
 
             viewModel.updateSelectAllAnalysis(false)
 
@@ -133,6 +143,16 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
         }
     }}
 
+    private val mZipPaths = arrayListOf<String>()
+    private val zipFilesLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument()) { it?.let { uri ->
+
+        context?.contentResolver?.openOutputStream(uri)?.let { stream ->
+
+            zipFiles(mZipPaths, stream)
+
+        }
+    }}
+
     /**
      * Uses activity results contracts to create a document and call the export function
      */
@@ -140,23 +160,104 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
 
         val outputFilePrefix = getString(R.string.export_file_prefix)
 
-        val fileName = "$outputFilePrefix${DateUtil().getTime()}.csv"
+        val fileName = "$outputFilePrefix${DateUtil().getTime()}"
 
-        Dialogs.booleanOption(AlertDialog.Builder(requireContext()),
-                getString(R.string.frag_analysis_dialog_export_title),
-                getString(R.string.frag_analysis_dialog_export_samples_option),
-                getString(R.string.frag_analysis_dialog_export_seeds_option),
-                getString(R.string.frag_analysis_dialog_export_cancel_option)) { option ->
+        (mBinding?.recyclerView?.adapter as? AnalysisAdapter)?.currentList?.filter { analysis -> analysis.selected }?.let { analysis ->
 
-            if (option) {
+            viewModel.selectAllContours().observeOnce(viewLifecycleOwner) { contours ->
 
-                exportSamples.launch(fileName)
+                val seedUri = File(context?.externalCacheDir, "${fileName}_seeds.csv").toUri()
+                val sampleUri = File(context?.externalCacheDir, "${fileName}_samples.csv").toUri()
+                val analyzedDir = File(context?.externalCacheDir, "analyzed")
+                val captureDir = File(context?.externalCacheDir, "captures")
 
-            } else {
+                if (analyzedDir.exists()) analyzedDir.deleteRecursively()
+                if (captureDir.exists()) captureDir.deleteRecursively()
 
-                exportSeeds.launch(fileName)
+                analyzedDir.mkdir()
+                captureDir.mkdir()
+
+                FileUtil(requireContext()).export(sampleUri, analysis)
+                FileUtil(requireContext()).exportSeeds(seedUri, analysis, contours)
+
+                ExportDialog(requireActivity()) {
+
+                    val paths = arrayListOf<String>()
+
+                    val exportDirs = it.captures || it.analyzed
+
+                    if (it.seeds && !it.samples && !exportDirs) {
+
+                        exportSeeds.launch("$fileName.csv")
+
+                    } else if (!it.seeds && it.samples && !exportDirs) {
+
+                        exportSamples.launch("$fileName.csv")
+
+                    } else {
+
+                        if (it.seeds) {
+                            paths.add(seedUri.toFile().toPath().toString())
+                        }
+
+                        if (it.samples) {
+                            paths.add(sampleUri.toFile().toPath().toString())
+                        }
+
+                        if (it.analyzed) {
+                            paths.add(analyzedDir.toPath().toString())
+                            analysis.forEach { analysis ->
+                                try {
+                                    val dst = if (analysis.date != null) File(analyzedDir, "${analysis.name}-${analysis.date}.png")
+                                        else File(analyzedDir, "${analysis.name}.png")
+                                    if (!dst.exists()) {
+                                        analysis?.uri?.let { uriFile ->
+                                            File(uriFile).copyTo(dst)
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
+                        }
+
+                        if (it.captures) {
+                            paths.add(captureDir.toPath().toString())
+                            analysis.forEach { analysis ->
+                                try {
+                                    val dst = if (analysis.date != null) File(captureDir, "${analysis.name}-${analysis.date}.png")
+                                        else File(captureDir, "${analysis.name}.png")
+                                    if (!dst.exists()) {
+                                        analysis?.src?.let { srcFile ->
+                                            File(srcFile).copyTo(dst)
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
+                        }
+
+                        mZipPaths.clear()
+                        mZipPaths.addAll(paths)
+
+                        if (mZipPaths.isNotEmpty()) {
+                            zipFilesLauncher.launch("$fileName.zip")
+                        }
+                    }
+
+                }.show()
 
             }
+        }
+    }
+
+    private fun zipFiles(paths: ArrayList<String>, stream: OutputStream?) {
+        try {
+            ZipUtil.zip(paths.toArray(arrayOf<String>()), stream)
+            stream?.close()
+        } catch (io: IOException) {
+            io.printStackTrace()
         }
     }
 
@@ -184,11 +285,17 @@ class AnalysisFragment : Fragment(), AnalysisUpdateListener, OnClickAnalysis, Co
                 findNavController().navigate(AnalysisFragmentDirections.globalActionToImport(mode = "import"))
             }
             findViewById<ImageButton>(R.id.selectAllButton)?.setOnClickListener {
-                viewModel.updateSelectAllAnalysis(mSelectMode)
 
-                mSelectMode = !mSelectMode
+                launch(Dispatchers.IO) {
+                    viewModel.updateSelectAllAnalysis(mSelectMode)
 
-                mBinding?.updateUi()
+                    activity?.runOnUiThread {
+
+                        mSelectMode = !mSelectMode
+
+                        mBinding?.updateUi()
+                    }
+                }
             }
             findViewById<ImageButton>(R.id.exportButton)?.setOnClickListener {
                 onSelectedNotEmpty {
