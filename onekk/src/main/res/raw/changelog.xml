@@ -1,6 +1,6 @@
 <changelog>
     <release
-        date="2022-02-15"
+        date="2022-02-28"
         versionCode="210"
         versionName="v2.1.0">
         <new>Updated default region of interest recognition</new>
