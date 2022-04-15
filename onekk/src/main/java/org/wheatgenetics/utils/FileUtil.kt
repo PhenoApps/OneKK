@@ -25,11 +25,12 @@ open class FileUtil(private val ctx: Context) {
     private val widthAvgHeader: String by lazy { ctx.getString(R.string.export_width_avg_header) }
     private val widthVarHeader: String by lazy { ctx.getString(R.string.export_width_var_header) }
     private val widthCvHeader: String by lazy { ctx.getString(R.string.export_width_cv_header) }
+    private val weightHeader: String by lazy { ctx.getString(R.string.export_weight_header) }
 
     private val exportHeaderString by lazy {
         arrayOf(nameHeader, pictureHeader, collectorHeader, dateHeader,
                 lengthAvgHeader, lengthVarHeader, lengthCvHeader,
-                widthAvgHeader, widthVarHeader, widthCvHeader)
+                widthAvgHeader, widthVarHeader, widthCvHeader, weightHeader)
                 .joinToString(", ")
     }
 
@@ -40,7 +41,6 @@ open class FileUtil(private val ctx: Context) {
     private val lengthHeader: String by lazy { ctx.getString(R.string.export_length_header) }
     private val widthHeader: String by lazy { ctx.getString(R.string.export_width_header) }
     private val areaHeader: String by lazy { ctx.getString(R.string.export_area_header) }
-    private val weightHeader: String by lazy { ctx.getString(R.string.export_weight_header) }
     private val xHeader: String by lazy { ctx.getString(R.string.export_x_header) }
     private val yHeader: String by lazy { ctx.getString(R.string.export_y_header) }
 
@@ -115,7 +115,7 @@ open class FileUtil(private val ctx: Context) {
 
                     analysisList.forEach { analysis ->
 
-                        write("${analysis.name}, ${analysis.src}, ${analysis.collector}, ${analysis.date}, ${analysis.maxAxisAvg}, ${analysis.maxAxisVar}, ${analysis.maxAxisCv}, ${analysis.minAxisAvg}, ${analysis.minAxisVar}, ${analysis.minAxisCv}".toByteArray())
+                        write("${analysis.name}, ${analysis.src}, ${analysis.collector}, ${analysis.date}, ${analysis.maxAxisAvg}, ${analysis.maxAxisVar}, ${analysis.maxAxisCv}, ${analysis.minAxisAvg}, ${analysis.minAxisVar}, ${analysis.minAxisCv}, ${analysis.weight}".toByteArray())
 
                         write(newLine)
 
