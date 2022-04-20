@@ -1,5 +1,13 @@
 <changelog>
     <release
+        date="2022-04-20"
+        versionCode="211"
+        versionName="v2.1.1">
+        <info>Updated for SDK 31+</info>
+        <bugfix>Fixed a bug where sample weights weren't being exported</bugfix>
+    </release>
+
+    <release
         date="2022-02-28"
         versionCode="210"
         versionName="v2.1.0">
