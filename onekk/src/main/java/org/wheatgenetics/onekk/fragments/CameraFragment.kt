@@ -109,21 +109,18 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 //        screenSize
 //    }
 
-    private val checkPermissions by lazy {
+    private val checkPermissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { granted ->
 
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { granted ->
+        //ensure all permissions are granted
+        if (granted.values.all { it }) {
 
-            //ensure all permissions are granted
-            if (granted.values.all { it }) {
+            setupFragment()
 
-                setupFragment()
-
-            } else {
-                //TODO show message saying camera/bluetooth/storage is required to start camera preview
-                activity?.let {
-                    it.setResult(android.app.Activity.RESULT_CANCELED)
-                    it.finish()
-                }
+        } else {
+            //TODO show message saying camera/bluetooth/storage is required to start camera preview
+            activity?.let {
+                it.setResult(android.app.Activity.RESULT_CANCELED)
+                it.finish()
             }
         }
     }
@@ -131,16 +128,13 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
     /**
      * Start the detector given a user-chosen file.
      */
-    private val importFile by lazy {
+    private val importFile = registerForActivityResult(ActivityResultContracts.GetContent()) { doc ->
 
-        registerForActivityResult(ActivityResultContracts.GetContent()) { doc ->
+        doc?.let { nonNullDoc ->
 
-            doc?.let { nonNullDoc ->
-
-                initiateDetector(nonNullDoc.toString())
+            initiateDetector(nonNullDoc.toString())
 //                initiateDetector(BitmapFactory.decodeStream(requireContext()
 //                        .contentResolver.openInputStream(nonNullDoc)), name, save = false)
-            }
         }
     }
 
