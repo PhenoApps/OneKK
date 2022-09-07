@@ -1,12 +1,19 @@
 package org.wheatgenetics.onekk.fragments
 
+import android.Manifest
 import android.bluetooth.BluetoothDevice
 import android.content.Context.MODE_PRIVATE
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.preference.*
@@ -44,18 +51,47 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
 
     private val mDeviceFinder by lazy { BluetoothUtil(requireContext()) }
 
+    private val requestBluetooth = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
+
+        if (result.all { it.value }) {
+
+            mDeviceFinder.observeBleDevices(this)
+
+        }
+    }
+
     /**
      * Bluetooth device discovery callback that is updated whenever BluetoothUtil finds a new device.
      */
     override fun onDiscovered(device: BluetoothDevice) {
 
-        if (device.name != null && mDevices.find { it.name == device.name } == null) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            context?.let { ctx ->
+                if (ContextCompat.checkSelfPermission(
+                        ctx,
+                        Manifest.permission.BLUETOOTH_CONNECT
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) {
+                    if (device.name != null && mDevices.find { it.name == device.name } == null) {
 
-            mDevices.add(device)
+                        mDevices.add(device)
 
-            //crash if this is called before this preference is created
+                        //crash if this is called before this preference is created
 //            findPreference<Preference>(getString(R.string.preferences_enable_bluetooth_key))
 //                    ?.summary = "${mDevices.size} ${getString(R.string.devices)}"
+                    }
+                }
+            }
+        } else {
+
+            if (device.name != null && mDevices.find { it.name == device.name } == null) {
+
+                mDevices.add(device)
+
+                //crash if this is called before this preference is created
+//            findPreference<Preference>(getString(R.string.preferences_enable_bluetooth_key))
+//                    ?.summary = "${mDevices.size} ${getString(R.string.devices)}"
+            }
         }
     }
 
@@ -216,16 +252,39 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
                             getString(R.string.dialog_choose_ble_device_title),
                             mDevices.toTypedArray()) { device ->
 
-                        it.summary = device?.name ?: "None"
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
 
-                        mPreferences.edit().apply {
+                            context?.let { ctx ->
+                                if (ContextCompat.checkSelfPermission(
+                                        ctx,
+                                        Manifest.permission.BLUETOOTH_CONNECT
+                                    ) == PackageManager.PERMISSION_GRANTED
+                                ) {
+                                    it.summary = device?.name ?: "None"
 
-                            putString(getString(R.string.preferences_enable_bluetooth_key), device?.address ?: String())
+                                    mPreferences.edit().apply {
 
-                            putString(getString(R.string.preferences_saved_device_name_key), device?.name ?: String())
+                                        putString(getString(R.string.preferences_enable_bluetooth_key), device?.address ?: String())
 
-                        }.apply()
+                                        putString(getString(R.string.preferences_saved_device_name_key), device?.name ?: String())
+
+                                    }.apply()
+                                }
+                            }
+                        } else {
+
+                            it.summary = device?.name ?: "None"
+
+                            mPreferences.edit().apply {
+
+                                putString(getString(R.string.preferences_enable_bluetooth_key), device?.address ?: String())
+
+                                putString(getString(R.string.preferences_saved_device_name_key), device?.name ?: String())
+
+                            }.apply()
+                        }
                     }
+
                 } else {
 
                     it.summary = getString(R.string.frag_settings_no_devices_found)
@@ -347,8 +406,23 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
 
         setPreferencesFromResource(R.xml.preferences, rootKey)
 
-        mDeviceFinder.observeBleDevices(this)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
 
+            context?.let { ctx ->
+
+                if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED
+                    && ContextCompat.checkSelfPermission(ctx, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+
+                    mDeviceFinder.observeBleDevices(this)
+
+                } else {
+
+                    requestBluetooth.launch(arrayOf(Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN))
+
+                }
+            }
+
+        } else mDeviceFinder.observeBleDevices(this)
     }
 
     override fun onResume() {
