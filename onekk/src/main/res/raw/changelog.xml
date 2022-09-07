@@ -1,5 +1,12 @@
 <changelog>
     <release
+        date="2022-09-07"
+        versionCode="212"
+        versionName="v2.1.2">
+        <bugfix>Fix for Bluetooth Scale connections on Android 12+</bugfix>
+    </release>
+
+    <release
         date="2022-04-20"
         versionCode="211"
         versionName="v2.1.1">
