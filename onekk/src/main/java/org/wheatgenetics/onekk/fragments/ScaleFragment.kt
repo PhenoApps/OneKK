@@ -1,7 +1,10 @@
 package org.wheatgenetics.onekk.fragments
 
+import android.Manifest
 import android.content.Context.MODE_PRIVATE
+import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,7 +12,9 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -56,6 +61,15 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
 
     private val mBluetoothManager by lazy {
         BluetoothUtil(requireContext())
+    }
+
+    private val requestBluetooth = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
+
+        if (result.all { it.value }) {
+
+            startMacAddressSearch()
+
+        }
     }
 
     companion object {
@@ -208,17 +222,30 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
 
         val macAddress = mPreferences.getString(getString(R.string.preferences_enable_bluetooth_key), null)
 
-        if (macAddress != null) {
+        context?.let { ctx ->
 
-            mBluetoothManager.establishConnectionToAddress(this, macAddress)
+            if (macAddress != null) {
 
-        } else {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
 
-            //TODO: Instead of moving to Settings, the service can be automatically found (if it's available)
-            Toast.makeText(requireContext(), getString(R.string.frag_scale_no_mac_address_found_message), Toast.LENGTH_LONG).show()
+                    if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED
+                        && ContextCompat.checkSelfPermission(ctx, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
 
-//            findNavController().navigate(ScaleFragmentDirections.actionToSettings())
+                        mBluetoothManager.establishConnectionToAddress(this, macAddress)
 
+                    } else {
+
+                        requestBluetooth.launch(arrayOf(Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN))
+
+                    }
+
+                } else mBluetoothManager.establishConnectionToAddress(this, macAddress)
+
+            } else {
+
+                Toast.makeText(requireContext(), getString(R.string.frag_scale_no_mac_address_found_message), Toast.LENGTH_LONG).show()
+
+            }
         }
     }
 
