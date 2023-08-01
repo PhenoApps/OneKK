@@ -20,10 +20,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.polidea.rxandroidble2.helpers.ValueInterpreter
-import kotlinx.android.synthetic.main.fragment_contour_list.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.database.OnekkDatabase
@@ -145,13 +143,13 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
     //when the view is loaded, update the edit text with the saved weight
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.getAnalysis(aid).observeOnce(viewLifecycleOwner, { analysis ->
+        viewModel.getAnalysis(aid).observeOnce(viewLifecycleOwner) { analysis ->
             activity?.runOnUiThread {
-                analysis?.weight?.let {
+                analysis.weight?.let {
                     mBinding?.scaleFragmentEditText?.setText(it.toString())
                 }
             }
-        })
+        }
     }
 
     private fun callAskConnectDialog() {
@@ -198,7 +196,7 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
 
             viewModel.getSourceImage(aid).observeForever { url ->
 
-                imageView?.setImageBitmap(BitmapFactory.decodeFile(url))
+                mBinding?.imageView?.setImageBitmap(BitmapFactory.decodeFile(url))
 
             }
 

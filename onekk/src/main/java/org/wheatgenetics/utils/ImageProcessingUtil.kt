@@ -1,8 +1,8 @@
 package org.wheatgenetics.utils
 
 import android.graphics.Bitmap
-import android.util.Log
 import math.geom2d.Point2D
+import math.geom2d.Vector2D
 import math.geom2d.line.Line2D
 import org.opencv.android.Utils
 import org.opencv.core.*
@@ -412,53 +412,58 @@ class ImageProcessingUtil {
             return width
         }
 
-        fun measureSmartGrain(dst: Mat, contour: MatOfPoint): Pair<Double, Double> {
+        private fun generateMidPoints(contourPoints: List<Point2D>): List<Point2D> {
 
-            val approxCurve = MatOfPoint2f()
+            val points = arrayListOf<Point2D>()
+            for (i in contourPoints.indices) {
 
-            //contour approximation: https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_contours/py_contour_features/py_contour_features.html
-            //Douglas-Peucker algorithm that approximates a contour with a polygon with less vertices
-            //epsilon is the maximum distance from the contour and the approximation
-            val preciseContour = MatOfPoint2f(*contour.toArray())
-            val epsilon = 0.0005*Imgproc.arcLength(preciseContour, true)
+                if (i < contourPoints.size - 1) {
 
-            Imgproc.approxPolyDP(preciseContour, approxCurve, epsilon, true)
-
-            val ptsW = Array(2) { Point() }
-            var width = 0.0
-            val c = approxCurve.toArray()
-
-            val ab = findLongestLine(c, arrayOf())
-
-            val length = sqrt((ab.first.x - ab.second.x).pow(2.0) + (ab.first.y - ab.second.y).pow(2.0))
-
-            val slopeL = (ab.second.y - ab.first.y) / (ab.second.x - ab.first.x)
-
-            for (a in c) {
-
-                var d = 1.0
-                var p2 = a
-
-                for (b in c) {
-                    val s = slopeL * ((a.y - b.y) / (a.x - b.x))
-                    if (abs(s+1) < d) {
-                        d = abs(s+1)
-                        p2 = b
-                    }
-                }
-
-                val w = sqrt((a.x - p2.x).pow(2.0) + (a.y - p2.y).pow(2.0))
-                if (w > width) {
-                    width = w
-                    ptsW[0] = a
-                    ptsW[1] = p2
+                    val p1 = contourPoints[i]
+                    val p2 = contourPoints[i + 1]
+                    val midPoint = Point2D.midPoint(p1, p2)
+                    points.add(p1)
+                    points.add(midPoint)
                 }
             }
 
-            Imgproc.line(dst, ptsW[0], ptsW[1], Scalar(0.0, 0.0, 255.0), 2); // width
-            Imgproc.line(dst, ab.first, ab.second, Scalar(0.0, 255.0, 0.0), 2); // length
+            return points
+        }
 
-            return length to width
+        fun measureSmartGrain(dst: Mat, contour: MatOfPoint): Pair<Double, Double> {
+
+            var points = contour.toArray().map { Point2D(it.x, it.y) }
+
+            points = generateMidPoints(points)
+
+            val longestLine = findLongestLine(contour.toArray(), arrayOf())
+            var minAxis = Line2D(Point2D(longestLine.first.x, longestLine.first.y), Point2D(longestLine.second.x, longestLine.second.y))
+            val longest = Line2D(Point2D(longestLine.first.x, longestLine.first.y), Point2D(longestLine.second.x, longestLine.second.y))
+            var minAxisLength = Double.MIN_VALUE
+            for (l in points) {
+                for (m in points) {
+
+                    val u = Vector2D(longest.point1, longest.point2)
+                    val v = Vector2D(l, m)
+
+                    val uMag = sqrt((longest.x2 - longest.x1).pow(2.0) + (longest.y1 - longest.y2).pow(2.0))
+                    val vMag = sqrt((m.x() - l.x()).pow(2.0) + (m.y() - l.y()).pow(2.0))
+                    val angle = acos((u.dot(v) / (uMag * vMag))) * 180 / Math.PI
+
+                    if (angle in 89.0..91.0) {
+
+                        if (vMag > minAxisLength) {
+                            minAxis = Line2D(l, m)
+                            minAxisLength = vMag
+                        }
+                    }
+                }
+            }
+
+            Imgproc.line(dst, Point(minAxis.x1, minAxis.y1), Point(minAxis.x2, minAxis.y2), Scalar(0.0, 255.0, 0.0), 2); // width
+            Imgproc.line(dst, Point(longest.x1, longest.y1), Point(longest.x2, longest.y2), Scalar(0.0, 0.0, 255.0), 2); // length
+
+            return longest.length() to minAxis.length()
         }
 
         //function that returns the center point of a contour

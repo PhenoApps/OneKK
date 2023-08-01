@@ -23,7 +23,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.evrencoskun.tableview.listener.ITableViewListener
-import kotlinx.android.synthetic.main.fragment_contour_list.*
 import kotlinx.coroutines.*
 import org.opencv.core.CvException
 import org.wheatgenetics.imageprocess.DrawSelectedContour
@@ -116,13 +115,17 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
         mBinding?.fragContourListTableView?.selectionHandler?.isShadowEnabled = false
 
-        sViewModel.getSourceImage(aid).observeOnce(viewLifecycleOwner, { uri ->
+        sViewModel.getSourceImage(aid).observeOnce(viewLifecycleOwner) { uri ->
 
             mSourceBitmap = uri
 
             try {
 
-                Glide.with(requireContext()).asBitmap().load(uri).fitCenter().into(imageView)
+                mBinding?.imageView?.let { iv ->
+
+                    Glide.with(requireContext()).asBitmap().load(uri).fitCenter().into(iv)
+
+                }
                 //imageView?.setImageBitmap(BitmapFactory.decodeFile(mSourceBitmap))
 
             } catch (e: Exception) {
@@ -131,7 +134,7 @@ class ContourFragment : Fragment(), CoroutineScope by MainScope(), ContourOnTouc
 
             mBinding?.imageView?.visibility = View.VISIBLE
 
-        })
+        }
 
         sViewModel.contours(aid).observeOnce(viewLifecycleOwner, { data ->
 

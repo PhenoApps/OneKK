@@ -9,7 +9,7 @@ class OnekkViewModelFactory(
         private val repo: OnekkRepository) : ViewModelProvider.Factory {
 
     @SuppressWarnings("UNCHECKED_CAST")
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
 
         return ExperimentViewModel(repo) as T
     }

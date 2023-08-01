@@ -179,7 +179,9 @@ class AboutFragment : MaterialAboutFragment() {
             packageManager.getPackageInfo(packageName, 0)
             MaterialAboutItemOnClickAction {
                 val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
-                startActivity(launchIntent)
+                launchIntent?.let { intent ->
+                    startActivity(intent)
+                }
             }
         } catch (e: PackageManager.NameNotFoundException) {
             ConvenienceBuilder.createWebsiteOnClickAction(c, Uri.parse("https://play.google.com/store/apps/details?id=$packageName"))

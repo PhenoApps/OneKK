@@ -243,6 +243,8 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
                 mPreferences.edit().putBoolean(getString(R.string.onekk_first_sample_load), false).apply()
 
             }
+
+            else -> {}
         }
     }
 
@@ -346,17 +348,25 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
             }
         }
 
-        checkPermissions.launch(arrayOf(android.Manifest.permission.CAMERA,
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+            checkPermissions.launch(arrayOf(android.Manifest.permission.CAMERA,
                 android.Manifest.permission.ACCESS_FINE_LOCATION,
                 android.Manifest.permission.BLUETOOTH,
                 android.Manifest.permission.READ_EXTERNAL_STORAGE,
                 android.Manifest.permission.WRITE_EXTERNAL_STORAGE))
+        } else {
+            checkPermissions.launch(arrayOf(android.Manifest.permission.CAMERA,
+                android.Manifest.permission.ACCESS_FINE_LOCATION,
+                android.Manifest.permission.BLUETOOTH))
+        }
 
         if (requireArguments().getString("mode") == "import") {
-            (activity as? MainActivity)?.invalidateMenu()
+            (activity as? MainActivity)?.forceInvalidateMenu()
             importFile.launch("image/*")
             arguments?.putString("mode", "default")
         }
+
+        setupFragment()
 
         return mBinding?.root
 
@@ -386,6 +396,14 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
                 } else mBluetoothManager.establishConnectionToAddress(this, macAddress)
             }
         }
+//        else {
+//
+//            //TODO: Instead of moving to Settings, the service can be automatically found (if it's available)
+//            //Toast.makeText(requireContext(), getString(R.string.frag_scale_no_mac_address_found_message), Toast.LENGTH_LONG).show()
+//
+//            //findNavController().navigate(ScaleFragmentDirections.actionToSettings())
+//
+//        }
     }
 
     /**
