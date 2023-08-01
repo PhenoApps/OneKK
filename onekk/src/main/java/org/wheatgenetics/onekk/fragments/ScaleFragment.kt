@@ -1,7 +1,10 @@
 package org.wheatgenetics.onekk.fragments
 
+import android.Manifest
 import android.content.Context.MODE_PRIVATE
+import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,16 +12,16 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.polidea.rxandroidble2.helpers.ValueInterpreter
-import kotlinx.android.synthetic.main.fragment_contour_list.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import org.wheatgenetics.onekk.R
 import org.wheatgenetics.onekk.database.OnekkDatabase
@@ -56,6 +59,15 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
 
     private val mBluetoothManager by lazy {
         BluetoothUtil(requireContext())
+    }
+
+    private val requestBluetooth = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
+
+        if (result.all { it.value }) {
+
+            startMacAddressSearch()
+
+        }
     }
 
     companion object {
@@ -131,13 +143,13 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
     //when the view is loaded, update the edit text with the saved weight
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.getAnalysis(aid).observeOnce(viewLifecycleOwner, { analysis ->
+        viewModel.getAnalysis(aid).observeOnce(viewLifecycleOwner) { analysis ->
             activity?.runOnUiThread {
-                analysis?.weight?.let {
+                analysis.weight?.let {
                     mBinding?.scaleFragmentEditText?.setText(it.toString())
                 }
             }
-        })
+        }
     }
 
     private fun callAskConnectDialog() {
@@ -184,7 +196,7 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
 
             viewModel.getSourceImage(aid).observeForever { url ->
 
-                imageView?.setImageBitmap(BitmapFactory.decodeFile(url))
+                mBinding?.imageView?.setImageBitmap(BitmapFactory.decodeFile(url))
 
             }
 
@@ -208,17 +220,30 @@ class ScaleFragment : Fragment(), CoroutineScope by MainScope(), BleNotification
 
         val macAddress = mPreferences.getString(getString(R.string.preferences_enable_bluetooth_key), null)
 
-        if (macAddress != null) {
+        context?.let { ctx ->
 
-            mBluetoothManager.establishConnectionToAddress(this, macAddress)
+            if (macAddress != null) {
 
-        } else {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
 
-            //TODO: Instead of moving to Settings, the service can be automatically found (if it's available)
-            Toast.makeText(requireContext(), getString(R.string.frag_scale_no_mac_address_found_message), Toast.LENGTH_LONG).show()
+                    if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED
+                        && ContextCompat.checkSelfPermission(ctx, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
 
-//            findNavController().navigate(ScaleFragmentDirections.actionToSettings())
+                        mBluetoothManager.establishConnectionToAddress(this, macAddress)
 
+                    } else {
+
+                        requestBluetooth.launch(arrayOf(Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN))
+
+                    }
+
+                } else mBluetoothManager.establishConnectionToAddress(this, macAddress)
+
+            } else {
+
+                Toast.makeText(requireContext(), getString(R.string.frag_scale_no_mac_address_found_message), Toast.LENGTH_LONG).show()
+
+            }
         }
     }
 

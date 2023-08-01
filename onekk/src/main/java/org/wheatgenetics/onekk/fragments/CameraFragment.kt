@@ -1,9 +1,12 @@
 package org.wheatgenetics.onekk.fragments
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.*
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.*
@@ -82,6 +85,15 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
         BluetoothUtil(requireContext())
     }
 
+    private val requestBluetooth = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
+
+        if (result.all { it.value }) {
+
+            startMacAddressSearch()
+
+        }
+    }
+
     private lateinit var captureDirectory: File
     private lateinit var analyzedDirectory: File
 
@@ -114,7 +126,27 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
         //ensure all permissions are granted
         if (granted.values.all { it }) {
 
-            setupFragment()
+            when (mPreferences?.getBoolean(getString(R.string.onekk_first_load_ask_mac_address), true)) {
+
+                true -> {
+                    Dialogs.onOk(AlertDialog.Builder(requireContext()),
+                        getString(R.string.camera_fragment_dialog_first_load_ask_address),
+                        getString(android.R.string.cancel),
+                        getString(R.string.camera_fragment_dialog_first_load_ok)) { theyWantToSetAddress ->
+
+                        if (theyWantToSetAddress) {
+
+                            findNavController().navigate(CameraFragmentDirections.globalActionToSettings())
+
+                        }
+                    }
+
+                    mPreferences?.edit()?.putBoolean(getString(R.string.onekk_first_load_ask_mac_address), false)?.apply()
+
+                }
+
+                else -> setupFragment()
+            }
 
         } else {
             //TODO show message saying camera/bluetooth/storage is required to start camera preview
@@ -211,6 +243,8 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
                 mPreferences.edit().putBoolean(getString(R.string.onekk_first_sample_load), false).apply()
 
             }
+
+            else -> {}
         }
     }
 
@@ -303,47 +337,36 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
                 }
             }
 
-            barcodeViewModel.lastScan.observe(viewLifecycleOwner, {
+            barcodeViewModel.lastScan.observe(viewLifecycleOwner) {
 
                 mBinding?.nameEditText?.setText(it)
 
-            })
+            }
 
             this?.barcodeScanButton?.setOnClickListener {
                 findNavController().navigate(CameraFragmentDirections.actionToBarcodeScanner())
             }
         }
 
-        when (mPreferences?.getBoolean(getString(R.string.onekk_first_load_ask_mac_address), true)) {
-
-            true -> {
-                Dialogs.onOk(AlertDialog.Builder(requireContext()),
-                        getString(R.string.camera_fragment_dialog_first_load_ask_address),
-                        getString(android.R.string.cancel),
-                        getString(R.string.camera_fragment_dialog_first_load_ok)) { theyWantToSetAddress ->
-
-                    if (theyWantToSetAddress) {
-
-                        findNavController().navigate(CameraFragmentDirections.globalActionToSettings())
-
-                    }
-                }
-            }
-        }
-
-        mPreferences?.edit()?.putBoolean(getString(R.string.onekk_first_load_ask_mac_address), false)?.apply()
-
-        checkPermissions.launch(arrayOf(android.Manifest.permission.CAMERA,
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+            checkPermissions.launch(arrayOf(android.Manifest.permission.CAMERA,
                 android.Manifest.permission.ACCESS_FINE_LOCATION,
                 android.Manifest.permission.BLUETOOTH,
                 android.Manifest.permission.READ_EXTERNAL_STORAGE,
                 android.Manifest.permission.WRITE_EXTERNAL_STORAGE))
+        } else {
+            checkPermissions.launch(arrayOf(android.Manifest.permission.CAMERA,
+                android.Manifest.permission.ACCESS_FINE_LOCATION,
+                android.Manifest.permission.BLUETOOTH))
+        }
 
         if (requireArguments().getString("mode") == "import") {
-            (activity as? MainActivity)?.invalidateMenu()
+            (activity as? MainActivity)?.forceInvalidateMenu()
             importFile.launch("image/*")
             arguments?.putString("mode", "default")
         }
+
+        setupFragment()
 
         return mBinding?.root
 
@@ -353,10 +376,25 @@ class CameraFragment : Fragment(), BleStateListener, BleNotificationListener, Co
 
         val macAddress = mPreferences?.getString(getString(R.string.preferences_enable_bluetooth_key), null)
 
-        if (macAddress != null) {
+        context?.let { ctx ->
 
-            mBluetoothManager.establishConnectionToAddress(this, macAddress)
+            if (macAddress != null) {
 
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+
+                    if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED
+                        && ContextCompat.checkSelfPermission(ctx, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+
+                        mBluetoothManager.establishConnectionToAddress(this, macAddress)
+
+                    } else {
+
+                        requestBluetooth.launch(arrayOf(Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN))
+
+                    }
+
+                } else mBluetoothManager.establishConnectionToAddress(this, macAddress)
+            }
         }
 //        else {
 //
