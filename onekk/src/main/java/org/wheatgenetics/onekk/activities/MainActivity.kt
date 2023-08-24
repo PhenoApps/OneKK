@@ -112,8 +112,6 @@ class MainActivity : RequireCollectorActivity(), CoroutineScope by MainScope() {
             }
         }
 
-        setupActivity()
-
         val mPreferences = getSharedPreferences(getString(R.string.onekk_preference_key), MODE_PRIVATE)
 
         when (mPreferences.getBoolean(getString(R.string.onekk_first_coin_load), true)) {
@@ -126,7 +124,11 @@ class MainActivity : RequireCollectorActivity(), CoroutineScope by MainScope() {
 
                 startActivity(Intent(this, IntroActivity::class.java))
 
+                setupActivity()
             }
+
+            else -> setupActivity()
+
         }
     }
 
@@ -136,7 +138,7 @@ class MainActivity : RequireCollectorActivity(), CoroutineScope by MainScope() {
 
         viewModel.coins().observeOnce(this) {
 
-            it?.let {
+            it.let {
 
                 if (it.isEmpty()) {
 
@@ -255,7 +257,7 @@ class MainActivity : RequireCollectorActivity(), CoroutineScope by MainScope() {
      * Hack to update the options menu selected item by re inflating the menu
      * By default, the bottom nav bar does not update the selected item when back button is pressed.
      */
-    fun invalidateMenu() {
+    fun forceInvalidateMenu() {
 
         launch {
 
@@ -275,7 +277,7 @@ class MainActivity : RequireCollectorActivity(), CoroutineScope by MainScope() {
      */
     override fun onBackPressed() {
 
-        if (mNavController.currentDestination?.id !in setOf(R.id.scale_fragment, R.id.coin_manager)) invalidateMenu()
+        if (mNavController.currentDestination?.id !in setOf(R.id.scale_fragment, R.id.coin_manager)) forceInvalidateMenu()
 
         mNavController.currentDestination?.let { it ->
 

@@ -6,22 +6,18 @@ import android.content.Context.MODE_PRIVATE
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.preference.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
 import org.wheatgenetics.onekk.R
-import org.wheatgenetics.onekk.activities.MainActivity
 import org.wheatgenetics.onekk.database.OnekkDatabase
 import org.wheatgenetics.onekk.database.OnekkRepository
 import org.wheatgenetics.onekk.database.viewmodels.ExperimentViewModel
@@ -95,7 +91,7 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
 
         val countryPreference = findPreference<ListPreference>("org.wheatgenetics.onekk.REFERENCE_COUNTRY")
         val namePreference = findPreference<ListPreference>("org.wheatgenetics.onekk.REFERENCE_NAME")
@@ -254,7 +250,7 @@ class SettingsFragment : CoroutineScope by MainScope(), PreferenceFragmentCompat
 
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
 
-                            context?.let { ctx ->
+                            context.let { ctx ->
                                 if (ContextCompat.checkSelfPermission(
                                         ctx,
                                         Manifest.permission.BLUETOOTH_CONNECT

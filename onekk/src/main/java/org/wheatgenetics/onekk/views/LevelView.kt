@@ -137,7 +137,7 @@ class LevelView(ctx: Context, attributeSet: AttributeSet?): FrameLayout(ctx, att
     /**
      * This is called whenever a sensor event is received from invalidate().
      */
-    override fun onDraw(canvas: Canvas?) {
+    override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
         canvas?.apply {
