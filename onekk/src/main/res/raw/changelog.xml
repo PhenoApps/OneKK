@@ -1,6 +1,13 @@
 <changelog>
     <release
         date="2022-09-07"
+        versionCode="220"
+        versionName="v2.2.0">
+        <bugfix>Updates to SmartGrain algorithm</bugfix>
+    </release>
+
+    <release
+        date="2022-09-07"
         versionCode="212"
         versionName="v2.1.2">
         <bugfix>Fix for Bluetooth Scale connections on Android 12+</bugfix>

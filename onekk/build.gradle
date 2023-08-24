@@ -25,8 +25,8 @@ android {
         applicationId "org.wheatgenetics.onekk"
         minSdkVersion 26
         targetSdkVersion 33
-        versionCode = 211
-        versionName = '2.1.1'
+        versionCode = 220
+        versionName = '2.2.0'
         multiDexEnabled true
         renderscriptTargetApi 24
         renderscriptSupportModeEnabled false
